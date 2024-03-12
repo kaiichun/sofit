@@ -1,24 +1,69 @@
-import logo from './logo.svg';
-import './App.css';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import "./App.css";
+import AppWrapper from "./AppWrapper";
+import Home from "./Home";
+import Login from "./Login";
+import Clients from "./Clients";
+import Trains from "./Trains";
+import Calendar from "./Calendar";
+import DataAnalysis from "./DataAnalysis";
+import ClientInfoEdit from "./ClientInfoEdit";
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Login />} />
+        <Route
+          path="/home"
+          element={
+            <AppWrapper>
+              <Home />
+            </AppWrapper>
+          }
+        />
+        <Route
+          path="/clients"
+          element={
+            <AppWrapper>
+              <Clients />
+            </AppWrapper>
+          }
+        />
+        <Route
+          path="/client-info-edit"
+          element={
+            <AppWrapper>
+              <ClientInfoEdit />
+            </AppWrapper>
+          }
+        />
+        <Route
+          path="/trains"
+          element={
+            <AppWrapper>
+              <Trains />
+            </AppWrapper>
+          }
+        />
+        <Route
+          path="/calendar"
+          element={
+            <AppWrapper>
+              <Calendar />
+            </AppWrapper>
+          }
+        />
+        <Route
+          path="/data-analysis"
+          element={
+            <AppWrapper>
+              <DataAnalysis />
+            </AppWrapper>
+          }
+        />
+      </Routes>
+    </Router>
   );
 }
 
