@@ -4,10 +4,11 @@ import AppWrapper from "./AppWrapper";
 import Home from "./Home";
 import Login from "./Login";
 import Clients from "./Clients";
-import Trains from "./Trains";
+import StaffAdd from "./StaffAdd";
 import Calendar from "./Calendar";
 import DataAnalysis from "./DataAnalysis";
 import ClientInfoEdit from "./ClientInfoEdit";
+import StaffEdit from "./StaffEdit";
 
 function App() {
   return (
@@ -42,7 +43,15 @@ function App() {
           path="/trains"
           element={
             <AppWrapper>
-              <Trains />
+              <StaffAdd />
+            </AppWrapper>
+          }
+        />
+        <Route
+          path="/edit-info/:id"
+          element={
+            <AppWrapper>
+              <StaffEdit />
             </AppWrapper>
           }
         />

@@ -12,12 +12,54 @@ import {
   Footer,
 } from "@mantine/core";
 import logo from "../Logo/sofit-icon.jpg";
-import { Link, useNavigate } from "react-router-dom";
 import { FaFacebook } from "react-icons/fa";
 import { RiInstagramFill } from "react-icons/ri";
+import { useState } from "react";
+import { useCookies } from "react-cookie";
+import { Link, useNavigate } from "react-router-dom";
+import { useMutation } from "@tanstack/react-query";
+import { notifications } from "@mantine/notifications";
+import { loginUser } from "../api/auth";
 
 function Login() {
+  const [cookies, setCookie] = useCookies(["currentUser"]);
   const navigate = useNavigate();
+  const [email, setEmail] = useState();
+  const [username, setUsername] = useState();
+  const [password, setPassword] = useState();
+
+  const loginMutation = useMutation({
+    mutationFn: loginUser,
+    onSuccess: (user) => {
+      // store user data into cookies
+      setCookie("currentUser", user, {
+        maxAge: 60 * 60 * 24 * 30,
+      });
+      // redirect to home
+      navigate("/home");
+    },
+    onError: (error) => {
+      notifications.show({
+        title: error.response.data.message,
+        color: "red",
+      });
+    },
+  });
+
+  const handleSubmit = () => {
+    // make sure email or username & password are not empty.
+    if ((!email && !username) || !password) {
+      notifications.show({
+        title: "Please fill in both email/username and password.",
+        color: "red",
+      });
+    } else {
+      // Check if email is provided, if not, use username
+      const loginData = email ? { email, password } : { username, password };
+      loginMutation.mutate(JSON.stringify(loginData));
+    }
+  };
+
   return (
     <>
       <Container>
@@ -42,32 +84,36 @@ function Login() {
           </Text>
           <Space h="30px" />
           <TextInput
-            //   value={email}
-            placeholder="User ID"
+            value={email || username} // Use email if available, otherwise use username
+            placeholder="Email or Username"
             required
             style={{ marginLeft: "40px", marginRight: "40px" }}
-            //   onChange={(event) => setEmail(event.target.value)}
+            onChange={(event) => {
+              const { value } = event.target;
+              // Check if input looks like an email
+              if (value.includes("@")) {
+                setEmail(value);
+                setUsername("");
+              } else {
+                setUsername(value);
+                setEmail("");
+              }
+            }}
           />
           <Space h="15px" />
           <PasswordInput
-            //   value={password}
+            value={password}
             placeholder="Password"
             required
             style={{ marginLeft: "40px", marginRight: "40px" }}
-            //   onChange={(event) => setPassword(event.target.value)}
+            onChange={(event) => setPassword(event.target.value)}
           />
           <Space h="30px" />
           <Group
             position="center"
             style={{ marginLeft: "40px", marginRight: "40px" }}
           >
-            <Button
-              size="sm"
-              radius="sm"
-              component={Link}
-              to="/home"
-              //    onClick={handleSubmit}
-            >
+            <Button size="sm" radius="sm" onClick={handleSubmit}>
               Login
             </Button>
           </Group>

@@ -15,15 +15,21 @@ import {
   Divider,
   Image,
 } from "@mantine/core";
-import { Link } from "react-router-dom";
+import { useCookies } from "react-cookie";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import "../App.css";
 import { FaUsers } from "react-icons/fa";
 import { IoIosLogIn, IoIosFitness } from "react-icons/io";
+import { FaUserEdit } from "react-icons/fa";
 import { IoCalendarSharp } from "react-icons/io5";
 import { SiAlwaysdata } from "react-icons/si";
 
 const AppWrapper = ({ children }) => {
   const theme = useMantineTheme();
+  const [cookies, setCookies, removeCookies] = useCookies(["currentUser"]);
+  const { id } = useParams();
+  const { currentUser } = cookies;
+  const navigate = useNavigate();
   const [opened, setOpened] = useState(false);
   return (
     <AppShell
@@ -126,12 +132,8 @@ const AppWrapper = ({ children }) => {
                       }}
                     >
                       <img
-                        // src={
-                        //   "http://10.1.104.3:1205/" +
-                        //   cookies.currentUser.image
-                        // }
                         src={
-                          "https://static.vecteezy.com/system/resources/previews/019/896/012/original/female-user-avatar-icon-in-flat-design-style-person-signs-illustration-png.png"
+                          "http://localhost:2019/" + cookies.currentUser.image
                         }
                         alt="Login Picture"
                         style={{
@@ -140,55 +142,50 @@ const AppWrapper = ({ children }) => {
                           borderRadius: "50%",
                         }}
                       />
+                      <Text size={15} m={14}>
+                        {cookies.currentUser.name}
+                      </Text>
                     </Button>
                   </Menu.Target>
                   <Menu.Dropdown>
-                    {/* <Menu.Item>
-                      <Group>
-                        {/* <img
-                          // src={
-                          //   "http://10.1.104.3:1205/" +
-                          //   cookies.currentUser.image
-                          // }
-                          src={
-                            "http://localhost:1205/" + cookies.currentUser.image
-                          }
-                          alt="Login Picture"
-                          style={{
-                            width: "38px",
-                            height: "38px",
-                            borderRadius: "50%",
-                          }}
-                        /> */}
-                    {/* <div style={{ paddingTop: "8px" }}>
-                          <UnstyledButton
-                            variant="transparent"
-                            size="sm"
-                            component={Link}
-                            to={"/user_info/" + cookies.currentUser._id}
+                    <Menu.Item>
+                      <UnstyledButton
+                        variant="transparent"
+                        size="sm"
+                        component={Link}
+                        to={"/edit-info/" + cookies.currentUser._id}
+                      >
+                        <Group>
+                          <FaUserEdit
+                            style={{
+                              width: "20px",
+                              height: "20px",
+                              margin: "0",
+                            }}
+                          />
+                          <span
+                            style={{
+                              padding: "0",
+                              margin: "0",
+                            }}
                           >
-                            <Text size={17}>{cookies.currentUser.name}</Text>
-                            <Text size={8}>@{cookies.currentUser._id}</Text>
-                            <Space h="5px" />
-                            <Link to={"/user_info/" + cookies.currentUser._id}>
-                              Manage your account
-                            </Link>
-                          </UnstyledButton>
-                        </div>
-                      </Group>
+                            Edit Profile
+                          </span>
+                        </Group>
+                      </UnstyledButton>
                     </Menu.Item>
-                    <Menu.Divider /> */}
+                    <Menu.Divider />
                     <Menu.Item>
                       <UnstyledButton
                         variant="transparent"
                         size="sm"
                         component={Link}
                         to="/"
-                        // onClick={() => {
-                        //   // clear the currentUser cookie to logout
-                        //   removeCookies("currentUser");
-                        //   navigate("/login");
-                        // }}
+                        onClick={() => {
+                          // clear the currentUser cookie to logout
+                          removeCookies("currentUser");
+                          navigate("/");
+                        }}
                       >
                         <Group>
                           <IoIosLogIn
