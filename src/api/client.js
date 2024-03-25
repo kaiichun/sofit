@@ -42,6 +42,19 @@ export const addClientDetails = async ({ data, token = "" }) => {
   return response.data;
 };
 
+export const updateClient = async ({ id, data, token = "" }) => {
+  const response = await axios({
+    method: "PUT",
+    url: API_URL + "/clients/" + id,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + token,
+    },
+    data: data,
+  });
+  return response.data;
+};
+
 export const deleteClientAdmin = async ({ id = "", token = "" }) => {
   const response = await axios({
     method: "DELETE",

@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useCookies } from "react-cookie";
-import { Link, useNavigate } from "react-router-dom";
-import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { Link, useNavigate, useParams } from "react-router-dom";
+
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import {
@@ -25,15 +26,19 @@ import {
 import { Dropzone, IMAGE_MIME_TYPE } from "@mantine/dropzone";
 import {
   fetchClients,
-  fetchPersonalClient,
   addClientDetails,
+  getClients,
+  updateClient,
 } from "../api/client";
 import sofitLogo from "../Logo/sofit-black.png";
 import { MdUpload } from "react-icons/md";
 
-const ClientAdd = () => {
-  const [cookies, setCookie] = useCookies(["currentUser"]);
+const ClientEdit = () => {
+  const [cookies] = useCookies(["currentUser"]);
   const { currentUser } = cookies;
+  const { id } = useParams();
+  const navigate = useNavigate();
+
   const [clientName, setClientName] = useState("");
   const [clientGender, setClientGender] = useState("Male");
   const [clientIc, setClientIc] = useState();
@@ -81,24 +86,75 @@ const ClientAdd = () => {
   const [packageValidityPeriod, setPackageValidityPeriod] = useState();
   const [clientPackage, setClientPackage] = useState("");
   const [sessions, setSessions] = useState("");
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const [visible, { toggle }] = useDisclosure(false);
 
-  const searchClientMutation = useMutation({
-    mutationFn: fetchClients,
+  const [visible, { toggle }] = useDisclosure(false);
+  const { isLoading } = useQuery({
+    queryKey: ["videos", id],
+    queryFn: () => getClients(id),
     onSuccess: (data) => {
-      queryClient.setQueryData(["clients"], data);
-      navigate("/");
+      setClientName(data.clientName);
+      setClientGender(data.clientGender);
+      setClientIc(data.clientIc);
+      setClientHeight(data.clientHeight);
+      setClientWeight(data.clientWeight);
+      setClientEmail(data.clientEmail);
+      setClientPhonenumber(data.clientPhonenumber);
+      setClientEmergencycontact(data.clientEmergencycontact);
+      setClientEmergencycontactname(data.clientEmergencycontactname);
+      setClientAddress1(data.clientAddress1);
+      setClientAddress2(data.clientAddress2);
+      setClientZip(data.clientZip);
+      setClientState(data.clientState);
+      setExeQ1(data.exeQ1);
+      setExeQ2(data.exeQ2);
+      setExeQ3a(data.exeQ3a);
+      setExeQ3b(data.exeQ3b);
+      setExeQ3c(data.exeQ3c);
+      setExeQ3d(data.exeQ3d);
+      setDietQ1(data.dietQ1);
+      setDietQ2(data.dietQ2);
+      setDietQ3(data.dietQ3);
+      setDietQ4(data.dietQ4);
+      setDietQ5(data.dietQ5);
+      setDietQ6(data.dietQ6);
+      setDietQ7(data.dietQ7);
+      setDietQ8(data.dietQ8);
+      setLifeQ1(data.lifeQ1);
+      setLifeQ2(data.lifeQ2);
+      setLifeQ3(data.lifeQ3);
+      setLifeQ4(data.lifeQ4);
+      setOccupationQ1(data.occupationQ1);
+      setOccupationQ2(data.occupationQ2);
+      setOccupationQ3(data.occupationQ3);
+      setOccupationQ4(data.occupationQ4);
+      setRQ1(data.rQ1);
+      setRQ2(data.rQ2);
+      setMedQ1(data.medQ1);
+      setMedQ2(data.medQ2);
+      setMedQ3(data.medQ3);
+      setMedQ4(data.medQ4);
+      setMedQ5(data.medQ5);
+      setAddNote(data.addNote);
+      setPackageValidityPeriod(data.packageValidityPeriod);
+      setClientPackage(data.clientPackage);
+      setSessions(data.sessions);
     },
   });
 
-  const createMutation = useMutation({
-    mutationFn: addClientDetails,
+  const updateMutation = useMutation({
+    mutationFn: updateClient,
     onSuccess: () => {
+      // show add success message
+      // 显示添加成功消息
+      notifications.show({
+        title: "Client info updated successfully",
+        color: "green",
+      });
+
       navigate("/home");
     },
     onError: (error) => {
+      console.log(error);
       notifications.show({
         title: error.response.data.message,
         color: "red",
@@ -106,104 +162,62 @@ const ClientAdd = () => {
     },
   });
 
-  const handleSubmit = () => {
-    if (
-      !clientName ||
-      !clientGender ||
-      !clientIc ||
-      !clientHeight ||
-      !clientWeight ||
-      !clientEmail ||
-      !clientPhonenumber ||
-      !clientEmergencycontactname ||
-      !clientEmergencycontact ||
-      !clientAddress1 ||
-      !clientZip ||
-      !clientState ||
-      !exeQ1 ||
-      !exeQ2 ||
-      !exeQ3a ||
-      !exeQ3b ||
-      !exeQ3c ||
-      !exeQ3d ||
-      !dietQ1 ||
-      !dietQ2 ||
-      !dietQ3 ||
-      !dietQ4 ||
-      !dietQ5 ||
-      !dietQ6 ||
-      !dietQ7 ||
-      !dietQ8 ||
-      !lifeQ1 ||
-      !lifeQ2 ||
-      !lifeQ3 ||
-      !lifeQ4 ||
-      !occupationQ1 ||
-      !occupationQ4 ||
-      !medQ1 ||
-      !medQ2 ||
-      !medQ3 ||
-      !packageValidityPeriod ||
-      !clientPackage ||
-      !sessions
-    ) {
-      notifications.show({
-        title: "Please fill in all fields",
-        color: "red",
-      });
-    } else {
-      createMutation.mutate({
-        data: JSON.stringify({
-          clientName: clientName,
-          clientGender: clientGender,
-          clientIc: clientIc,
-          clientHeight: clientHeight,
-          clientWeight: clientWeight,
-          clientEmail: clientEmail,
-          clientPhonenumber: clientPhonenumber,
-          clientEmergencycontactname: clientEmergencycontactname,
-          clientEmergencycontact: clientEmergencycontact,
-          clientAddress1: clientAddress1,
-          clientAddress2: clientAddress2,
-          clientZip: clientZip,
-          clientState: clientState,
-          exeQ1: exeQ1,
-          exeQ2: exeQ2,
-          exeQ3a: exeQ3a,
-          exeQ3b: exeQ3b,
-          exeQ3c: exeQ3c,
-          exeQ3d: exeQ3d,
-          dietQ1: dietQ1,
-          dietQ2: dietQ2,
-          dietQ3: dietQ3,
-          dietQ4: dietQ4,
-          dietQ5: dietQ5,
-          dietQ6: dietQ6,
-          dietQ7: dietQ7,
-          dietQ8: dietQ8,
-          lifeQ1: lifeQ1,
-          lifeQ2: lifeQ2,
-          lifeQ3: lifeQ3,
-          lifeQ4: lifeQ4,
-          occupationQ1: occupationQ1,
-          occupationQ2: occupationQ2,
-          occupationQ3: occupationQ3,
-          occupationQ4: occupationQ4,
-          rQ1: rQ1,
-          rQ2: rQ2,
-          medQ1: medQ1,
-          medQ2: medQ2,
-          medQ3: medQ3,
-          medQ4: medQ4,
-          medQ5: medQ5,
-          addNote: addNote,
-          packageValidityPeriod: packageValidityPeriod,
-          clientPackage: clientPackage,
-          sessions: sessions,
-        }),
-        token: currentUser ? currentUser.token : "",
-      });
-    }
+  const handleUpdateClient = async (event) => {
+    // 阻止表单默认提交行为
+    event.preventDefault();
+    // 使用updateMutation mutation来更新商品信息
+    updateMutation.mutate({
+      id: id,
+      data: JSON.stringify({
+        clientName: clientName,
+        clientGender: clientGender,
+        clientIc: clientIc,
+        clientHeight: clientHeight,
+        clientWeight: clientWeight,
+        clientEmail: clientEmail,
+        clientPhonenumber: clientPhonenumber,
+        clientEmergencycontactname: clientEmergencycontactname,
+        clientEmergencycontact: clientEmergencycontact,
+        clientAddress1: clientAddress1,
+        clientAddress2: clientAddress2,
+        clientZip: clientZip,
+        clientState: clientState,
+        exeQ1: exeQ1,
+        exeQ2: exeQ2,
+        exeQ3a: exeQ3a,
+        exeQ3b: exeQ3b,
+        exeQ3c: exeQ3c,
+        exeQ3d: exeQ3d,
+        dietQ1: dietQ1,
+        dietQ2: dietQ2,
+        dietQ3: dietQ3,
+        dietQ4: dietQ4,
+        dietQ5: dietQ5,
+        dietQ6: dietQ6,
+        dietQ7: dietQ7,
+        dietQ8: dietQ8,
+        lifeQ1: lifeQ1,
+        lifeQ2: lifeQ2,
+        lifeQ3: lifeQ3,
+        lifeQ4: lifeQ4,
+        occupationQ1: occupationQ1,
+        occupationQ2: occupationQ2,
+        occupationQ3: occupationQ3,
+        occupationQ4: occupationQ4,
+        rQ1: rQ1,
+        rQ2: rQ2,
+        medQ1: medQ1,
+        medQ2: medQ2,
+        medQ3: medQ3,
+        medQ4: medQ4,
+        medQ5: medQ5,
+        addNote: addNote,
+        packageValidityPeriod: packageValidityPeriod,
+        clientPackage: clientPackage,
+        sessions: sessions,
+      }),
+      token: currentUser ? currentUser.token : "",
+    });
   };
 
   return (
@@ -778,7 +792,9 @@ const ClientAdd = () => {
         </Grid>
         <Space h="50px" />
         <Group position="center">
-          <Button onClick={handleSubmit}>Add New Client</Button>
+          <Button onClick={handleUpdateClient}>
+            Update Client Information
+          </Button>
         </Group>
         <Space h="20px" />
       </Card>
@@ -805,4 +821,4 @@ const ClientAdd = () => {
   );
 };
 
-export default ClientAdd;
+export default ClientEdit;

@@ -5,10 +5,12 @@ import Home from "./Home";
 import Login from "./Login";
 import Clients from "./Clients";
 import StaffAdd from "./StaffAdd";
-import Calendar from "./Calendar";
-import DataAnalysis from "./DataAnalysis";
-import ClientInfoEdit from "./ClientInfoEdit";
 import StaffEdit from "./StaffEdit";
+import AppointmentCalendar from "./Calendar";
+import DataAnalysis from "./DataAnalysis";
+import ClientEdit from "./ClientEdit";
+import ClientAdd from "./ClientAdd";
+import ClientBMI from "./ClientBMI";
 
 function App() {
   return (
@@ -32,10 +34,26 @@ function App() {
           }
         />
         <Route
-          path="/client-info-edit"
+          path="/add-client"
           element={
             <AppWrapper>
-              <ClientInfoEdit />
+              <ClientAdd />
+            </AppWrapper>
+          }
+        />
+        <Route
+          path="/edit-client-info/:id"
+          element={
+            <AppWrapper>
+              <ClientEdit />
+            </AppWrapper>
+          }
+        />
+        <Route
+          path="/composition-client/:id"
+          element={
+            <AppWrapper>
+              <ClientBMI />
             </AppWrapper>
           }
         />
@@ -59,7 +77,7 @@ function App() {
           path="/calendar"
           element={
             <AppWrapper>
-              <Calendar />
+              <AppointmentCalendar />
             </AppWrapper>
           }
         />
