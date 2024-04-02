@@ -1,18 +1,42 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
+import { useCookies } from "react-cookie";
+import { useMemo } from "react";
+
 import "./App.css";
 import AppWrapper from "./AppWrapper";
 import Home from "./Home";
 import Login from "./Login";
 import Clients from "./Clients";
 import StaffAdd from "./StaffAdd";
+import Staffs from "./Staffs";
 import StaffEdit from "./StaffEdit";
 import AppointmentCalendar from "./Calendar";
 import DataAnalysis from "./DataAnalysis";
 import ClientEdit from "./ClientEdit";
 import ClientAdd from "./ClientAdd";
 import ClientBMI from "./ClientBMI";
+import CalendarTest from "./CalendarTest";
+import PerformanceManagementSystem from "./PerformanceManagementSystem";
 
 function App() {
+  const [cookies] = useCookies(["currentUser"]);
+
+  const isAdminB = useMemo(() => {
+    return cookies &&
+      cookies.currentUser &&
+      cookies.currentUser.role === "Admin Branch"
+      ? true
+      : false;
+  }, [cookies]);
+
+  const isAdminHQ = useMemo(() => {
+    return cookies &&
+      cookies.currentUser &&
+      cookies.currentUser.role === "Admin HQ"
+      ? true
+      : false;
+  }, [cookies]);
   return (
     <Router>
       <Routes>
@@ -57,14 +81,26 @@ function App() {
             </AppWrapper>
           }
         />
+
         <Route
-          path="/trains"
+          path="/add-staff"
           element={
             <AppWrapper>
               <StaffAdd />
             </AppWrapper>
           }
         />
+
+        {(isAdminB || isAdminHQ) && (
+          <Route
+            path="/staffs"
+            element={
+              <AppWrapper>
+                <Staffs />
+              </AppWrapper>
+            }
+          />
+        )}
         <Route
           path="/edit-info/:id"
           element={
@@ -86,6 +122,22 @@ function App() {
           element={
             <AppWrapper>
               <DataAnalysis />
+            </AppWrapper>
+          }
+        />
+        <Route
+          path="/pms"
+          element={
+            <AppWrapper>
+              <PerformanceManagementSystem />
+            </AppWrapper>
+          }
+        />
+        <Route
+          path="/calendartest"
+          element={
+            <AppWrapper>
+              <CalendarTest />
             </AppWrapper>
           }
         />

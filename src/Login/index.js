@@ -154,12 +154,12 @@ function Login() {
         </Group>
       </Container>
       <Space h={200} />
-      <Text ta="center" c="dimmed" fz="sm">
+      {/* <Text ta="center" c="dimmed" fz="sm">
         Power by AWS
       </Text>
       <Text ta="center" c="dimmed" fz="xs">
         Delevoper by KC
-      </Text>
+      </Text> */}
     </>
   );
 }

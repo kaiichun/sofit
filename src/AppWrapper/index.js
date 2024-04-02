@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   AppShell,
   Navbar,
@@ -22,6 +22,7 @@ import { FaUsers } from "react-icons/fa";
 import { IoIosLogIn, IoIosFitness } from "react-icons/io";
 import { FaUserEdit } from "react-icons/fa";
 import { IoCalendarSharp } from "react-icons/io5";
+import { FaMoneyBillTrendUp } from "react-icons/fa6";
 import { SiAlwaysdata } from "react-icons/si";
 
 const AppWrapper = ({ children }) => {
@@ -31,6 +32,22 @@ const AppWrapper = ({ children }) => {
   const { currentUser } = cookies;
   const navigate = useNavigate();
   const [opened, setOpened] = useState(false);
+
+  const isAdminB = useMemo(() => {
+    return cookies &&
+      cookies.currentUser &&
+      cookies.currentUser.role === "Admin Branch"
+      ? true
+      : false;
+  }, [cookies]);
+
+  const isAdminHQ = useMemo(() => {
+    return cookies &&
+      cookies.currentUser &&
+      cookies.currentUser.role === "Admin HQ"
+      ? true
+      : false;
+  }, [cookies]);
   return (
     <AppShell
       styles={{
@@ -58,7 +75,7 @@ const AppWrapper = ({ children }) => {
               </div>
             </UnstyledButton>
             {/* <Divider mt="4px" mb="4px" /> */}
-            <UnstyledButton
+            {/* <UnstyledButton
               component={Link}
               to={"/trains"}
               variant="transparent"
@@ -69,7 +86,7 @@ const AppWrapper = ({ children }) => {
                   Trains
                 </Group>
               </div>
-            </UnstyledButton>
+            </UnstyledButton> */}
             {/* <Divider mt="4px" mb="4px" /> */}
             <UnstyledButton
               component={Link}
@@ -96,6 +113,28 @@ const AppWrapper = ({ children }) => {
                 </Group>
               </div>
             </UnstyledButton>
+            <UnstyledButton component={Link} to={"/pms"} variant="transparent">
+              <div className="item">
+                <Group>
+                  <FaMoneyBillTrendUp width="80px" height="80px" />
+                  PMS
+                </Group>
+              </div>
+            </UnstyledButton>
+            {(isAdminB || isAdminHQ) && (
+              <UnstyledButton
+                component={Link}
+                to={"/staffs"}
+                variant="transparent"
+              >
+                <div className="item">
+                  <Group>
+                    <FaUsers width="80px" height="80px" />
+                    Staffs
+                  </Group>
+                </div>
+              </UnstyledButton>
+            )}
           </Navbar>
         )
       }

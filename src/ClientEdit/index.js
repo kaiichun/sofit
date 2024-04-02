@@ -151,7 +151,7 @@ const ClientEdit = () => {
         color: "green",
       });
 
-      navigate("/home");
+      navigate("/clients");
     },
     onError: (error) => {
       console.log(error);

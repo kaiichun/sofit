@@ -28,7 +28,7 @@ import { registerUser, uploadProfileImage } from "../api/auth";
 import sofitLogo from "../Logo/sofit-black.png";
 import { MdUpload } from "react-icons/md";
 
-const StaffAdd = () => {
+const PerformanceManagementSystem = () => {
   const [cookies, setCookie] = useCookies(["currentUser"]);
   const [name, setName] = useState("");
   const [username, setUsername] = useState();
@@ -200,94 +200,13 @@ const StaffAdd = () => {
               </Link>
             </Group>
             <Title order={4} align="center">
-              Add a new staff
+              Performance Management System
             </Title>
             <Text align="center" order={6}>
-              Enter all details
+              Please Enter all details
             </Text>
             <Space h="20px" />
             <Grid grow gutter="xs">
-              <Grid.Col span={9}>
-                {image && image !== "" ? (
-                  <Group position="center">
-                    <Card radius="md">
-                      <Image
-                        src={"http://localhost:2019/" + image}
-                        w={300}
-                        h={300}
-                      />
-                      <Group position="center">
-                        <Button
-                          color="red"
-                          size="xs"
-                          onClick={() => setImage("")}
-                        >
-                          Remove
-                        </Button>
-                      </Group>
-                    </Card>
-                  </Group>
-                ) : (
-                  <>
-                    <Space h={15} />
-                    <Group position="center">
-                      <Dropzone
-                        multiple={false}
-                        accept={IMAGE_MIME_TYPE}
-                        h={300}
-                        w={300}
-                        styles={{ margin: "0px" }}
-                        onDrop={(files) => {
-                          handleImageUpload(files);
-                        }}
-                      >
-                        <Space h="50px" />
-                        <Group position="center">
-                          <Group
-                            style={{
-                              width: "100px",
-                              height: "100px",
-                              background: "#C1C2C5",
-                              borderRadius: "50%",
-                            }}
-                          >
-                            <MdUpload
-                              style={{
-                                margin: "auto",
-                                width: "50px",
-                                height: "50px",
-                              }}
-                            />
-                          </Group>
-                        </Group>
-                        <Space h="20px" />
-                        <Group position="center">
-                          <Text size="xs" fw={500}>
-                            Drag and drop photo files to upload
-                          </Text>
-                        </Group>
-
-                        <Group position="center">
-                          <Text size="xs" c="dimmed">
-                            Please upload a Profile Picture.
-                          </Text>
-                        </Group>
-                        <Space h="50px" />
-                      </Dropzone>
-                    </Group>
-                    <Space h={45} />
-                  </>
-                )}
-              </Grid.Col>
-              <Space h={50} />
-              <Grid.Col span={4}>
-                <TextInput
-                  value={name}
-                  placeholder="Name"
-                  label="Full Name"
-                  onChange={(event) => setName(event.target.value)}
-                />
-              </Grid.Col>
               <Grid.Col span={4}>
                 <TextInput
                   value={username}
@@ -538,12 +457,12 @@ const StaffAdd = () => {
           >
             <Button
               component={Link}
-              to="/staffs"
+              to="/home"
               variant="subtle"
               size="xs"
               color="gray"
             >
-              Go back
+              Home
             </Button>
             <Space h="50px" />
           </Group>
@@ -553,4 +472,4 @@ const StaffAdd = () => {
   );
 };
 
-export default StaffAdd;
+export default PerformanceManagementSystem;

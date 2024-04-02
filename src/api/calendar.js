@@ -5,7 +5,7 @@ import { API_URL } from "./data";
 export const addAppointment = async ({ data, token = "" }) => {
   const response = await axios({
     method: "POST",
-    url: API_URL + "/activity/clients",
+    url: API_URL + "/activity",
     headers: {
       "Content-Type": "application/json",
       Authorization: "Bearer " + token,
@@ -24,6 +24,14 @@ export const addStaffActivity = async ({ data, token = "" }) => {
       Authorization: "Bearer " + token,
     },
     data: data,
+  });
+  return response.data;
+};
+
+export const getClients = async (id) => {
+  const response = await axios({
+    method: "GET",
+    url: API_URL + "/activity/" + id,
   });
   return response.data;
 };
