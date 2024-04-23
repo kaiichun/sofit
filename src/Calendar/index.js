@@ -9,7 +9,7 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 import { Text, Select } from "@mantine/core";
 import { addAppointment, fetchClientAppointment } from "../api/calendar";
 import { fetchClients } from "../api/client";
-
+import { LoadingOverlay } from "@mantine/core";
 const localizer = momentLocalizer(moment);
 
 const AppointmentCalendar = () => {
@@ -21,16 +21,21 @@ const AppointmentCalendar = () => {
   const [clientStart, setClientStart] = useState();
   const [clientEnd, setClientEnd] = useState();
   const [clientName, setClientName] = useState("");
+  const [selectedClient, setSelectedClient] = useState("");
+  const [myEvents, setMyEvents] = useState([]);
 
   const { data: clients = [] } = useQuery({
     queryKey: ["clients"],
     queryFn: () => fetchClients(id),
   });
 
-  const { data: clientsApp = {} } = useQuery({
-    queryKey: ["clientAppointment"],
-    queryFn: () => fetchClientAppointment(id),
-  });
+  const { data: clientsApp = [], isLoading } = useQuery(
+    {
+      queryKey: ["clientAppointment"],
+      queryFn: () => fetchClientAppointment(selectedClient),
+    },
+    [selectedClient]
+  );
 
   const createClientAppMutation = useMutation({
     mutationFn: addAppointment,
@@ -47,24 +52,24 @@ const AppointmentCalendar = () => {
     },
   });
 
-  const [selectedClient, setSelectedClient] = useState("");
-  const [myEvents, setMyEvents] = useState([]);
-
   useEffect(() => {
-    if (clientsApp && clientsApp[selectedClient]) {
+    if (clientsApp && selectedClient) {
+      // console.log(clientsApp);
       setMyEvents(
-        clientsApp[selectedClient].map((appointment) => ({
+        clientsApp.map((appointment) => ({
           id: appointment._id,
-          title: appointment.clientTitle,
-          start: new Date(appointment.clientStart),
-          end: new Date(appointment.clientEnd),
+          title: appointment.title,
+          start: new Date(appointment.start),
+          end: new Date(appointment.end),
+          allDay: appointment.allDay,
+          resource: appointment.resource,
         }))
       );
     }
   }, [clientsApp, selectedClient]);
 
   const handleSelectSlot = useCallback(
-    async ({ start, end }) => {
+    async ({ start, end, allDay, resource }) => {
       const title = window.prompt("New Event name");
       if (title && selectedClient) {
         try {
@@ -73,14 +78,20 @@ const AppointmentCalendar = () => {
             title: title,
             start: start,
             end: end,
+            allDay: allDay,
+            resource: resource,
+            clientId: selectedClient,
           };
+          // console.log(newEvent);
           setMyEvents((prevEvents) => [...prevEvents, newEvent]);
           // Perform mutation to add event to the database
           await createClientAppMutation.mutate({
             data: JSON.stringify({
-              clientTitle: title,
-              clientStart: start,
-              clientEnd: end,
+              title: title,
+              start: start,
+              end: end,
+              allDay: allDay,
+              resource: resource,
               clientId: selectedClient,
             }),
             token: currentUser ? currentUser.token : "",
@@ -127,6 +138,23 @@ const AppointmentCalendar = () => {
     []
   );
 
+  const eventPropGetter = useCallback(
+    (event, start, end, isSelected) => ({
+      ...(isSelected && {
+        style: {
+          backgroundColor: "#000",
+        },
+      }),
+      ...(moment(start).hour() < 12 && {
+        className: "powderBlue",
+      }),
+      ...(event.title.includes("Meeting") && {
+        className: "darkGreen",
+      }),
+    }),
+    []
+  );
+
   return (
     <div className="App">
       <Select
@@ -135,16 +163,19 @@ const AppointmentCalendar = () => {
           label: client.clientName,
         }))}
         value={selectedClient}
-        onChange={(value) => setSelectedClient(value)}
+        onChange={(value) => {
+          setSelectedClient(value);
+        }}
         placeholder="Select a client"
       />
 
       <h1>React Big Calendar POC</h1>
-
+      <LoadingOverlay visible={isLoading} />
       <Calendar
         selectable
         localizer={localizer}
         events={myEvents}
+        eventPropGetter={eventPropGetter}
         defaultDate={new Date()}
         defaultView="month"
         formats={formats}

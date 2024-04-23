@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 
 import { useCookies } from "react-cookie";
 import { Link, useNavigate } from "react-router-dom";
@@ -14,14 +14,11 @@ import {
   Group,
   Image,
   Grid,
-  Radio,
-  Textarea,
   PasswordInput,
   NativeSelect,
   Text,
   Title,
   Avatar,
-  NumberInput,
 } from "@mantine/core";
 import { Dropzone, IMAGE_MIME_TYPE } from "@mantine/dropzone";
 import { registerUser, uploadProfileImage } from "../api/auth";
@@ -485,7 +482,9 @@ const StaffAdd = () => {
                 <NativeSelect
                   data={[
                     "Management",
-                    "Coach",
+                    "Junior Trainee",
+                    "Senior Trainee",
+                    "Advanced Senior Trainee",
                     "Sales",
                     "Marketing",
                     "Accounting",

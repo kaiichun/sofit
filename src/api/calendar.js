@@ -37,6 +37,7 @@ export const getClients = async (id) => {
 };
 
 export const fetchClientAppointment = async (id) => {
+  // console.log(id)
   const response = await axios({
     method: "GET",
     url: API_URL + "/activity/" + id,

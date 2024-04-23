@@ -4,7 +4,6 @@ import noDataIcon from "../Logo/no-data-found.png";
 import { useCookies } from "react-cookie";
 import { useParams, Link } from "react-router-dom";
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
-import { MdUpload } from "react-icons/md";
 import { FaPhotoVideo } from "react-icons/fa";
 import { IoImages } from "react-icons/io5";
 import { notifications } from "@mantine/notifications";
@@ -221,15 +220,6 @@ export default function Video({ videoSource }) {
   const handleClientVideoUpload = (files) => {
     uploadClientVideoMutation.mutate(files[0]);
   };
-
-  const isAdmin = useMemo(() => {
-    console.log(cookies);
-    return cookies &&
-      cookies.currentUser &&
-      cookies.currentUser.role === "admin"
-      ? true
-      : false;
-  }, [cookies]);
 
   return (
     <Container>

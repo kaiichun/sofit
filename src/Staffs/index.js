@@ -1,20 +1,15 @@
 import {
   SimpleGrid,
-  Grid,
   Card,
   Image,
   Text,
-  Badge,
   Button,
   Group,
-  Progress,
-  RingProgress,
-  Space,
   Container,
 } from "@mantine/core";
 import { Link } from "react-router-dom";
 import { useState, useMemo, useEffect } from "react";
-import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useCookies } from "react-cookie";
 import { fetchUsers } from "../api/auth";
 
@@ -25,7 +20,7 @@ function Staffs() {
   const [currentStaff, setCurrentStaff] = useState([]);
   const [cookies] = useCookies(["currentUser"]);
   const { currentUser } = cookies;
-  const queryClient = useQueryClient();
+  // const queryClient = useQueryClient();
   const { data: users = [] } = useQuery({
     queryKey: ["users"],
     queryFn: () => fetchUsers(currentUser ? currentUser.token : ""),

@@ -18,6 +18,17 @@ import ClientAdd from "./ClientAdd";
 import ClientBMI from "./ClientBMI";
 import CalendarTest from "./CalendarTest";
 import PerformanceManagementSystem from "./PerformanceManagementSystem";
+import Product from "./Product";
+import ProductAdd from "./ProductAdd";
+import ProductEdit from "./ProductEdit";
+import Cart from "./Cart";
+import Checkout from "./Checkout";
+import Orders from "./Orders";
+import PackageAdd from "./PackageAdd";
+import PackageEdit from "./PackageEdit";
+import CheckoutPackage from "./CheckoutPackage";
+import OrdersPackage from "./OrdersPackage";
+import WageAdd from "./WageAdd";
 
 function App() {
   const [cookies] = useCookies(["currentUser"]);
@@ -81,7 +92,22 @@ function App() {
             </AppWrapper>
           }
         />
-
+        <Route
+          path="/package-add"
+          element={
+            <AppWrapper>
+              <PackageAdd />
+            </AppWrapper>
+          }
+        />
+        <Route
+          path="/package-edit/:id"
+          element={
+            <AppWrapper>
+              <PackageEdit />
+            </AppWrapper>
+          }
+        />
         <Route
           path="/add-staff"
           element={
@@ -90,7 +116,6 @@ function App() {
             </AppWrapper>
           }
         />
-
         {(isAdminB || isAdminHQ) && (
           <Route
             path="/staffs"
@@ -106,6 +131,78 @@ function App() {
           element={
             <AppWrapper>
               <StaffEdit />
+            </AppWrapper>
+          }
+        />
+        <Route
+          path="/product"
+          element={
+            <AppWrapper>
+              <Product />
+            </AppWrapper>
+          }
+        />
+        <Route
+          path="/product_add"
+          element={
+            <AppWrapper>
+              <ProductAdd />
+            </AppWrapper>
+          }
+        />
+        <Route
+          path="/product_edit/:id"
+          element={
+            <AppWrapper>
+              <ProductEdit />
+            </AppWrapper>
+          }
+        />
+        <Route
+          path="/cart"
+          element={
+            <AppWrapper>
+              <Cart />
+            </AppWrapper>
+          }
+        />
+        <Route
+          path="/checkout"
+          element={
+            <AppWrapper>
+              <Checkout />
+            </AppWrapper>
+          }
+        />{" "}
+        <Route
+          path="/checkout-package"
+          element={
+            <AppWrapper>
+              <CheckoutPackage />
+            </AppWrapper>
+          }
+        />
+        <Route
+          path="/orders"
+          element={
+            <AppWrapper>
+              <Orders />
+            </AppWrapper>
+          }
+        />
+        <Route
+          path="/client-orders-summary"
+          element={
+            <AppWrapper>
+              <OrdersPackage />
+            </AppWrapper>
+          }
+        />
+        <Route
+          path="/wage-add"
+          element={
+            <AppWrapper>
+              <WageAdd />
             </AppWrapper>
           }
         />

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useCookies } from "react-cookie";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
@@ -15,21 +15,12 @@ import {
   Grid,
   Radio,
   Textarea,
-  PasswordInput,
   NativeSelect,
   Text,
   Title,
-  Avatar,
-  NumberInput,
 } from "@mantine/core";
-import { Dropzone, IMAGE_MIME_TYPE } from "@mantine/dropzone";
-import {
-  fetchClients,
-  fetchPersonalClient,
-  addClientDetails,
-} from "../api/client";
-import sofitLogo from "../Logo/sofit-black.png";
-import { MdUpload } from "react-icons/md";
+import { fetchClients, addClientDetails } from "../api/client";
+import HeaderClient from "../HeaderClient";
 
 const ClientAdd = () => {
   const [cookies, setCookie] = useCookies(["currentUser"]);
@@ -92,11 +83,14 @@ const ClientAdd = () => {
       navigate("/");
     },
   });
-
   const createMutation = useMutation({
     mutationFn: addClientDetails,
-    onSuccess: () => {
-      navigate("/home");
+    onSuccess: (data) => {
+      navigate("/checkout-package");
+      notifications.show({
+        title: "Member created successfully, please select a package",
+        color: "yellow",
+      });
     },
     onError: (error) => {
       notifications.show({
@@ -119,33 +113,7 @@ const ClientAdd = () => {
       !clientEmergencycontact ||
       !clientAddress1 ||
       !clientZip ||
-      !clientState ||
-      !exeQ1 ||
-      !exeQ2 ||
-      !exeQ3a ||
-      !exeQ3b ||
-      !exeQ3c ||
-      !exeQ3d ||
-      !dietQ1 ||
-      !dietQ2 ||
-      !dietQ3 ||
-      !dietQ4 ||
-      !dietQ5 ||
-      !dietQ6 ||
-      !dietQ7 ||
-      !dietQ8 ||
-      !lifeQ1 ||
-      !lifeQ2 ||
-      !lifeQ3 ||
-      !lifeQ4 ||
-      !occupationQ1 ||
-      !occupationQ4 ||
-      !medQ1 ||
-      !medQ2 ||
-      !medQ3 ||
-      !packageValidityPeriod ||
-      !clientPackage ||
-      !sessions
+      !clientState
     ) {
       notifications.show({
         title: "Please fill in all fields",
@@ -197,9 +165,6 @@ const ClientAdd = () => {
           medQ4: medQ4,
           medQ5: medQ5,
           addNote: addNote,
-          packageValidityPeriod: packageValidityPeriod,
-          clientPackage: clientPackage,
-          sessions: sessions,
         }),
         token: currentUser ? currentUser.token : "",
       });
@@ -207,601 +172,552 @@ const ClientAdd = () => {
   };
 
   return (
-    <Container>
-      <Space h="120px" />
-      <Card
-        withBorder
-        p="20px"
-        mx="auto"
-        sx={{
-          maxWidth: "800px",
-        }}
-      >
+    <>
+      <HeaderClient page="AddMember" />
+      <Container>
         <Space h="20px" />
-        <Group position="center">
-          <Link to="/" style={{ textDecoration: "none", color: "inherit" }}>
-            <Avatar
-              src={sofitLogo}
-              style={{ width: "90px", height: "90px" }}
-            ></Avatar>
-          </Link>
-        </Group>
-        <Title order={4} align="center">
+        <Title order={2} align="center">
           Add a new Client
         </Title>
         <Text align="center" order={6}>
           Enter all details
         </Text>
         <Space h="20px" />
-        <Grid grow gutter="xs">
-          <Grid.Col span={4}>
-            <TextInput
-              value={clientName}
-              placeholder="Name"
-              label="Full Name"
-              onChange={(event) => setClientName(event.target.value)}
-            />
-          </Grid.Col>
-          <Grid.Col span={3}>
-            <NativeSelect
-              data={["Male", "Female"]}
-              label="Gender"
-              value={clientGender}
-              onChange={(event) => setClientGender(event.target.value)}
-            />
-          </Grid.Col>
-          <Grid.Col span={3}>
-            <TextInput
-              value={clientIc}
-              placeholder="000000-00-00"
-              label="Identity Card No"
-              onChange={(event) => setClientIc(event.target.value)}
-            />
-          </Grid.Col>
-          <Grid.Col span={4}>
-            <TextInput
-              value={clientHeight}
-              placeholder="180"
-              label="Height(cm)"
-              onChange={(event) => setClientHeight(event.target.value)}
-            />
-          </Grid.Col>
-          <Grid.Col span={4}>
-            <TextInput
-              value={clientWeight}
-              placeholder="60"
-              label="Weight(kg)"
-              onChange={(event) => setClientWeight(event.target.value)}
-            />
-          </Grid.Col>
-          <Grid.Col span={4}>
-            <TextInput
-              value={clientEmail}
-              placeholder="example@sofit.com.my"
-              label="Email"
-              onChange={(event) => setClientEmail(event.target.value)}
-            />
-          </Grid.Col>
-
-          <Grid.Col span={4}>
-            <TextInput
-              value={clientPhonenumber}
-              placeholder="+6012-3456789"
-              label="Phone Number"
-              onChange={(event) => setClientPhonenumber(event.target.value)}
-            />
-          </Grid.Col>
-          <Grid.Col span={4}>
-            <TextInput
-              value={clientEmergencycontactname}
-              placeholder="XXX"
-              label="Emergency Contact Name"
-              onChange={(event) =>
-                setClientEmergencycontactname(event.target.value)
-              }
-            />
-          </Grid.Col>
-          <Grid.Col span={4}>
-            <TextInput
-              value={clientEmergencycontact}
-              placeholder="+6012-3456789"
-              label="Emergency Contact Number"
-              onChange={(event) =>
-                setClientEmergencycontact(event.target.value)
-              }
-            />
-          </Grid.Col>
-          <Grid.Col span={12}>
-            <TextInput
-              label="Address 1"
-              value={clientAddress1}
-              onChange={(event) => setClientAddress1(event.currentTarget.value)}
-            />
-          </Grid.Col>
-          <Grid.Col span={6}>
-            <TextInput
-              label="Address 2"
-              value={clientAddress2}
-              onChange={(event) => {
-                const newValue = event.currentTarget.value || "-";
-                setClientAddress2(newValue);
-              }}
-            />
-          </Grid.Col>
-          <Grid.Col span={3}>
-            <TextInput
-              label="Zip"
-              value={clientZip}
-              onChange={(event) => setClientZip(event.currentTarget.value)}
-            />
-          </Grid.Col>
-          <Grid.Col span={3}>
-            <NativeSelect
-              data={[
-                "Selangor",
-                "Perak",
-                "Pahang",
-                "Pulau Pinang",
-                "Perlis",
-                "Kelantan",
-                "Kedah",
-                "Johor",
-                "Melaka",
-                "Negeri Sembilan",
-                "Terengganu",
-                "W.P.Labuan",
-                "W.P.Kualu Lumpur",
-                "Sabah",
-                "Sarawak",
-              ]}
-              label="State"
-              value={clientState}
-              placeholder=""
-              onChange={(event) => setClientState(event.target.value)}
-            />
-          </Grid.Col>
-          <Grid.Col span={12}>
-            <>
-              <Space h={15} />
-              <hr color="gray" />
-              <Space h={15} />
-              <Group position="center">
-                <Text fw={900} fz="xl">
-                  Lifestyle and Health History Questionnaire
-                </Text>
-              </Group>
-              <Space h={15} />
-              <Text fw={700} td="underline">
-                Exercise
-              </Text>
-            </>
-          </Grid.Col>
-          <Grid.Col span={12}>
-            <TextInput
-              value={exeQ1}
-              placeholder="1000"
-              label="1. What exercise activities do you currently take part in (e.g., running, weightlifting, group exercise, etc.)?"
-              onChange={(event) => setExeQ1(event.target.value)}
-            />
-          </Grid.Col>
-          <Grid.Col span={12}>
-            <TextInput
-              value={exeQ2}
-              placeholder="1000"
-              label="2. How many days per week do you get at least 60 minutes of moderate-intensity exercise?"
-              onChange={(event) => setExeQ2(event.target.value)}
-            />
-          </Grid.Col>
-          <Grid.Col span={12}>
-            <Text>
-              3. On a scale of 0 to 10, how important are the following fitness
-              goals to you?
-            </Text>
-          </Grid.Col>
-          <Grid.Col span={12}>
-            <Radio.Group
-              value={exeQ3a}
-              onChange={setExeQ3a}
-              label="Weight loss:"
-            >
-              <Group mt={5}>
-                <Radio value="1" label="1" />
-                <Radio value="2" label="2" />
-                <Radio value="3" label="3" />
-                <Radio value="4" label="4" />
-                <Radio value="5" label="5" />
-                <Radio value="6" label="6" />
-                <Radio value="7" label="7" />
-                <Radio value="8" label="8" />
-                <Radio value="9" label="9" />
-                <Radio value="10" label="10" />
-              </Group>
-            </Radio.Group>
-          </Grid.Col>
-          <Grid.Col span={12}>
-            <Radio.Group
-              value={exeQ3b}
-              onChange={setExeQ3b}
-              label="Muscle gain:"
-            >
-              <Group mt={5}>
-                <Radio value="1" label="1" />
-                <Radio value="2" label="2" />
-                <Radio value="3" label="3" />
-                <Radio value="4" label="4" />
-                <Radio value="5" label="5" />
-                <Radio value="6" label="6" />
-                <Radio value="7" label="7" />
-                <Radio value="8" label="8" />
-                <Radio value="9" label="9" />
-                <Radio value="10" label="10" />
-              </Group>
-            </Radio.Group>
-          </Grid.Col>
-          <Grid.Col span={12}>
-            <Radio.Group
-              value={exeQ3c}
-              onChange={setExeQ3c}
-              label="Sports performance:"
-            >
-              <Group mt={5}>
-                <Radio value="1" label="1" />
-                <Radio value="2" label="2" />
-                <Radio value="3" label="3" />
-                <Radio value="4" label="4" />
-                <Radio value="5" label="5" />
-                <Radio value="6" label="6" />
-                <Radio value="7" label="7" />
-                <Radio value="8" label="8" />
-                <Radio value="9" label="9" />
-                <Radio value="10" label="10" />
-              </Group>
-            </Radio.Group>
-          </Grid.Col>
-          <Grid.Col span={12}>
-            <Radio.Group
-              value={exeQ3d}
-              onChange={setExeQ3d}
-              label="Health improvement:"
-            >
-              <Group mt={5}>
-                <Radio value="1" label="1" />
-                <Radio value="2" label="2" />
-                <Radio value="3" label="3" />
-                <Radio value="4" label="4" />
-                <Radio value="5" label="5" />
-                <Radio value="6" label="6" />
-                <Radio value="7" label="7" />
-                <Radio value="8" label="8" />
-                <Radio value="9" label="9" />
-                <Radio value="10" label="10" />
-              </Group>
-            </Radio.Group>
-          </Grid.Col>
-          <Grid.Col span={12}>
-            <Text fw={700} td="underline">
-              Diet
-            </Text>
-          </Grid.Col>
-          <Grid.Col span={12}>
-            <Radio.Group
-              value={dietQ1}
-              onChange={setDietQ1}
-              label="1. On a scale of 0 to 10, do you consider your overall diet to be healthy?"
-            >
-              <Group mt={5}>
-                <Radio value="1" label="1" />
-                <Radio value="2" label="2" />
-                <Radio value="3" label="3" />
-                <Radio value="4" label="4" />
-                <Radio value="5" label="5" />
-                <Radio value="6" label="6" />
-                <Radio value="7" label="7" />
-                <Radio value="8" label="8" />
-                <Radio value="9" label="9" />
-                <Radio value="10" label="10" />
-              </Group>
-            </Radio.Group>
-          </Grid.Col>
-          <Grid.Col span={12}>
-            <TextInput
-              value={dietQ2}
-              placeholder=""
-              label="2. Are you currently following any kind of diet? If so, what diet and for what reason(s)?"
-              onChange={(event) => setDietQ2(event.target.value)}
-            />
-          </Grid.Col>
-          <Grid.Col span={12}>
-            <Radio.Group
-              value={dietQ3}
-              onChange={setDietQ3}
-              label="3. How would you rank your daily salt intake:"
-            >
-              <Group mt={5}>
-                <Radio value="Low" label="Low" />
-                <Radio value="Medium" label="Medium" />
-                <Radio value="High" label="High" />
-              </Group>
-            </Radio.Group>
-          </Grid.Col>
-          <Grid.Col span={12}>
-            <Radio.Group
-              value={dietQ4}
-              onChange={setDietQ4}
-              label="4. How would you rank your daily sugar intake:"
-            >
-              <Group mt={5}>
-                <Radio value="Low" label="Low" />
-                <Radio value="Medium" label="Medium" />
-                <Radio value="High" label="High" />
-              </Group>
-            </Radio.Group>
-          </Grid.Col>
-          <Grid.Col span={12}>
-            <Radio.Group
-              value={dietQ5}
-              onChange={setDietQ5}
-              label="5. How would you rank your daily fat intake:"
-            >
-              <Group mt={5}>
-                <Radio value="Low" label="Low" />
-                <Radio value="Medium" label="Medium" />
-                <Radio value="High" label="High" />
-              </Group>
-            </Radio.Group>
-          </Grid.Col>
-          <Grid.Col span={12}>
-            <Radio.Group
-              value={dietQ6}
-              onChange={setDietQ6}
-              label="6. On a scale of 0 to 10, do you consider your overall diet to be healthy?"
-            >
-              <Group mt={5}>
-                <Radio value="1" label="1" />
-                <Radio value="2" label="2" />
-                <Radio value="3" label="3" />
-                <Radio value="4" label="4" />
-                <Radio value="5" label="5" />
-                <Radio value="6" label="6" />
-                <Radio value="7" label="7" />
-                <Radio value="8" label="8" />
-                <Radio value="9" label="9" />
-                <Radio value="10" label="10" />
-              </Group>
-            </Radio.Group>
-          </Grid.Col>
-          <Grid.Col span={12}>
-            <TextInput
-              value={dietQ7}
-              placeholder=""
-              label="7. How many alcoholic drinks do you consume per week?"
-              onChange={(event) => setDietQ7(event.target.value)}
-            />
-          </Grid.Col>
-          <Grid.Col span={12}>
-            <TextInput
-              value={dietQ8}
-              placeholder=""
-              label="8.Do you consume caffeinated beverages such as coffee, tea, soda, and/or energy drinks? How many per week?"
-              onChange={(event) => setDietQ8(event.target.value)}
-            />
-          </Grid.Col>
-          <Grid.Col span={12}>
-            <Text fw={700} td="underline">
-              LifeStyle
-            </Text>
-          </Grid.Col>
-          <Grid.Col span={12}>
-            <TextInput
-              value={lifeQ1}
-              placeholder=""
-              label="1. Do you feel like you get enough sleep and wake up feeling rested each day?"
-              onChange={(event) => setLifeQ1(event.target.value)}
-            />
-          </Grid.Col>
-          <Grid.Col span={12}>
-            <Radio.Group
-              value={lifeQ2}
-              onChange={setLifeQ2}
-              label="2. On a scale of 0 to 10, how would you rate your average level of stress?"
-            >
-              <Group mt={5}>
-                <Radio value="1" label="1" />
-                <Radio value="2" label="2" />
-                <Radio value="3" label="3" />
-                <Radio value="4" label="4" />
-                <Radio value="5" label="5" />
-                <Radio value="6" label="6" />
-                <Radio value="7" label="7" />
-                <Radio value="8" label="8" />
-                <Radio value="9" label="9" />
-                <Radio value="10" label="10" />
-              </Group>
-            </Radio.Group>
-          </Grid.Col>
-          <Grid.Col span={12}>
-            <TextInput
-              value={lifeQ3}
-              placeholder=""
-              label="3. What techniques do you currently use to manage your stress levels?"
-              onChange={(event) => setLifeQ3(event.target.value)}
-            />
-          </Grid.Col>
-          <Grid.Col span={12}>
-            <TextInput
-              value={lifeQ4}
-              placeholder=""
-              label="4. Do you smoke tobacco or use a vaporizer alternative?"
-              onChange={(event) => setLifeQ4(event.target.value)}
-            />
-          </Grid.Col>
-          <Grid.Col span={12}>
-            <Text fw={700} td="underline">
-              Occupation
-            </Text>
-          </Grid.Col>
-          <Grid.Col span={12}>
-            <TextInput
-              value={occupationQ1}
-              placeholder=""
-              label="1. What is your occupation?"
-              onChange={(event) => setOccupationQ1(event.target.value)}
-            />
-          </Grid.Col>
-          <Grid.Col span={12}>
-            <TextInput
-              value={occupationQ2}
-              placeholder=""
-              label="2. Does your occupation require extended periods of sitting? (If YES, please explain.)"
-              onChange={(event) => setOccupationQ2(event.target.value)}
-            />
-          </Grid.Col>
-          <Grid.Col span={12}>
-            <TextInput
-              value={occupationQ3}
-              placeholder=""
-              label="3. Does your occupation require repetitive movements? (If YES, please explain.)"
-              onChange={(event) => setOccupationQ3(event.target.value)}
-            />
-          </Grid.Col>
-          <Grid.Col span={12}>
-            <TextInput
-              value={occupationQ4}
-              placeholder=""
-              label="4. Does your occupation require you to wear shoes with a heel (e.g., dress shoes, work boots)?"
-              onChange={(event) => setOccupationQ4(event.target.value)}
-            />
-          </Grid.Col>
-          <Grid.Col span={12}>
-            <Text fw={700} td="underline">
-              Recreation
-            </Text>
-          </Grid.Col>
-          <Grid.Col span={12}>
-            <TextInput
-              value={rQ1}
-              placeholder=""
-              label="1. Do you partake in any recreational physical activities (golf, skiing, etc.)? (If YES, please explain.)"
-              onChange={(event) => setRQ1(event.target.value)}
-            />
-          </Grid.Col>
-          <Grid.Col span={12}>
-            <TextInput
-              value={rQ2}
-              placeholder=""
-              label="2. Do you have any additional hobbies (gardening, fishing, music, etc.)? (If YES, please explain.)"
-              onChange={(event) => setRQ2(event.target.value)}
-            />
-          </Grid.Col>
-          <Grid.Col span={12}>
-            <Text fw={700} td="underline">
-              Medical
-            </Text>
-          </Grid.Col>
-          <Grid.Col span={12}>
-            <TextInput
-              value={medQ1}
-              placeholder=""
-              label="1. Please list out any past musculoskeletal injuries: "
-              onChange={(event) => setMedQ1(event.target.value)}
-            />
-          </Grid.Col>
-          <Grid.Col span={12}>
-            <TextInput
-              value={medQ2}
-              placeholder=""
-              label="2. Please list out any past surgeries: "
-              onChange={(event) => setMedQ2(event.target.value)}
-            />
-          </Grid.Col>
-          <Grid.Col span={12}>
-            <TextInput
-              value={medQ3}
-              placeholder=""
-              label="3. If you have experienced injuries or surgeries, were they properly rehabilitated and did you receive clearance from a doctor to return to physical activity? "
-              onChange={(event) => setMedQ3(event.target.value)}
-            />
-          </Grid.Col>
-          <Grid.Col span={12}>
-            <TextInput
-              value={medQ4}
-              placeholder=""
-              label="4. Do you have any chronic health conditions (such as, but not limited to, cardiovascular disease, pulmonary disorders, hypertension, diabetes, or cancer)? (If YES, please explain.)"
-              onChange={(event) => setMedQ4(event.target.value)}
-            />
-          </Grid.Col>
-          <Grid.Col span={12}>
-            <TextInput
-              value={medQ5}
-              placeholder=""
-              label="5. Are you on any medications, and if so, have you received clearance from your doctor to take part in physical activity? "
-              onChange={(event) => setMedQ5(event.target.value)}
-            />
-          </Grid.Col>
-
-          <Grid.Col span={12}>
-            <Textarea
-              value={addNote}
-              label="Additional Notes"
-              onChange={(event) => setAddNote(event.target.value)}
-            />
-          </Grid.Col>
-          <Grid.Col span={12}>
-            <Text fw={700} td="underline">
-              Package Information
-            </Text>
-          </Grid.Col>
-          <Grid.Col span={4}>
-            <TextInput
-              value={packageValidityPeriod}
-              placeholder=""
-              label="Package Validity Period"
-              onChange={(event) => setPackageValidityPeriod(event.target.value)}
-            />
-          </Grid.Col>
-          <Grid.Col span={4}>
-            <TextInput
-              value={clientPackage}
-              placeholder=""
-              label="Package"
-              onChange={(event) => setClientPackage(event.target.value)}
-            />
-          </Grid.Col>
-          <Grid.Col span={4}>
-            <TextInput
-              value={sessions}
-              placeholder=""
-              label=" Sessions"
-              onChange={(event) => setSessions(event.target.value)}
-            />
-          </Grid.Col>
-        </Grid>
-        <Space h="50px" />
-        <Group position="center">
-          <Button onClick={handleSubmit}>Add New Client</Button>
-        </Group>
-        <Space h="20px" />
-      </Card>
-      <Space h="10px" />
-      <Group
-        position="apart"
-        mx="auto"
-        sx={{
-          maxWidth: "500px",
-        }}
-      >
-        <div></div>
-        <Button
-          component={Link}
-          to="/home"
-          variant="subtle"
-          size="xs"
-          color="gray"
+        <Card
+          withBorder
+          p="20px"
+          mx="auto"
+          sx={{
+            maxWidth: "800px",
+          }}
         >
-          Go back
-        </Button>
-      </Group>
-    </Container>
+          <Space h="20px" />
+
+          <Grid grow gutter="xs">
+            <Grid.Col span={4}>
+              <TextInput
+                value={clientName}
+                placeholder="Name"
+                label="Full Name"
+                onChange={(event) => setClientName(event.target.value)}
+              />
+            </Grid.Col>
+            <Grid.Col span={3}>
+              <NativeSelect
+                data={["Male", "Female"]}
+                label="Gender"
+                value={clientGender}
+                onChange={(event) => setClientGender(event.target.value)}
+              />
+            </Grid.Col>
+            <Grid.Col span={3}>
+              <TextInput
+                value={clientIc}
+                placeholder="000000-00-00"
+                label="Identity Card No"
+                onChange={(event) => setClientIc(event.target.value)}
+              />
+            </Grid.Col>
+            <Grid.Col span={4}>
+              <TextInput
+                value={clientHeight}
+                placeholder="180"
+                label="Height(cm)"
+                onChange={(event) => setClientHeight(event.target.value)}
+              />
+            </Grid.Col>
+            <Grid.Col span={4}>
+              <TextInput
+                value={clientWeight}
+                placeholder="60"
+                label="Weight(kg)"
+                onChange={(event) => setClientWeight(event.target.value)}
+              />
+            </Grid.Col>
+            <Grid.Col span={4}>
+              <TextInput
+                value={clientEmail}
+                placeholder="example@sofit.com.my"
+                label="Email"
+                onChange={(event) => setClientEmail(event.target.value)}
+              />
+            </Grid.Col>
+
+            <Grid.Col span={4}>
+              <TextInput
+                value={clientPhonenumber}
+                placeholder="+6012-3456789"
+                label="Phone Number"
+                onChange={(event) => setClientPhonenumber(event.target.value)}
+              />
+            </Grid.Col>
+            <Grid.Col span={4}>
+              <TextInput
+                value={clientEmergencycontactname}
+                placeholder="XXX"
+                label="Emergency Contact Name"
+                onChange={(event) =>
+                  setClientEmergencycontactname(event.target.value)
+                }
+              />
+            </Grid.Col>
+            <Grid.Col span={4}>
+              <TextInput
+                value={clientEmergencycontact}
+                placeholder="+6012-3456789"
+                label="Emergency Contact Number"
+                onChange={(event) =>
+                  setClientEmergencycontact(event.target.value)
+                }
+              />
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <TextInput
+                label="Address 1"
+                value={clientAddress1}
+                onChange={(event) =>
+                  setClientAddress1(event.currentTarget.value)
+                }
+              />
+            </Grid.Col>
+            <Grid.Col span={6}>
+              <TextInput
+                label="Address 2"
+                value={clientAddress2}
+                onChange={(event) => {
+                  const newValue = event.currentTarget.value || "-";
+                  setClientAddress2(newValue);
+                }}
+              />
+            </Grid.Col>
+            <Grid.Col span={3}>
+              <TextInput
+                label="Zip"
+                value={clientZip}
+                onChange={(event) => setClientZip(event.currentTarget.value)}
+              />
+            </Grid.Col>
+            <Grid.Col span={3}>
+              <NativeSelect
+                data={[
+                  "Selangor",
+                  "Perak",
+                  "Pahang",
+                  "Pulau Pinang",
+                  "Perlis",
+                  "Kelantan",
+                  "Kedah",
+                  "Johor",
+                  "Melaka",
+                  "Negeri Sembilan",
+                  "Terengganu",
+                  "W.P.Labuan",
+                  "W.P.Kualu Lumpur",
+                  "Sabah",
+                  "Sarawak",
+                ]}
+                label="State"
+                value={clientState}
+                placeholder=""
+                onChange={(event) => setClientState(event.target.value)}
+              />
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <>
+                <Space h={15} />
+                <hr color="gray" />
+                <Space h={15} />
+                <Group position="center">
+                  <Text fw={900} fz="xl">
+                    Lifestyle and Health History Questionnaire
+                  </Text>
+                </Group>
+                <Space h={15} />
+                <Text fw={700} td="underline">
+                  Exercise
+                </Text>
+              </>
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <TextInput
+                value={exeQ1}
+                placeholder="1000"
+                label="1. What exercise activities do you currently take part in (e.g., running, weightlifting, group exercise, etc.)?"
+                onChange={(event) => setExeQ1(event.target.value)}
+              />
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <TextInput
+                value={exeQ2}
+                placeholder="1000"
+                label="2. How many days per week do you get at least 60 minutes of moderate-intensity exercise?"
+                onChange={(event) => setExeQ2(event.target.value)}
+              />
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <Text>
+                3. On a scale of 0 to 10, how important are the following
+                fitness goals to you?
+              </Text>
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <Radio.Group
+                value={exeQ3a}
+                onChange={setExeQ3a}
+                label="Weight loss:"
+              >
+                <Group mt={5}>
+                  <Radio value="1" label="1" />
+                  <Radio value="2" label="2" />
+                  <Radio value="3" label="3" />
+                  <Radio value="4" label="4" />
+                  <Radio value="5" label="5" />
+                  <Radio value="6" label="6" />
+                  <Radio value="7" label="7" />
+                  <Radio value="8" label="8" />
+                  <Radio value="9" label="9" />
+                  <Radio value="10" label="10" />
+                </Group>
+              </Radio.Group>
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <Radio.Group
+                value={exeQ3b}
+                onChange={setExeQ3b}
+                label="Muscle gain:"
+              >
+                <Group mt={5}>
+                  <Radio value="1" label="1" />
+                  <Radio value="2" label="2" />
+                  <Radio value="3" label="3" />
+                  <Radio value="4" label="4" />
+                  <Radio value="5" label="5" />
+                  <Radio value="6" label="6" />
+                  <Radio value="7" label="7" />
+                  <Radio value="8" label="8" />
+                  <Radio value="9" label="9" />
+                  <Radio value="10" label="10" />
+                </Group>
+              </Radio.Group>
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <Radio.Group
+                value={exeQ3c}
+                onChange={setExeQ3c}
+                label="Sports performance:"
+              >
+                <Group mt={5}>
+                  <Radio value="1" label="1" />
+                  <Radio value="2" label="2" />
+                  <Radio value="3" label="3" />
+                  <Radio value="4" label="4" />
+                  <Radio value="5" label="5" />
+                  <Radio value="6" label="6" />
+                  <Radio value="7" label="7" />
+                  <Radio value="8" label="8" />
+                  <Radio value="9" label="9" />
+                  <Radio value="10" label="10" />
+                </Group>
+              </Radio.Group>
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <Radio.Group
+                value={exeQ3d}
+                onChange={setExeQ3d}
+                label="Health improvement:"
+              >
+                <Group mt={5}>
+                  <Radio value="1" label="1" />
+                  <Radio value="2" label="2" />
+                  <Radio value="3" label="3" />
+                  <Radio value="4" label="4" />
+                  <Radio value="5" label="5" />
+                  <Radio value="6" label="6" />
+                  <Radio value="7" label="7" />
+                  <Radio value="8" label="8" />
+                  <Radio value="9" label="9" />
+                  <Radio value="10" label="10" />
+                </Group>
+              </Radio.Group>
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <Text fw={700} td="underline">
+                Diet
+              </Text>
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <Radio.Group
+                value={dietQ1}
+                onChange={setDietQ1}
+                label="1. On a scale of 0 to 10, do you consider your overall diet to be healthy?"
+              >
+                <Group mt={5}>
+                  <Radio value="1" label="1" />
+                  <Radio value="2" label="2" />
+                  <Radio value="3" label="3" />
+                  <Radio value="4" label="4" />
+                  <Radio value="5" label="5" />
+                  <Radio value="6" label="6" />
+                  <Radio value="7" label="7" />
+                  <Radio value="8" label="8" />
+                  <Radio value="9" label="9" />
+                  <Radio value="10" label="10" />
+                </Group>
+              </Radio.Group>
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <TextInput
+                value={dietQ2}
+                placeholder=""
+                label="2. Are you currently following any kind of diet? If so, what diet and for what reason(s)?"
+                onChange={(event) => setDietQ2(event.target.value)}
+              />
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <Radio.Group
+                value={dietQ3}
+                onChange={setDietQ3}
+                label="3. How would you rank your daily salt intake:"
+              >
+                <Group mt={5}>
+                  <Radio value="Low" label="Low" />
+                  <Radio value="Medium" label="Medium" />
+                  <Radio value="High" label="High" />
+                </Group>
+              </Radio.Group>
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <Radio.Group
+                value={dietQ4}
+                onChange={setDietQ4}
+                label="4. How would you rank your daily sugar intake:"
+              >
+                <Group mt={5}>
+                  <Radio value="Low" label="Low" />
+                  <Radio value="Medium" label="Medium" />
+                  <Radio value="High" label="High" />
+                </Group>
+              </Radio.Group>
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <Radio.Group
+                value={dietQ5}
+                onChange={setDietQ5}
+                label="5. How would you rank your daily fat intake:"
+              >
+                <Group mt={5}>
+                  <Radio value="Low" label="Low" />
+                  <Radio value="Medium" label="Medium" />
+                  <Radio value="High" label="High" />
+                </Group>
+              </Radio.Group>
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <Radio.Group
+                value={dietQ6}
+                onChange={setDietQ6}
+                label="6. On a scale of 0 to 10, do you consider your overall diet to be healthy?"
+              >
+                <Group mt={5}>
+                  <Radio value="1" label="1" />
+                  <Radio value="2" label="2" />
+                  <Radio value="3" label="3" />
+                  <Radio value="4" label="4" />
+                  <Radio value="5" label="5" />
+                  <Radio value="6" label="6" />
+                  <Radio value="7" label="7" />
+                  <Radio value="8" label="8" />
+                  <Radio value="9" label="9" />
+                  <Radio value="10" label="10" />
+                </Group>
+              </Radio.Group>
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <TextInput
+                value={dietQ7}
+                placeholder=""
+                label="7. How many alcoholic drinks do you consume per week?"
+                onChange={(event) => setDietQ7(event.target.value)}
+              />
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <TextInput
+                value={dietQ8}
+                placeholder=""
+                label="8.Do you consume caffeinated beverages such as coffee, tea, soda, and/or energy drinks? How many per week?"
+                onChange={(event) => setDietQ8(event.target.value)}
+              />
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <Text fw={700} td="underline">
+                LifeStyle
+              </Text>
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <TextInput
+                value={lifeQ1}
+                placeholder=""
+                label="1. Do you feel like you get enough sleep and wake up feeling rested each day?"
+                onChange={(event) => setLifeQ1(event.target.value)}
+              />
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <Radio.Group
+                value={lifeQ2}
+                onChange={setLifeQ2}
+                label="2. On a scale of 0 to 10, how would you rate your average level of stress?"
+              >
+                <Group mt={5}>
+                  <Radio value="1" label="1" />
+                  <Radio value="2" label="2" />
+                  <Radio value="3" label="3" />
+                  <Radio value="4" label="4" />
+                  <Radio value="5" label="5" />
+                  <Radio value="6" label="6" />
+                  <Radio value="7" label="7" />
+                  <Radio value="8" label="8" />
+                  <Radio value="9" label="9" />
+                  <Radio value="10" label="10" />
+                </Group>
+              </Radio.Group>
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <TextInput
+                value={lifeQ3}
+                placeholder=""
+                label="3. What techniques do you currently use to manage your stress levels?"
+                onChange={(event) => setLifeQ3(event.target.value)}
+              />
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <TextInput
+                value={lifeQ4}
+                placeholder=""
+                label="4. Do you smoke tobacco or use a vaporizer alternative?"
+                onChange={(event) => setLifeQ4(event.target.value)}
+              />
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <Text fw={700} td="underline">
+                Occupation
+              </Text>
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <TextInput
+                value={occupationQ1}
+                placeholder=""
+                label="1. What is your occupation?"
+                onChange={(event) => setOccupationQ1(event.target.value)}
+              />
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <TextInput
+                value={occupationQ2}
+                placeholder=""
+                label="2. Does your occupation require extended periods of sitting? (If YES, please explain.)"
+                onChange={(event) => setOccupationQ2(event.target.value)}
+              />
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <TextInput
+                value={occupationQ3}
+                placeholder=""
+                label="3. Does your occupation require repetitive movements? (If YES, please explain.)"
+                onChange={(event) => setOccupationQ3(event.target.value)}
+              />
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <TextInput
+                value={occupationQ4}
+                placeholder=""
+                label="4. Does your occupation require you to wear shoes with a heel (e.g., dress shoes, work boots)?"
+                onChange={(event) => setOccupationQ4(event.target.value)}
+              />
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <Text fw={700} td="underline">
+                Recreation
+              </Text>
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <TextInput
+                value={rQ1}
+                placeholder=""
+                label="1. Do you partake in any recreational physical activities (golf, skiing, etc.)? (If YES, please explain.)"
+                onChange={(event) => setRQ1(event.target.value)}
+              />
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <TextInput
+                value={rQ2}
+                placeholder=""
+                label="2. Do you have any additional hobbies (gardening, fishing, music, etc.)? (If YES, please explain.)"
+                onChange={(event) => setRQ2(event.target.value)}
+              />
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <Text fw={700} td="underline">
+                Medical
+              </Text>
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <TextInput
+                value={medQ1}
+                placeholder=""
+                label="1. Please list out any past musculoskeletal injuries: "
+                onChange={(event) => setMedQ1(event.target.value)}
+              />
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <TextInput
+                value={medQ2}
+                placeholder=""
+                label="2. Please list out any past surgeries: "
+                onChange={(event) => setMedQ2(event.target.value)}
+              />
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <TextInput
+                value={medQ3}
+                placeholder=""
+                label="3. If you have experienced injuries or surgeries, were they properly rehabilitated and did you receive clearance from a doctor to return to physical activity? "
+                onChange={(event) => setMedQ3(event.target.value)}
+              />
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <TextInput
+                value={medQ4}
+                placeholder=""
+                label="4. Do you have any chronic health conditions (such as, but not limited to, cardiovascular disease, pulmonary disorders, hypertension, diabetes, or cancer)? (If YES, please explain.)"
+                onChange={(event) => setMedQ4(event.target.value)}
+              />
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <TextInput
+                value={medQ5}
+                placeholder=""
+                label="5. Are you on any medications, and if so, have you received clearance from your doctor to take part in physical activity? "
+                onChange={(event) => setMedQ5(event.target.value)}
+              />
+            </Grid.Col>
+
+            <Grid.Col span={12}>
+              <Textarea
+                value={addNote}
+                label="Additional Notes"
+                onChange={(event) => setAddNote(event.target.value)}
+              />
+            </Grid.Col>
+          </Grid>
+          <Space h="50px" />
+          <Group position="center">
+            <Button onClick={handleSubmit}>Add New Client</Button>
+          </Group>
+          <Space h="20px" />
+        </Card>
+        <Space h="10px" />
+      </Container>
+    </>
   );
 };
 

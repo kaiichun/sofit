@@ -19,8 +19,10 @@ import { useCookies } from "react-cookie";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import "../App.css";
 import { FaUsers } from "react-icons/fa";
-import { IoIosLogIn, IoIosFitness } from "react-icons/io";
+import { IoIosLogIn } from "react-icons/io";
 import { FaUserEdit } from "react-icons/fa";
+import { MdPostAdd } from "react-icons/md";
+import { GiMuscleUp } from "react-icons/gi";
 import { IoCalendarSharp } from "react-icons/io5";
 import { FaMoneyBillTrendUp } from "react-icons/fa6";
 import { SiAlwaysdata } from "react-icons/si";
@@ -48,6 +50,16 @@ const AppWrapper = ({ children }) => {
       ? true
       : false;
   }, [cookies]);
+
+  const isAdmin = useMemo(() => {
+    return cookies &&
+      cookies.currentUser &&
+      (cookies.currentUser.role === "Admin HQ" ||
+        cookies.currentUser.role === "Admin Branch")
+      ? true
+      : false;
+  }, [cookies]);
+
   return (
     <AppShell
       styles={{
@@ -71,6 +83,18 @@ const AppWrapper = ({ children }) => {
                 <Group>
                   <FaUsers width="80px" height="80px" />
                   Clients
+                </Group>
+              </div>
+            </UnstyledButton>
+            <UnstyledButton
+              component={Link}
+              to={"/product"}
+              variant="transparent"
+            >
+              <div className="item">
+                <Group>
+                  <GiMuscleUp width="80px" height="80px" />
+                  Product
                 </Group>
               </div>
             </UnstyledButton>
@@ -135,6 +159,20 @@ const AppWrapper = ({ children }) => {
                 </div>
               </UnstyledButton>
             )}
+            {(isAdminB || isAdminHQ) && (
+              <UnstyledButton
+                component={Link}
+                to={"/wage-add"}
+                variant="transparent"
+              >
+                <div className="item">
+                  <Group>
+                    <FaUsers width="80px" height="80px" />
+                    Wage
+                  </Group>
+                </div>
+              </UnstyledButton>
+            )}
           </Navbar>
         )
       }
@@ -160,6 +198,7 @@ const AppWrapper = ({ children }) => {
               >
                 <Text>SOFIT FITNESS</Text>
               </UnstyledButton>
+
               <div>
                 <Menu shadow="md" width={260}>
                   <Menu.Target>
@@ -214,6 +253,37 @@ const AppWrapper = ({ children }) => {
                       </UnstyledButton>
                     </Menu.Item>
                     <Menu.Divider />
+                    {isAdmin && (
+                      <>
+                        <Menu.Item>
+                          <UnstyledButton
+                            variant="transparent"
+                            size="sm"
+                            component={Link}
+                            to={"/edit-info/" + cookies.currentUser._id}
+                          >
+                            <Group>
+                              <MdPostAdd
+                                style={{
+                                  width: "20px",
+                                  height: "20px",
+                                  margin: "0",
+                                }}
+                              />
+                              <span
+                                style={{
+                                  padding: "0",
+                                  margin: "0",
+                                }}
+                              >
+                                Post
+                              </span>
+                            </Group>
+                          </UnstyledButton>
+                        </Menu.Item>
+                        <Menu.Divider />
+                      </>
+                    )}
                     <Menu.Item>
                       <UnstyledButton
                         variant="transparent"
