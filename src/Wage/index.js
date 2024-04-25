@@ -1,359 +1,210 @@
-import { useState, useEffect, useMemo } from "react";
-import { Link, useNavigate } from "react-router-dom";
-
-import axios from "axios";
+import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
+import { useState, useMemo } from "react";
 import {
-  Title,
-  Grid,
-  Card,
-  Badge,
-  Text,
-  Group,
-  Space,
-  Image,
   Container,
+  Title,
+  Table,
+  Group,
   Button,
-  Modal,
+  Image,
+  Space,
+  HoverCard,
+  TextInput,
   Divider,
+  Grid,
+  Text,
+  Select,
   LoadingOverlay,
 } from "@mantine/core";
+import { Checkbox } from "@mantine/core";
+import { useNavigate, Link } from "react-router-dom";
 import { notifications } from "@mantine/notifications";
-import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { fetchProducts, deleteProduct } from "../api/products";
-import { addToCart, getCartItems } from "../api/cart";
-import { useCookies } from "react-cookie";
-import { FaShoppingCart } from "react-icons/fa";
 import Header from "../Header";
+import { useParams } from "react-router-dom";
+import { MdDownloadForOffline, MdDelete } from "react-icons/md";
 
-function Wage() {
+import jsPDF from "jspdf";
+import "jspdf-autotable";
+
+import { useCookies } from "react-cookie";
+import { fetchOrders, deleteOrder, updateOrder } from "../api/order";
+import { fetchClients } from "../api/client";
+import logo from "../Logo/sofit-black.png";
+import { fetchUsers } from "../api/auth";
+import { fetchWages2 } from "../api/wage";
+
+export default function Wages() {
   const [cookies] = useCookies(["currentUser"]);
   const { currentUser } = cookies;
+  const { id } = useParams();
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
-  const [currentProducts, setCurrentProducts] = useState([]);
-  const [category, setCategory] = useState("");
-  const [sort, setSort] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [perPage, setPerPage] = useState(6);
-  const [totalPages, setTotalPages] = useState([]);
-  const [showModal, setShowModal] = useState(false);
-  const [productIdToDelete, setProductIdToDelete] = useState(null);
-
-  const { isLoading, data: products } = useQuery({
-    queryKey: ["products"],
-
-    queryFn: () => fetchProducts(currentUser ? currentUser.token : ""),
+  const { isLoading, data: wages = [] } = useQuery({
+    queryKey: ["wages"],
+    queryFn: () => fetchWages2(currentUser ? currentUser.token : ""),
   });
 
-  const { data: cart = [] } = useQuery({
-    queryKey: ["cart"],
-
-    queryFn: getCartItems,
+  const { data: clients = [] } = useQuery({
+    queryKey: ["clients"],
+    queryFn: () => fetchClients(id),
   });
 
-  useEffect(() => {
-    let newList = products ? [...products] : [];
-    // filter by category
-    if (category !== "") {
-      newList = newList.filter((p) => p.category === category);
-    }
-    const total = Math.ceil(newList.length / perPage);
-    // convert the total number into array
-    const pages = [];
-    for (let i = 1; i <= total; i++) {
-      pages.push(i);
-    }
-    setTotalPages(pages);
-
-    switch (sort) {
-      case "name":
-        newList = newList.sort((a, b) => {
-          return a.name.localeCompare(b.name);
-        });
-        break;
-      case "price":
-        newList = newList.sort((a, b) => {
-          return a.price - b.price;
-        });
-        break;
-      default:
-        break;
-    }
-    // do pagination
-    const start = (currentPage - 1) * perPage;
-    const end = start + perPage;
-
-    newList = newList.slice(start, end);
-
-    setCurrentProducts(newList);
-  }, [products, category, sort, perPage, currentPage]);
-
-  const categoryOptions = useMemo(() => {
-    let options = [];
-    if (products && products.length > 0) {
-      products.forEach((product) => {
-        if (!options.includes(product.category)) {
-          options.push(product.category);
-        }
-      });
-    }
-    return options;
-  }, [products]);
-
-  const deleteMutation = useMutation({
-    mutationFn: deleteProduct,
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["products"],
-      });
-      notifications.show({
-        title: "Product is Deleted Successfully",
-        color: "red",
-      });
-    },
+  const { data: users = [] } = useQuery({
+    queryKey: ["users"],
+    queryFn: () => fetchUsers(currentUser ? currentUser.token : ""),
   });
 
-  const addToCartMutation = useMutation({
-    mutationFn: addToCart,
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["cart"],
-      });
-      notifications.show({
-        title: "Product Added to Cart",
-        color: "green",
-      });
-    },
-  });
+  const handleDownloadPDF = (order) => {
+    const doc = new jsPDF();
+    const wage = wages.find((w) => w._id);
+    const user = users.find((user) => user._id === order.user);
 
-  const cartTotal = useMemo(() => {
-    let total = 0;
-    cart.forEach((item) => {
-      total += item.quantity;
-    });
-    return total;
-  }, [cart]);
+    const imgData = logo;
 
-  const isAdmin = useMemo(() => {
-    return cookies &&
-      cookies.currentUser &&
-      (cookies.currentUser.role === "Admin HQ" ||
-        cookies.currentUser.role === "Admin Branch")
-      ? true
-      : false;
-  }, [cookies]);
+    doc.addImage(imgData, "PNG", 10, 13, 30, 30);
+
+    // Add group data
+    const groupYPos = 20;
+    doc.setFontSize(9);
+    doc.text("SO FIT SDN. BHD.", 50, groupYPos);
+    doc.setFontSize(8);
+    doc.text("(Co. No. 202101016054 (1416354-X))", 50, groupYPos + 5);
+    doc.text(
+      "No. 13-2-1, 13-2-2, Jalan Setia Prima (A) U13/A,",
+      50,
+      groupYPos + 10
+    );
+    doc.text(
+      "Setia Alam, Seksyen U13, 40170 Shah Alam, Selangor",
+      50,
+      groupYPos + 15
+    );
+    doc.text(
+      "H/P : 016-982 9350 Email : 88sofit@gmail.com",
+      50,
+      groupYPos + 20
+    );
+
+    doc.text(`PAYSLIP: ${order.payslipNo}`, 160, groupYPos);
+    const paidDate = new Date(order.paid_at);
+    const year = paidDate.getFullYear();
+    const month = String(paidDate.getMonth() + 1).padStart(2, "0");
+    const day = String(paidDate.getDate()).padStart(2, "0");
+    const formattedDate = `${year}-${month}-${day}`;
+
+    doc.text(`Date: ${formattedDate}`, 160, groupYPos + 5);
+    if (user && user.name) {
+      doc.text(`Staff: ${user.name}`, 160, groupYPos + 10);
+    }
+
+    const group2YPos = 45;
+    doc.text(`Name:`, 10, 50);
+    doc.text(`Identity Card:`, 10, 55);
+    doc.text(`Bank Name:`, 10, 60);
+    doc.text(`Bank Name:`, 10, 65);
+
+    doc.setFontSize(8);
+    doc.text(`${order.name}`, 40, group2YPos + 5);
+    doc.text(`${order.ic}`, 40, group2YPos + 10);
+    doc.text(`${order.bankacc}`, 40, group2YPos + 15);
+    doc.text(`${order.bankname}`, 40, group2YPos + 20);
+
+    doc.setLineWidth(0.3);
+    doc.line(10, 75, 200, 75);
+    doc.line(10, 75, 10, 175);
+    doc.line(10, 175, 200, 175);
+    doc.line(200, 75, 200, 175);
+
+    const group3YPos = 70;
+    doc.text(`Bacis:`, 10, 75);
+    doc.text(`Coaching Fee:`, 10, 80);
+    doc.text(`Commission`, 10, 85);
+    doc.text(`PMS:`, 10, 90);
+
+    doc.setFontSize(8);
+    doc.text(`${order.basic}`, 40, group3YPos + 5);
+    doc.text(`${order.coachingFee}`, 40, group3YPos + 10);
+    doc.text(`${order.commission}`, 40, group3YPos + 15);
+    doc.text(`${order.totalpms}`, 40, group3YPos + 20);
+
+    // Save the PDF
+    doc.save(`invoice_${order.invoiceNo}.pdf`);
+  };
 
   return (
-    <Container size="100%">
-      <Header page="home" />
-      <Group position="apart">
-        <Title order={3} align="center">
-          Products
-        </Title>
-        {isAdmin && (
-          <Button component={Link} to="/product_add" color="green">
-            Add New
-          </Button>
-        )}
-      </Group>
-      <Space h="20px" />
-      <Group>
-        <select
-          value={category}
-          onChange={(event) => {
-            setCategory(event.target.value);
-            setCurrentPage(1);
-          }}
-        >
-          <option value="">All Category</option>
-          {categoryOptions.map((category) => {
-            return (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            );
-          })}
-        </select>
-        <select
-          value={sort}
-          onChange={(event) => {
-            setSort(event.target.value);
-            setCurrentPage(1);
-          }}
-        >
-          <option value="">No Sorting</option>
-          <option value="name">Sort by Name</option>
-          <option value="price">Sort by Price</option>
-        </select>
-        <select
-          value={perPage}
-          onChange={(event) => {
-            setPerPage(parseInt(event.target.value));
-            // reset it back to page 1
-            setCurrentPage(1);
-          }}
-        >
-          <option value="6">6 Per Page</option>
-          <option value="10">10 Per Page</option>
-          <option value={9999999}>All</option>
-        </select>
-      </Group>
-      <Space h="20px" />
-      <LoadingOverlay visible={isLoading} />
-      <Grid>
-        {currentProducts
-          ? currentProducts.map((product) => {
-              return (
-                <Grid.Col key={product._id} lg={4} md={6} sm={6} xs={6}>
-                  <Card withBorder shadow="sm" p="20px">
-                    <Card.Section>
-                      <Image
-                        src={"http://localhost:2019/" + product.productImage}
-                        height={220}
-                        alt="Norway"
-                      />
-                    </Card.Section>
-                    <Title order={5}>{product.name}</Title>
-                    <Space h="20px" />
-                    <Group position="apart" spacing="5px">
-                      <Badge color="green">MYR {product.price}</Badge>
-                      <Badge color="red">Store: {product.store}</Badge>
-                      <Badge color="yellow">Category: {product.category}</Badge>
-                    </Group>
-                    <Space h="20px" />
-                    <Button
-                      fullWidth
-                      onClick={() => {
-                        // pop a messsage if user is not logged in
-                        if (cookies && cookies.currentUser) {
-                          addToCartMutation.mutate(product);
-                        } else {
-                          notifications.show({
-                            title: "Please login to proceed",
-                            message: (
-                              <>
-                                <Button
-                                  color="red"
-                                  onClick={() => {
-                                    navigate("/login");
-                                    notifications.clean();
-                                  }}
-                                >
-                                  Click here to login
-                                </Button>
-                              </>
-                            ),
-                            color: "red",
-                          });
-                        }
-                      }}
-                      disabled={product.store === 0}
-                    >
-                      Add To Cart
-                    </Button>
-                    {isAdmin && (
-                      <>
-                        <Space h="20px" />
-                        <Group position="apart">
-                          <Button
-                            component={Link}
-                            to={"/product_edit/" + product._id}
-                            color="blue"
-                            size="xs"
-                            radius="50px"
-                          >
-                            Edit
-                          </Button>
-                          <Button
-                            color="red"
-                            size="xs"
-                            radius="50px"
-                            onClick={() => {
-                              setProductIdToDelete(product._id);
-                              setShowModal(true);
-                            }}
-                          >
-                            Delete
-                          </Button>
-                        </Group>
-                      </>
-                    )}
-                  </Card>
-                </Grid.Col>
-              );
-            })
-          : null}
-        <Modal
-          centered
-          overlayOpacity={0.55}
-          overlayBlur={3}
-          title="Confirm Deletion Products"
-          opened={showModal}
-          onClose={() => setShowModal(false)}
-          size="lg"
-        >
-          <Divider />
-          <Space h="10px" />
-          <Group>
-            <Text>Are you sure you want to delete this</Text>
-            <Text c="red" fw={500}>
-              {products && (
-                <Text c="red" fw={500}>
-                  {
-                    products.find(
-                      (product) => product._id === productIdToDelete
-                    )?.name
-                  }
-                </Text>
-              )}
-            </Text>
-            <Text>product?</Text>
-          </Group>
-
-          <Space h="20px" />
-          <Group position="right">
-            <Button
-              color="red"
-              size="sm"
-              onClick={() => {
-                deleteMutation.mutate({
-                  id: productIdToDelete,
-                  token: currentUser ? currentUser.token : "",
-                });
-                setShowModal(false);
-              }}
-            >
-              Delete
-            </Button>
-            <Button onClick={() => setShowModal(false)}>Cancel</Button>
-          </Group>
-        </Modal>
-      </Grid>
-      <Space h="40px" />
-      <div>
-        <span
-          style={{
-            marginRight: "10px",
-          }}
-        >
-          Page {currentPage} of {totalPages.length}
-        </span>
-        {totalPages.map((page) => {
-          return (
-            <button
-              key={page}
-              onClick={() => {
-                setCurrentPage(page);
-              }}
-            >
-              {page}
-            </button>
-          );
-        })}
-      </div>
-      <Space h="40px" />
-    </Container>
+    <>
+      <Container size="100%">
+        <Header title="My Orders" page="orders" />
+        <Space h="35px" />
+        {/* <LoadingOverlay visible={isLoading} /> */}
+        <Table>
+          <thead>
+            <tr>
+              <th>PaySlip No</th>
+              <th>Staff Name</th>
+              <th>Bacis</th>
+              <th>Coaching Fee</th>
+              <th>Commission</th>
+              <th>EPF</th>
+              <th>SOCSO</th>
+              <th>EIS</th>
+              <th>PCD</th>
+              <th>Employer EPF</th>
+              <th>Employer SOCSO</th>
+              <th>EmployerEIS</th>
+              <th>Total Income</th>
+              <th>Nett Pay</th>
+            </tr>
+          </thead>
+          <tbody>
+            {wages
+              ? wages.map((wage) => {
+                  return (
+                    <tr key={wage._id}>
+                      <td>{wage.payslipNo}</td>
+                      <td>{wage.name}</td>
+                      <td>{wage.basic}</td>
+                      <td>{wage.coachingFee}</td>
+                      <td>{wage.commission}</td>
+                      <td>{wage.epf}</td>
+                      <td>{wage.socso}</td>
+                      <td>{wage.eis}</td>
+                      <td>{wage.pcd}</td>
+                      <td>{wage.employerEpf}</td>
+                      <td>{wage.employerSocso}</td>
+                      <td>{wage.employerEis}</td>
+                      <td>{wage.totalIncome}</td>
+                      <td>{wage.nettPay}</td>
+                      <td>
+                        <HoverCard shadow="md">
+                          <HoverCard.Target>
+                            <Button
+                              variant="subtle"
+                              color="gray"
+                              radius="xl"
+                              size="sm"
+                              onClick={() => handleDownloadPDF(wage)}
+                            >
+                              <MdDownloadForOffline
+                                style={{
+                                  height: 24,
+                                  width: 24,
+                                }}
+                              />
+                            </Button>
+                          </HoverCard.Target>
+                          <HoverCard.Dropdown>
+                            <Text size="sm">INVOICE</Text>
+                          </HoverCard.Dropdown>
+                        </HoverCard>
+                      </td>
+                    </tr>
+                  );
+                })
+              : null}
+          </tbody>
+        </Table>
+        <Space h="20px" />
+      </Container>
+    </>
   );
 }
-
-export default Wage;

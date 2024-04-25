@@ -7,6 +7,17 @@ export const fetchWages = async () => {
   return response.data;
 };
 
+export const fetchWages2 = async (token = "") => {
+  const response = await axios({
+    method: "GET",
+    url: API_URL + "/wage",
+    headers: {
+      Authorization: "Bearer " + token,
+    },
+  });
+  return response.data;
+};
+
 export const getWage = async (id) => {
   const response = await axios.get(API_URL + "/wage/" + id);
   return response.data;

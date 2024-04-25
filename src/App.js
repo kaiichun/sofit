@@ -29,6 +29,7 @@ import PackageEdit from "./PackageEdit";
 import CheckoutPackage from "./CheckoutPackage";
 import OrdersPackage from "./OrdersPackage";
 import WageAdd from "./WageAdd";
+import Wages from "./Wage";
 
 function App() {
   const [cookies] = useCookies(["currentUser"]);
@@ -195,6 +196,14 @@ function App() {
           element={
             <AppWrapper>
               <OrdersPackage />
+            </AppWrapper>
+          }
+        />
+        <Route
+          path="/wage"
+          element={
+            <AppWrapper>
+              <Wages />
             </AppWrapper>
           }
         />

@@ -12,16 +12,19 @@ import {
   Group,
   Select,
 } from "@mantine/core";
-import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { notifications } from "@mantine/notifications";
-import { useMutation } from "@tanstack/react-query";
+import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
+import { useCookies } from "react-cookie";
 import { fetchUsers } from "../api/auth";
 import { fetchPMS, fetchUserPMS } from "../api/pms";
 import { fetchOrders } from "../api/order";
 import { addWage } from "../api/wage";
 
 function WageAdd() {
+  const [cookies] = useCookies(["currentUser"]);
+  const { currentUser } = cookies;
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [selectedUser, setSelectedUser] = useState("");
   const [selectedPMS1, setSelectedPMS1] = useState(null);
@@ -42,23 +45,17 @@ function WageAdd() {
   const [selectedOrder, setSelectedOrder] = useState("");
   const [pmsTotal, setPMSTotal] = useState("");
   const [selectedMonth, setSelectedMonth] = useState("1"); // Initialize with January as default
-  const [month, setMonth] = useState("");
-  const [year, setYear] = useState("");
-
-  const [epf, setEpf] = useState("");
-  const [basic, setBasic] = useState("");
-  const [socso, setSocso] = useState("");
-  const [eis, setEis] = useState("");
+  const [month, setMonth] = useState(new Date().getMonth() + 1);
+  const [year, setYear] = useState(new Date().getFullYear());
+  const [basic, setBasic] = useState(0);
   const [pcd, setPcd] = useState("");
   const [allowance, setAllowance] = useState("");
   const [claims, setClaims] = useState("");
-  const [employerEpf, setEmployerEpf] = useState("");
-  const [employerSocso, setEmployerSocso] = useState("");
-  const [employerEis, setEmployerEis] = useState("");
   const [totalIncome, setTotalIncome] = useState("");
-  const [overtime, setOvertime] = useState("");
-  const [nettPay, setNettPay] = useState("");
+  const [overtime, setOvertime] = useState(0);
+  const [nettPay, setNettPay] = useState(0);
   const [commission, setCommission] = useState("");
+  const [name, setName] = useState();
   const [bankAccount, setBankAccount] = useState("");
   const [bankName, setBankName] = useState("");
   const [department, setDepartment] = useState("");
@@ -78,11 +75,19 @@ function WageAdd() {
 
   const { data: orders = [] } = useQuery({
     queryKey: ["orders"],
-    queryFn: () => fetchOrders(),
+    queryFn: () => fetchOrders(currentUser ? currentUser.token : ""),
   });
 
-  const findStaffOrderC = () => {
-    return selectedUser && orders
+  useEffect(() => {
+    if (selectedUser && users) {
+      const selectedUserSalary =
+        users.find((u) => u._id === selectedUser)?.salary || 0;
+      setBasic(selectedUserSalary);
+    }
+  }, [selectedUser, users]);
+
+  const findStaffOrderC =
+    selectedUser && orders
       ? orders
           .filter(
             (order) =>
@@ -90,10 +95,9 @@ function WageAdd() {
           )
           .map((order) => order)
       : [];
-  };
 
   const calculateTotalCom = () => {
-    const staffCom = findStaffOrderC();
+    const staffCom = findStaffOrderC;
     if (staffCom.length > 0) {
       const totalPrice = staffCom.reduce(
         (commission, order) => commission + parseFloat(order.commission),
@@ -137,7 +141,6 @@ function WageAdd() {
       selectedPMS15,
     ];
 
-    // 计算所选 PMS 的总和和具有值的所选 PMS 项目的数量
     pmsValues.forEach((pmsValue) => {
       if (pmsValue) {
         total += parseFloat(pmsValue);
@@ -145,7 +148,6 @@ function WageAdd() {
       }
     });
 
-    // 如果没有所选 PMS 项目具有值，则返回 0
     if (validCount === 0) {
       return 0;
     }
@@ -156,7 +158,7 @@ function WageAdd() {
   };
 
   const calculateReward = () => {
-    const totalPMS = parseFloat(calculateTotalPMS()); // 将百分比字符串转换为数字
+    const totalPMS = parseFloat(calculateTotalPMS());
     let reward = 0;
 
     if (totalPMS >= 60 && totalPMS < 70) {
@@ -171,6 +173,11 @@ function WageAdd() {
 
     return reward;
   };
+
+  const selectedUserName =
+    selectedUser && users
+      ? users.find((c) => c._id === selectedUser)?.name || ""
+      : "-";
 
   const months = [
     { value: "1", label: "January" },
@@ -193,7 +200,7 @@ function WageAdd() {
     }
     let rate;
 
-    const currentUser = users.find((u) => u._id === selectedUser); // Find the selected user
+    const currentUser = users.find((u) => u._id === selectedUser);
     if (currentUser.department === "Junior Trainee") {
       if (sessions <= 50) {
         rate = 30;
@@ -228,14 +235,431 @@ function WageAdd() {
 
   const [coachingFee, setCoachingFee] = useState();
 
+  const calculateTotalIncomeWithoutAllowClaim = () => {
+    const totalcom = parseFloat(calculateTotalCom()) || 0;
+    const totalPMS = parseFloat(calculateTotalPMS()) || 0;
+    const coachingFee = parseFloat(calculateCoachingFee()) || 0;
+    const basicValue = parseFloat(basic) || 0;
+    const overtimeValue = parseFloat(overtime) || 0;
+
+    // Calculate the total income
+    const totalIncome =
+      totalcom + totalPMS + coachingFee + basicValue + overtimeValue;
+
+    return totalIncome.toFixed(2);
+  };
+
+  const totalIncomeWithoutAllowClaim = parseFloat(
+    calculateTotalIncomeWithoutAllowClaim()
+  );
+
+  const calculateEPF = (totalIncomeWithoutAllowClaim) => {
+    let employerEPFRate;
+    let employeeEPFRate;
+
+    // Check if the total income is less than or equal to RM5,000
+    if (totalIncomeWithoutAllowClaim <= 5000) {
+      // For monthly salary of RM5,000 or less
+      employerEPFRate = 0.13; // Employer contributes ~13% of the employee’s salary
+      employeeEPFRate = 0.11; // Employee contributes ~11% of their monthly salary
+    } else {
+      // For monthly salary greater than RM5,000
+      employerEPFRate = 0.12; // Employer contributes ~12% of the employee’s salary
+      employeeEPFRate = 0.11; // Employee contributes ~11% of their monthly salary
+    }
+
+    // Calculate employer and employee EPF contributions
+    const employerContribution = totalIncomeWithoutAllowClaim * employerEPFRate;
+    const employeeContribution = totalIncomeWithoutAllowClaim * employeeEPFRate;
+
+    return { employerEpf: employerContribution, epf: employeeContribution };
+  };
+
+  const { epf, employerEpf } = calculateEPF(totalIncomeWithoutAllowClaim);
+
+  const calculateSocso = (totalIncomeWithoutAllowClaim) => {
+    let employerSocsoRate;
+    let employeeSocsoRate;
+
+    if (totalIncomeWithoutAllowClaim <= 30) {
+      employerSocsoRate = 0.4;
+      employeeSocsoRate = 0.1;
+    } else if (totalIncomeWithoutAllowClaim <= 50) {
+      employerSocsoRate = 0.7;
+      employeeSocsoRate = 0.2;
+    } else if (totalIncomeWithoutAllowClaim <= 70) {
+      employerSocsoRate = 1.1;
+      employeeSocsoRate = 0.3;
+    } else if (totalIncomeWithoutAllowClaim <= 100) {
+      employerSocsoRate = 1.5;
+      employeeSocsoRate = 0.4;
+    } else if (totalIncomeWithoutAllowClaim <= 140) {
+      employerSocsoRate = 2.1;
+      employeeSocsoRate = 0.6;
+    } else if (totalIncomeWithoutAllowClaim <= 200) {
+      employerSocsoRate = 2.95;
+      employeeSocsoRate = 0.85;
+    } else if (totalIncomeWithoutAllowClaim <= 300) {
+      employerSocsoRate = 4.35;
+      employeeSocsoRate = 1.25;
+    } else if (totalIncomeWithoutAllowClaim <= 400) {
+      employerSocsoRate = 6.15;
+      employeeSocsoRate = 1.75;
+    } else if (totalIncomeWithoutAllowClaim <= 500) {
+      employerSocsoRate = 7.85;
+      employeeSocsoRate = 2.25;
+    } else if (totalIncomeWithoutAllowClaim <= 600) {
+      employerSocsoRate = 9.65;
+      employeeSocsoRate = 2.75;
+    } else if (totalIncomeWithoutAllowClaim <= 700) {
+      employerSocsoRate = 11.35;
+      employeeSocsoRate = 3.25;
+    } else if (totalIncomeWithoutAllowClaim <= 800) {
+      employerSocsoRate = 13.15;
+      employeeSocsoRate = 3.75;
+    } else if (totalIncomeWithoutAllowClaim <= 900) {
+      employerSocsoRate = 14.85;
+      employeeSocsoRate = 4.25;
+    } else if (totalIncomeWithoutAllowClaim <= 1000) {
+      employerSocsoRate = 16.65;
+      employeeSocsoRate = 4.75;
+    } else if (totalIncomeWithoutAllowClaim <= 1100) {
+      employerSocsoRate = 18.35;
+      employeeSocsoRate = 5.25;
+    } else if (totalIncomeWithoutAllowClaim <= 1200) {
+      employerSocsoRate = 20.15;
+      employeeSocsoRate = 5.75;
+    } else if (totalIncomeWithoutAllowClaim <= 1300) {
+      employerSocsoRate = 21.85;
+      employeeSocsoRate = 6.25;
+    } else if (totalIncomeWithoutAllowClaim <= 1400) {
+      employerSocsoRate = 23.65;
+      employeeSocsoRate = 6.75;
+    } else if (totalIncomeWithoutAllowClaim <= 1500) {
+      employerSocsoRate = 25.35;
+      employeeSocsoRate = 7.25;
+    } else if (totalIncomeWithoutAllowClaim <= 1600) {
+      employerSocsoRate = 27.15;
+      employeeSocsoRate = 7.75;
+    } else if (totalIncomeWithoutAllowClaim <= 1700) {
+      employerSocsoRate = 28.85;
+      employeeSocsoRate = 8.25;
+    } else if (totalIncomeWithoutAllowClaim <= 1800) {
+      employerSocsoRate = 30.65;
+      employeeSocsoRate = 8.75;
+    } else if (totalIncomeWithoutAllowClaim <= 1900) {
+      employerSocsoRate = 32.35;
+      employeeSocsoRate = 9.25;
+    } else if (totalIncomeWithoutAllowClaim <= 2000) {
+      employerSocsoRate = 34.15;
+      employeeSocsoRate = 9.75;
+    } else if (totalIncomeWithoutAllowClaim <= 2100) {
+      employerSocsoRate = 35.85;
+      employeeSocsoRate = 10.25;
+    } else if (totalIncomeWithoutAllowClaim <= 2200) {
+      employerSocsoRate = 37.65;
+      employeeSocsoRate = 10.75;
+    } else if (totalIncomeWithoutAllowClaim <= 2300) {
+      employerSocsoRate = 39.35;
+      employeeSocsoRate = 11.25;
+    } else if (totalIncomeWithoutAllowClaim <= 2400) {
+      employerSocsoRate = 41.15;
+      employeeSocsoRate = 11.75;
+    } else if (totalIncomeWithoutAllowClaim <= 2500) {
+      employerSocsoRate = 42.85;
+      employeeSocsoRate = 12.25;
+    } else if (totalIncomeWithoutAllowClaim <= 2600) {
+      employerSocsoRate = 44.65;
+      employeeSocsoRate = 12.75;
+    } else if (totalIncomeWithoutAllowClaim <= 2700) {
+      employerSocsoRate = 46.35;
+      employeeSocsoRate = 13.25;
+    } else if (totalIncomeWithoutAllowClaim <= 2800) {
+      employerSocsoRate = 48.15;
+      employeeSocsoRate = 13.75;
+    } else if (totalIncomeWithoutAllowClaim <= 2900) {
+      employerSocsoRate = 49.85;
+      employeeSocsoRate = 14.25;
+    } else if (totalIncomeWithoutAllowClaim <= 3000) {
+      employerSocsoRate = 51.65;
+      employeeSocsoRate = 14.75;
+    } else if (totalIncomeWithoutAllowClaim <= 3100) {
+      employerSocsoRate = 53.35;
+      employeeSocsoRate = 15.25;
+    } else if (totalIncomeWithoutAllowClaim <= 3200) {
+      employerSocsoRate = 55.15;
+      employeeSocsoRate = 15.75;
+    } else if (totalIncomeWithoutAllowClaim <= 3300) {
+      employerSocsoRate = 56.85;
+      employeeSocsoRate = 16.25;
+    } else if (totalIncomeWithoutAllowClaim <= 3400) {
+      employerSocsoRate = 58.65;
+      employeeSocsoRate = 16.75;
+    } else if (totalIncomeWithoutAllowClaim <= 3500) {
+      employerSocsoRate = 60.35;
+      employeeSocsoRate = 17.25;
+    } else if (totalIncomeWithoutAllowClaim <= 3600) {
+      employerSocsoRate = 62.15;
+      employeeSocsoRate = 17.75;
+    } else if (totalIncomeWithoutAllowClaim <= 3700) {
+      employerSocsoRate = 43.85;
+      employeeSocsoRate = 18.25;
+    } else if (totalIncomeWithoutAllowClaim <= 3800) {
+      employerSocsoRate = 65.65;
+      employeeSocsoRate = 18.75;
+    } else if (totalIncomeWithoutAllowClaim <= 3900) {
+      employerSocsoRate = 67.35;
+      employeeSocsoRate = 19.25;
+    } else if (totalIncomeWithoutAllowClaim <= 4000) {
+      employerSocsoRate = 69.15;
+      employeeSocsoRate = 19.75;
+    } else if (totalIncomeWithoutAllowClaim <= 4100) {
+      employerSocsoRate = 70.85;
+      employeeSocsoRate = 20.25;
+    } else if (totalIncomeWithoutAllowClaim <= 4200) {
+      employerSocsoRate = 72.65;
+      employeeSocsoRate = 20.75;
+    } else if (totalIncomeWithoutAllowClaim <= 4300) {
+      employerSocsoRate = 74.35;
+      employeeSocsoRate = 21.25;
+    } else if (totalIncomeWithoutAllowClaim <= 4400) {
+      employerSocsoRate = 76.15;
+      employeeSocsoRate = 21.75;
+    } else if (totalIncomeWithoutAllowClaim <= 4500) {
+      employerSocsoRate = 77.85;
+      employeeSocsoRate = 22.25;
+    } else if (totalIncomeWithoutAllowClaim <= 4600) {
+      employerSocsoRate = 79.65;
+      employeeSocsoRate = 22.75;
+    } else if (totalIncomeWithoutAllowClaim <= 4700) {
+      employerSocsoRate = 81.35;
+      employeeSocsoRate = 23.25;
+    } else if (totalIncomeWithoutAllowClaim <= 4800) {
+      employerSocsoRate = 83.15;
+      employeeSocsoRate = 23.75;
+    } else if (totalIncomeWithoutAllowClaim <= 4900) {
+      employerSocsoRate = 84.85;
+      employeeSocsoRate = 24.25;
+    } else if (totalIncomeWithoutAllowClaim <= 5000) {
+      employerSocsoRate = 86.65;
+      employeeSocsoRate = 24.75;
+    } else {
+      employerSocsoRate = 86.65;
+      employeeSocsoRate = 24.75;
+    }
+
+    return { socso: employeeSocsoRate, employerSocso: employerSocsoRate };
+  };
+
+  const { socso, employerSocso } = calculateSocso(totalIncomeWithoutAllowClaim);
+
+  const calculateESI = (totalIncomeWithoutAllowClaim) => {
+    let employerESIRate;
+    let employeeESIRate;
+
+    if (totalIncomeWithoutAllowClaim <= 30) {
+      employerESIRate = 0.05;
+      employeeESIRate = 0.05;
+    } else if (totalIncomeWithoutAllowClaim <= 50) {
+      employerESIRate = 0.1;
+      employeeESIRate = 0.1;
+    } else if (totalIncomeWithoutAllowClaim <= 70) {
+      employerESIRate = 0.15;
+      employeeESIRate = 0.15;
+    } else if (totalIncomeWithoutAllowClaim <= 100) {
+      employerESIRate = 0.2;
+      employeeESIRate = 0.2;
+    } else if (totalIncomeWithoutAllowClaim <= 140) {
+      employerESIRate = 0.25;
+      employeeESIRate = 0.25;
+    } else if (totalIncomeWithoutAllowClaim <= 200) {
+      employerESIRate = 0.35;
+      employeeESIRate = 0.35;
+    } else if (totalIncomeWithoutAllowClaim <= 300) {
+      employerESIRate = 0.5;
+      employeeESIRate = 0.5;
+    } else if (totalIncomeWithoutAllowClaim <= 400) {
+      employerESIRate = 0.7;
+      employeeESIRate = 0.7;
+    } else if (totalIncomeWithoutAllowClaim <= 500) {
+      employerESIRate = 0.9;
+      employeeESIRate = 0.9;
+    } else if (totalIncomeWithoutAllowClaim <= 600) {
+      employerESIRate = 1.1;
+      employeeESIRate = 1.1;
+    } else if (totalIncomeWithoutAllowClaim <= 700) {
+      employerESIRate = 1.3;
+      employeeESIRate = 1.3;
+    } else if (totalIncomeWithoutAllowClaim <= 800) {
+      employerESIRate = 1.5;
+      employeeESIRate = 1.5;
+    } else if (totalIncomeWithoutAllowClaim <= 900) {
+      employerESIRate = 1.7;
+      employeeESIRate = 1.7;
+    } else if (totalIncomeWithoutAllowClaim <= 1000) {
+      employerESIRate = 1.9;
+      employeeESIRate = 1.9;
+    } else if (totalIncomeWithoutAllowClaim <= 1100) {
+      employerESIRate = 2.1;
+      employeeESIRate = 2.1;
+    } else if (totalIncomeWithoutAllowClaim <= 1200) {
+      employerESIRate = 2.3;
+      employeeESIRate = 2.3;
+    } else if (totalIncomeWithoutAllowClaim <= 1300) {
+      employerESIRate = 2.5;
+      employeeESIRate = 2.5;
+    } else if (totalIncomeWithoutAllowClaim <= 1400) {
+      employerESIRate = 2.7;
+      employeeESIRate = 2.7;
+    } else if (totalIncomeWithoutAllowClaim <= 1500) {
+      employerESIRate = 2.9;
+      employeeESIRate = 2.9;
+    } else if (totalIncomeWithoutAllowClaim <= 1600) {
+      employerESIRate = 3.1;
+      employeeESIRate = 3.1;
+    } else if (totalIncomeWithoutAllowClaim <= 1700) {
+      employerESIRate = 3.3;
+      employeeESIRate = 3.3;
+    } else if (totalIncomeWithoutAllowClaim <= 1800) {
+      employerESIRate = 3.5;
+      employeeESIRate = 3.5;
+    } else if (totalIncomeWithoutAllowClaim <= 1900) {
+      employerESIRate = 3.7;
+      employeeESIRate = 3.7;
+    } else if (totalIncomeWithoutAllowClaim <= 2000) {
+      employerESIRate = 3.9;
+      employeeESIRate = 3.9;
+    } else if (totalIncomeWithoutAllowClaim <= 2100) {
+      employerESIRate = 4.1;
+      employeeESIRate = 4.1;
+    } else if (totalIncomeWithoutAllowClaim <= 2200) {
+      employerESIRate = 4.3;
+      employeeESIRate = 4.3;
+    } else if (totalIncomeWithoutAllowClaim <= 2300) {
+      employerESIRate = 4.5;
+      employeeESIRate = 4.5;
+    } else if (totalIncomeWithoutAllowClaim <= 2400) {
+      employerESIRate = 4.7;
+      employeeESIRate = 4.7;
+    } else if (totalIncomeWithoutAllowClaim <= 2500) {
+      employerESIRate = 4.9;
+      employeeESIRate = 4.9;
+    } else if (totalIncomeWithoutAllowClaim <= 2600) {
+      employerESIRate = 5.1;
+      employeeESIRate = 5.1;
+    } else if (totalIncomeWithoutAllowClaim <= 2700) {
+      employerESIRate = 5.3;
+      employeeESIRate = 5.3;
+    } else if (totalIncomeWithoutAllowClaim <= 2800) {
+      employerESIRate = 5.5;
+      employeeESIRate = 5.5;
+    } else if (totalIncomeWithoutAllowClaim <= 2900) {
+      employerESIRate = 5.7;
+      employeeESIRate = 5.7;
+    } else if (totalIncomeWithoutAllowClaim <= 3000) {
+      employerESIRate = 5.9;
+      employeeESIRate = 5.9;
+    } else if (totalIncomeWithoutAllowClaim <= 3100) {
+      employerESIRate = 6.1;
+      employeeESIRate = 6.1;
+    } else if (totalIncomeWithoutAllowClaim <= 3200) {
+      employerESIRate = 6.3;
+      employeeESIRate = 6.3;
+    } else if (totalIncomeWithoutAllowClaim <= 3300) {
+      employerESIRate = 6.5;
+      employeeESIRate = 6.5;
+    } else if (totalIncomeWithoutAllowClaim <= 3400) {
+      employerESIRate = 6.7;
+      employeeESIRate = 6.7;
+    } else if (totalIncomeWithoutAllowClaim <= 3500) {
+      employerESIRate = 6.9;
+      employeeESIRate = 6.9;
+    } else if (totalIncomeWithoutAllowClaim <= 3600) {
+      employerESIRate = 7.1;
+      employeeESIRate = 7.1;
+    } else if (totalIncomeWithoutAllowClaim <= 3700) {
+      employerESIRate = 7.3;
+      employeeESIRate = 7.3;
+    } else if (totalIncomeWithoutAllowClaim <= 3800) {
+      employerESIRate = 7.5;
+      employeeESIRate = 7.5;
+    } else if (totalIncomeWithoutAllowClaim <= 3900) {
+      employerESIRate = 7.7;
+      employeeESIRate = 7.7;
+    } else if (totalIncomeWithoutAllowClaim <= 4000) {
+      employerESIRate = 7.9;
+      employeeESIRate = 7.9;
+    } else if (totalIncomeWithoutAllowClaim <= 4100) {
+      employerESIRate = 8.1;
+      employeeESIRate = 8.1;
+    } else if (totalIncomeWithoutAllowClaim <= 4200) {
+      employerESIRate = 8.3;
+      employeeESIRate = 8.3;
+    } else if (totalIncomeWithoutAllowClaim <= 4300) {
+      employerESIRate = 8.5;
+      employeeESIRate = 8.5;
+    } else if (totalIncomeWithoutAllowClaim <= 4400) {
+      employerESIRate = 8.7;
+      employeeESIRate = 8.7;
+    } else if (totalIncomeWithoutAllowClaim <= 4500) {
+      employerESIRate = 8.9;
+      employeeESIRate = 8.9;
+    } else if (totalIncomeWithoutAllowClaim <= 4600) {
+      employerESIRate = 9.1;
+      employeeESIRate = 9.1;
+    } else if (totalIncomeWithoutAllowClaim <= 4700) {
+      employerESIRate = 9.3;
+      employeeESIRate = 9.3;
+    } else if (totalIncomeWithoutAllowClaim <= 4800) {
+      employerESIRate = 9.5;
+      employeeESIRate = 9.5;
+    } else if (totalIncomeWithoutAllowClaim <= 4900) {
+      employerESIRate = 9.7;
+      employeeESIRate = 9.7;
+    } else if (totalIncomeWithoutAllowClaim <= 5000) {
+      employerESIRate = 9.9;
+      employeeESIRate = 9.9;
+    } else {
+      employerESIRate = 9.9; // Default rate for income above RM 5000
+      employeeESIRate = 9.9; // Default rate for income above RM 5000
+    }
+
+    return { eis: employerESIRate, employerEis: employeeESIRate };
+  };
+  const { eis, employerEis } = calculateESI(totalIncomeWithoutAllowClaim);
+
+  const calculateTotalIncome = () => {
+    const totalcom = parseFloat(calculateTotalCom()) || 0;
+    const totalPMS = parseFloat(calculateTotalPMS()) || 0;
+    const coachingFee = parseFloat(calculateCoachingFee()) || 0;
+    const basicValue = parseFloat(basic) || 0;
+    const allowanceValue = parseFloat(allowance) || 0;
+    const pmsValue = parseFloat(calculateReward()) || 0;
+    const claimsValue = parseFloat(claims) || 0;
+    const overtimeValue = parseFloat(overtime) || 0;
+
+    // Calculate the total income
+    const totalIncome =
+      totalcom +
+      totalPMS +
+      coachingFee +
+      basicValue +
+      allowanceValue +
+      claimsValue +
+      pmsValue +
+      overtimeValue;
+
+    return totalIncome.toFixed(2); // Return the total income rounded to 2 decimal places
+  };
+
   const createMutation = useMutation({
     mutationFn: addWage,
-    onSuccess: () => {
+    onSuccess: (data) => {
       notifications.show({
         title: "New Wage Added",
         color: "green",
       });
-      navigate("/home");
+      navigate("/wage");
     },
     onError: (error) => {
       notifications.show({
@@ -247,26 +671,31 @@ function WageAdd() {
 
   const handleAddNewStaffWage = async () => {
     createMutation.mutate({
-      user: selectedUser ? selectedUser._id : null,
-      pms: pmsTotal,
-      order: selectedOrder ? selectedOrder._id : null,
-      month: month,
-      year: year,
-      coachingFee: coachingFee,
-      basic: basic,
-      epf: epf,
-      socso: socso,
-      eis: eis,
-      pcd: pcd,
-      allowance: allowance,
-      claims: claims,
-      employerEpf: employerEpf,
-      employerSocso: employerSocso,
-      employerEis: employerEis,
-      totalIncome: totalIncome,
-      overtime: overtime,
-      nettPay: nettPay,
-      commission: commission,
+      data: JSON.stringify({
+        user: currentUser._id,
+        staffId: selectedUser,
+        name: selectedUserName,
+        totalpms: calculateTotalPMS(),
+        coachingFee: calculateCoachingFee(),
+        year: year,
+        month: selectedMonth,
+        basic: basic,
+        epf: epf,
+        socso: socso,
+        eis: eis,
+        pcd: pcd,
+        allowance: allowance,
+        claims: claims,
+        commission: calculateTotalCom(),
+        order: calculateTotalCom(),
+        employerEpf: employerEpf,
+        employerSocso: employerSocso,
+        employerEis: employerEis,
+        totalIncome: calculateTotalIncome(),
+        overtime: overtime,
+        nettPay: nettPay,
+      }),
+      token: currentUser ? currentUser.token : "",
     });
   };
 
@@ -328,22 +757,12 @@ function WageAdd() {
               readOnly
             />
           </Grid.Col>
-          {/* <Grid.Col span={4}>
-            <Select
-              data={pmsdata}
-              value={selectedPMS1}
-              label=" "
-              disabled={false}
-              onChange={(value) => setSelectedPMS1(value)}
-              placeholder="Select a PMS"
-            />
-          </Grid.Col> */}
           <Select
             data={pmsdata}
             value={selectedPMS1}
             label=" "
             disabled={false}
-            onChange={(value) => setSelectedPMS1(value)}
+            onChange={setSelectedPMS1}
             placeholder="Select a PMS"
           />
           <Grid.Col span={4}>
@@ -352,7 +771,7 @@ function WageAdd() {
               value={selectedPMS2}
               label=" "
               disabled={!selectedPMS1}
-              onChange={(value) => setSelectedPMS2(value)}
+              onChange={setSelectedPMS2}
               placeholder="Select a PMS"
             />
           </Grid.Col>
@@ -362,7 +781,7 @@ function WageAdd() {
               value={selectedPMS3}
               label=" "
               disabled={!selectedPMS2}
-              onChange={(value) => setSelectedPMS3(value)}
+              onChange={setSelectedPMS3}
               placeholder="Select a PMS"
             />
           </Grid.Col>
@@ -372,7 +791,7 @@ function WageAdd() {
               value={selectedPMS4}
               disabled={!selectedPMS3}
               label=" "
-              onChange={(value) => setSelectedPMS4(value)}
+              onChange={setSelectedPMS4}
               placeholder="Select a PMS"
             />
           </Grid.Col>{" "}
@@ -381,7 +800,7 @@ function WageAdd() {
               data={pmsdata}
               value={selectedPMS5}
               disabled={!selectedPMS4}
-              onChange={(value) => setSelectedPMS5(value)}
+              onChange={setSelectedPMS5}
               placeholder="Select a PMS"
             />
           </Grid.Col>
@@ -390,7 +809,7 @@ function WageAdd() {
               data={pmsdata}
               value={selectedPMS6}
               disabled={!selectedPMS5}
-              onChange={(value) => setSelectedPMS6(value)}
+              onChange={setSelectedPMS6}
               placeholder="Select a PMS"
             />
           </Grid.Col>
@@ -399,7 +818,7 @@ function WageAdd() {
               data={pmsdata}
               value={selectedPMS7}
               disabled={!selectedPMS6}
-              onChange={(value) => setSelectedPMS7(value)}
+              onChange={setSelectedPMS7}
               placeholder="Select a PMS"
             />
           </Grid.Col>
@@ -408,7 +827,7 @@ function WageAdd() {
               data={pmsdata}
               value={selectedPMS8}
               disabled={!selectedPMS7}
-              onChange={(value) => setSelectedPMS8(value)}
+              onChange={setSelectedPMS8}
               placeholder="Select a PMS"
             />
           </Grid.Col>
@@ -417,7 +836,7 @@ function WageAdd() {
               data={pmsdata}
               value={selectedPMS9}
               disabled={!selectedPMS8}
-              onChange={(value) => setSelectedPMS9(value)}
+              onChange={setSelectedPMS9}
               placeholder="Select a PMS"
             />
           </Grid.Col>
@@ -426,7 +845,7 @@ function WageAdd() {
               data={pmsdata}
               value={selectedPMS10}
               disabled={!selectedPMS9}
-              onChange={(value) => setSelectedPMS10(value)}
+              onChange={setSelectedPMS10}
               placeholder="Select a PMS"
             />
           </Grid.Col>
@@ -434,7 +853,7 @@ function WageAdd() {
             <Select
               data={pmsdata}
               disabled={!selectedPMS10}
-              onChange={(value) => setSelectedPMS11(value)}
+              onChange={setSelectedPMS11}
               placeholder="Select a PMS"
             />
           </Grid.Col>
@@ -443,7 +862,7 @@ function WageAdd() {
               data={pmsdata}
               value={selectedPMS12}
               disabled={!selectedPMS11}
-              onChange={(value) => setSelectedPMS12(value)}
+              onChange={setSelectedPMS12}
               placeholder="Select a PMS"
             />
           </Grid.Col>
@@ -452,7 +871,7 @@ function WageAdd() {
               data={pmsdata}
               value={selectedPMS13}
               disabled={!selectedPMS12}
-              onChange={(value) => setSelectedPMS13(value)}
+              onChange={setSelectedPMS13}
               placeholder="Select a PMS"
             />
           </Grid.Col>
@@ -461,7 +880,7 @@ function WageAdd() {
               data={pmsdata}
               value={selectedPMS14}
               disabled={!selectedPMS13}
-              onChange={(value) => setSelectedPMS14(value)}
+              onChange={setSelectedPMS14}
               placeholder="Select a PMS"
             />
           </Grid.Col>
@@ -470,7 +889,7 @@ function WageAdd() {
               data={pmsdata}
               value={selectedPMS15}
               disabled={!selectedPMS14}
-              onChange={(value) => setSelectedPMS15(value)}
+              onChange={setSelectedPMS15}
               placeholder="Select a PMS"
             />
           </Grid.Col>
@@ -501,38 +920,32 @@ function WageAdd() {
           </Grid.Col>
           <Grid.Col span={4}>
             <TextInput
-              value={calculateCoachingFee()} // Set the value to coachingFee
-              label="Coaching Fee" // Label for the input
-              readOnly // Make the input read-only
+              value={calculateCoachingFee()}
+              label="Coaching Fee"
+              disabled
             />
           </Grid.Col>
           <Grid.Col span={4}>
             <TextInput
-              value={totalIncome}
+              value={calculateTotalIncome()}
               label="Total Income"
-              onChange={(event) => setTotalIncome(event.target.value)}
+              disabled
             />
           </Grid.Col>
           <Grid.Col span={4}>
             <TextInput
-              value={epf}
-              label="Epf"
-              onChange={(event) => setEpf(event.target.value)}
+              value={totalIncomeWithoutAllowClaim}
+              label="Total Income Without Claim"
             />
           </Grid.Col>
           <Grid.Col span={4}>
-            <TextInput
-              value={socso}
-              label="Socso"
-              onChange={(event) => setSocso(event.target.value)}
-            />
+            <TextInput value={epf} label="Epf" disabled />
           </Grid.Col>
           <Grid.Col span={4}>
-            <TextInput
-              value={eis}
-              label="Eis"
-              onChange={(event) => setEis(event.target.value)}
-            />
+            <TextInput value={socso} label="Socso" disabled />
+          </Grid.Col>
+          <Grid.Col span={4}>
+            <TextInput value={eis} label="Eis" disabled />
           </Grid.Col>
           <Grid.Col span={4}>
             <TextInput
@@ -556,25 +969,13 @@ function WageAdd() {
             />
           </Grid.Col>
           <Grid.Col span={4}>
-            <TextInput
-              value={employerEpf}
-              label="Employer EPF"
-              onChange={(event) => setEmployerEpf(event.target.value)}
-            />
+            <TextInput value={employerEpf} label="Employer EPF" disabled />
           </Grid.Col>
           <Grid.Col span={4}>
-            <TextInput
-              value={employerSocso}
-              label="Employer Socso"
-              onChange={(event) => setEmployerSocso(event.target.value)}
-            />
+            <TextInput value={employerSocso} label="Employer Socso" disabled />
           </Grid.Col>
           <Grid.Col span={4}>
-            <TextInput
-              value={employerEis}
-              label="Employer Socso"
-              onChange={(event) => setEmployerEis(event.target.value)}
-            />
+            <TextInput value={employerEis} label="Employer EIS" disabled />
           </Grid.Col>
         </Grid>
 
