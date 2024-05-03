@@ -1,5 +1,5 @@
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Container,
   Title,
@@ -12,6 +12,7 @@ import {
   TextInput,
   Divider,
   Grid,
+  ScrollArea,
   Text,
   Select,
   LoadingOverlay,
@@ -32,26 +33,38 @@ import { fetchClients } from "../api/client";
 import logo from "../Logo/sofit-black.png";
 import { fetchUsers } from "../api/auth";
 import { fetchWages2 } from "../api/wage";
+import { max } from "date-fns";
 
 export default function Wages() {
   const [cookies] = useCookies(["currentUser"]);
   const { currentUser } = cookies;
   const { id } = useParams();
   const queryClient = useQueryClient();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentWage, setCurrentWage] = useState([]);
   const { isLoading, data: wages = [] } = useQuery({
     queryKey: ["wages"],
     queryFn: () => fetchWages2(currentUser ? currentUser.token : ""),
-  });
-
-  const { data: clients = [] } = useQuery({
-    queryKey: ["clients"],
-    queryFn: () => fetchClients(id),
   });
 
   const { data: users = [] } = useQuery({
     queryKey: ["users"],
     queryFn: () => fetchUsers(currentUser ? currentUser.token : ""),
   });
+
+  useEffect(() => {
+    let newList = wages ? [...wages] : [];
+
+    if (searchTerm) {
+      newList = newList.filter(
+        (i) =>
+          i.name.toLowerCase().indexOf(searchTerm.toLowerCase()) >= 0 ||
+          i.user.name.toLowerCase().indexOf(searchTerm.toLowerCase()) >= 0
+      );
+    }
+
+    setCurrentWage(newList);
+  }, [wages, searchTerm]);
 
   const handleDownloadPDF = (order) => {
     const doc = new jsPDF();
@@ -84,59 +97,187 @@ export default function Wages() {
       groupYPos + 20
     );
 
-    doc.text(`PAYSLIP: ${order.payslipNo}`, 160, groupYPos);
-    const paidDate = new Date(order.paid_at);
-    const year = paidDate.getFullYear();
-    const month = String(paidDate.getMonth() + 1).padStart(2, "0");
-    const day = String(paidDate.getDate()).padStart(2, "0");
-    const formattedDate = `${year}-${month}-${day}`;
+    doc.text(`PAYSLIP`, 160, groupYPos);
+    doc.text(`: ${order.payslipNo}`, 173, groupYPos);
 
-    doc.text(`Date: ${formattedDate}`, 160, groupYPos + 5);
-    if (user && user.name) {
-      doc.text(`Staff: ${user.name}`, 160, groupYPos + 10);
-    }
+    // const paidDate = new Date(order.month);
+    // const year = paidDate.getFullYear();
+    // const month = String(paidDate.getMonth() + 1).padStart(2, "0");
+    const formattedDate = `${order.year} / ${order.month}`;
 
+    doc.text(`Date`, 160, groupYPos + 5);
+    doc.text(`: ${formattedDate}`, 173, groupYPos + 5);
+    doc.setFontSize(10);
     const group2YPos = 45;
-    doc.text(`Name:`, 10, 50);
-    doc.text(`Identity Card:`, 10, 55);
-    doc.text(`Bank Name:`, 10, 60);
-    doc.text(`Bank Name:`, 10, 65);
+    doc.text(`Name`, 12, 50);
+    doc.text(`Identity Card`, 12, 55);
+    doc.text(`Bank Name`, 12, 60);
+    doc.text(`Bank Account`, 12, 65);
 
-    doc.setFontSize(8);
-    doc.text(`${order.name}`, 40, group2YPos + 5);
-    doc.text(`${order.ic}`, 40, group2YPos + 10);
-    doc.text(`${order.bankacc}`, 40, group2YPos + 15);
-    doc.text(`${order.bankname}`, 40, group2YPos + 20);
+    doc.text(`: ${order.name}`, 40, group2YPos + 5);
+    doc.text(`: ${order.ic}`, 40, group2YPos + 10);
+    doc.text(`: ${order.bankname}`, 40, group2YPos + 15);
+    doc.text(`: ${order.bankacc}`, 40, group2YPos + 20);
+
+    doc.text(`EPF No`, 108, 50);
+    doc.text(`SOSCO No`, 108, 55);
+    doc.text(`: ${order.epfNo}`, 136, group2YPos + 5);
+    doc.text(`: ${order.socsoNo}`, 136, group2YPos + 10);
 
     doc.setLineWidth(0.3);
-    doc.line(10, 75, 200, 75);
-    doc.line(10, 75, 10, 175);
-    doc.line(10, 175, 200, 175);
-    doc.line(200, 75, 200, 175);
+    doc.line(10, 70, 200, 70);
+    doc.line(10, 70, 10, 161);
+    doc.line(105, 70, 105, 123);
+    doc.line(10, 161, 200, 161);
+    doc.line(200, 70, 200, 161);
 
     const group3YPos = 70;
-    doc.text(`Bacis:`, 10, 75);
-    doc.text(`Coaching Fee:`, 10, 80);
-    doc.text(`Commission`, 10, 85);
-    doc.text(`PMS:`, 10, 90);
+    doc.setFont("bold");
+    doc.text(`IMCOME`, 12, 75);
+    doc.setFontSize(10);
+    doc.text(`Salary`, 12, 85);
+    doc.text(`Coaching Fee`, 12, 90);
+    doc.text(`Commission`, 12, 95);
+    doc.text(`Allowance`, 12, 100);
+    doc.text(`Claims`, 12, 105);
+    doc.text(`Bouns`, 12, 110);
+    doc.setFont("bold");
+    doc.text(`DEDUCTION`, 108, 75);
+    doc.setFontSize(10);
+    doc.text(`EPF`, 108, 85);
+    doc.text(`SOSCO`, 108, 90);
+    doc.text(`EIS`, 108, 95);
+    doc.text(`PCB`, 108, 100);
 
-    doc.setFontSize(8);
-    doc.text(`${order.basic}`, 40, group3YPos + 5);
-    doc.text(`${order.coachingFee}`, 40, group3YPos + 10);
-    doc.text(`${order.commission}`, 40, group3YPos + 15);
-    doc.text(`${order.totalpms}`, 40, group3YPos + 20);
+    doc.setFont("bold");
+    doc.text(`RM`, 86, group3YPos + 5);
+    doc.setFontSize(10);
+    doc.text(
+      `${order.basic !== null ? order.basic.toFixed(2) : ""}`,
+      86,
+      group3YPos + 15
+    );
+    doc.text(
+      `${order.coachingFee !== null ? order.coachingFee.toFixed(2) : ""}`,
+      86,
+      group3YPos + 20
+    );
+    doc.text(
+      `${order.commission !== null ? order.commission.toFixed(2) : ""}`,
+      86,
+      group3YPos + 25
+    );
+    doc.text(
+      `${order.allowance !== null ? order.allowance.toFixed(2) : ""}`,
+      86,
+      group3YPos + 30
+    );
+    doc.text(
+      `${order.claims !== null ? order.claims.toFixed(2) : ""}`,
+      86,
+      group3YPos + 35
+    );
+    doc.text(
+      `${order.totalpms !== null ? order.totalpms.toFixed(2) : ""}`,
+      86,
+      group3YPos + 40
+    );
+    doc.setFont("bold");
+    doc.text(`RM`, 182, group3YPos + 5);
+    doc.setFontSize(10);
+    doc.text(
+      `${order.epf !== null ? order.epf.toFixed(2) : ""}`,
+      182,
+      group3YPos + 15
+    );
+    doc.text(
+      `${order.socso !== null ? order.socso.toFixed(2) : ""}`,
+      182,
+      group3YPos + 20
+    );
+    doc.text(
+      `${order.eis !== null ? order.eis.toFixed(2) : ""}`,
+      182,
+      group3YPos + 25
+    );
+    doc.text(
+      `${order.pcd !== null ? order.pcd.toFixed(2) : ""}`,
+      182,
+      group3YPos + 30
+    );
+
+    doc.line(10, 115, 200, 115);
+    doc.setFont("bold");
+    doc.text(`TOTAL INCOME`, 12, 120);
+    doc.text(
+      `${order.totalIncome !== null ? order.totalIncome.toFixed(2) : ""}`,
+      86,
+      120
+    );
+    doc.text(`TOTAL DEDUCTION`, 108, 120);
+    doc.text(
+      `${order.totalDeduction !== null ? order.totalDeduction.toFixed(2) : ""}`,
+      182,
+      120
+    );
+    doc.line(10, 123, 200, 123);
+    doc.setFont("bold");
+    doc.text(`CONTRIBUTION`, 12, 128);
+    doc.text(`EMPLOYER'S`, 150, 128);
+    doc.text(`EMPLOYEE'S`, 176, 128);
+    doc.setFontSize(10);
+    doc.text(`EPF`, 12, 138);
+    doc.text(`SOCSO`, 12, 143);
+    doc.text(`EIS`, 12, 148);
+    doc.text(
+      `${order.employerEpf !== null ? order.employerEpf.toFixed(2) : ""}`,
+      150,
+      138
+    );
+    doc.text(
+      `${order.employerSocso !== null ? order.employerSocso.toFixed(2) : ""}`,
+      150,
+      143
+    );
+    doc.text(
+      `${order.employerEis !== null ? order.employerEis.toFixed(2) : ""}`,
+      150,
+      148
+    );
+    doc.text(`${order.epf !== null ? order.epf.toFixed(2) : ""}`, 176, 138);
+    doc.text(`${order.socso !== null ? order.socso.toFixed(2) : ""}`, 176, 143);
+    doc.text(`${order.eis !== null ? order.eis.toFixed(2) : ""}`, 176, 148);
+
+    doc.line(10, 153, 200, 153);
+    doc.text(`NETT PAY (RM)`, 108, 158);
+    doc.text(
+      `${order.nettPay !== null ? order.nettPay.toFixed(2) : ""}`,
+      176,
+      158
+    );
+    doc.line(10, 161, 200, 161);
 
     // Save the PDF
-    doc.save(`invoice_${order.invoiceNo}.pdf`);
+    doc.save(`payslip_${order.payslipNo}.pdf`);
   };
 
   return (
     <>
       <Container size="100%">
         <Header title="My Orders" page="orders" />
+        <Space h="15px" />
+        <Group position="right" mb="lg">
+          <TextInput
+            w="200px"
+            value={searchTerm}
+            placeholder="Search"
+            onChange={(event) => setSearchTerm(event.target.value)}
+          />
+        </Group>
         <Space h="35px" />
         {/* <LoadingOverlay visible={isLoading} /> */}
         <Table>
+          {" "}
           <thead>
             <tr>
               <th>PaySlip No</th>
@@ -144,36 +285,57 @@ export default function Wages() {
               <th>Bacis</th>
               <th>Coaching Fee</th>
               <th>Commission</th>
-              <th>EPF</th>
+              {/* <th>EPF</th>
               <th>SOCSO</th>
               <th>EIS</th>
               <th>PCD</th>
               <th>Employer EPF</th>
               <th>Employer SOCSO</th>
-              <th>EmployerEIS</th>
+              <th>EmployerEIS</th> */}
               <th>Total Income</th>
+              <th>Total Deduction</th>
               <th>Nett Pay</th>
+              <th>Download</th>
             </tr>
-          </thead>
+          </thead>{" "}
           <tbody>
-            {wages
-              ? wages.map((wage) => {
+            {" "}
+            {currentWage
+              ? currentWage.map((wage) => {
                   return (
                     <tr key={wage._id}>
                       <td>{wage.payslipNo}</td>
                       <td>{wage.name}</td>
-                      <td>{wage.basic}</td>
-                      <td>{wage.coachingFee}</td>
-                      <td>{wage.commission}</td>
-                      <td>{wage.epf}</td>
-                      <td>{wage.socso}</td>
-                      <td>{wage.eis}</td>
-                      <td>{wage.pcd}</td>
-                      <td>{wage.employerEpf}</td>
-                      <td>{wage.employerSocso}</td>
-                      <td>{wage.employerEis}</td>
-                      <td>{wage.totalIncome}</td>
-                      <td>{wage.nettPay}</td>
+                      <td>
+                        {wage.basic !== undefined ? wage.basic.toFixed(2) : ""}
+                      </td>
+                      <td>
+                        {wage.coachingFee !== undefined
+                          ? wage.coachingFee.toFixed(2)
+                          : ""}
+                      </td>
+                      <td>
+                        {wage.commission !== undefined
+                          ? wage.commission.toFixed(2)
+                          : ""}
+                      </td>
+
+                      <td>
+                        {wage.totalIncome !== undefined
+                          ? wage.totalIncome.toFixed(2)
+                          : ""}
+                      </td>
+                      <td>
+                        {wage.totalDeduction !== undefined
+                          ? wage.totalDeduction.toFixed(2)
+                          : ""}
+                      </td>
+                      <td>
+                        {wage.nettPay !== undefined
+                          ? wage.nettPay.toFixed(2)
+                          : ""}
+                      </td>
+
                       <td>
                         <HoverCard shadow="md">
                           <HoverCard.Target>
@@ -193,17 +355,36 @@ export default function Wages() {
                             </Button>
                           </HoverCard.Target>
                           <HoverCard.Dropdown>
-                            <Text size="sm">INVOICE</Text>
+                            <Text size="sm">Payslip</Text>
                           </HoverCard.Dropdown>
                         </HoverCard>
                       </td>
                     </tr>
                   );
                 })
-              : null}
-          </tbody>
-        </Table>
-        <Space h="20px" />
+              : null}{" "}
+          </tbody>{" "}
+        </Table>{" "}
+        <Group position="apart" mt={300}>
+          <div></div>
+          <div>
+            <Button
+              color="red"
+              radius="xl"
+              size="xl"
+              style={{
+                position: "fixed",
+                bottom: "15px",
+                right: "15px",
+              }}
+              compact
+              component={Link}
+              to={"/wage-add"}
+            >
+              +
+            </Button>
+          </div>
+        </Group>
       </Container>
     </>
   );

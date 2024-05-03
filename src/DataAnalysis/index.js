@@ -1,31 +1,41 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Select } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
-import { fetchUserPMS } from "../api/pms";
+import { fetchOrders } from "../api/order";
+import { useParams } from "react-router-dom";
+import { Line } from "react-chartjs-2";
+import WageChart from "../chart"; // Assuming you place the charts in a separate file
+import { useCookies } from "react-cookie";
+import { fetchWages2 } from "../api/wage"; // Import fetchWages2 function
+import { fetchUsers } from "../api/auth"; // Import fetchUsers function
 
-function DataAnalysis() {
-  const [selectedPMS, setSelectedPMS] = useState("");
-
-  const { data: pms = [] } = useQuery({
-    queryKey: ["pms"],
-    queryFn: () => fetchUserPMS(),
+const DataAnalysis = () => {
+  const [cookies] = useCookies(["currentUser"]);
+  const { currentUser } = cookies;
+  const { id } = useParams();
+  const [currentWage, setCurrentWage] = useState([]);
+  const { isLoading, data: wages = [] } = useQuery({
+    queryKey: ["wages"],
+    queryFn: () => fetchWages2(currentUser ? currentUser.token : ""),
   });
+
+  const { data: users = [] } = useQuery({
+    queryKey: ["users"],
+    queryFn: () => fetchUsers(currentUser ? currentUser.token : ""),
+  });
+
+  useEffect(() => {
+    // Update currentWage state when wages data changes
+    setCurrentWage(wages);
+  }, [wages]);
 
   return (
     <>
-      {" "}
-      <Select
-        data={pms.map((user) => ({
-          value: user._id,
-          label: `${user.total})`,
-        }))}
-        value={selectedPMS}
-        onChange={(value) => setSelectedPMS(value)}
-        label="Select Staff"
-        placeholder="Select a Staff"
-      />
+      {currentWage && currentWage.length > 0 ? (
+        <WageChart wages={currentWage} />
+      ) : null}
     </>
   );
-}
+};
 
 export default DataAnalysis;

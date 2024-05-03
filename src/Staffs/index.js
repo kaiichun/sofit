@@ -3,6 +3,7 @@ import {
   Card,
   Image,
   Text,
+  TextInput,
   Button,
   Group,
   Container,
@@ -17,6 +18,7 @@ function Staffs() {
   const [currentPage, setCurrentPage] = useState(1);
   const [perPage, setPerPage] = useState(100);
   const [totalPages, setTotalPages] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [currentStaff, setCurrentStaff] = useState([]);
   const [cookies] = useCookies(["currentUser"]);
   const { currentUser } = cookies;
@@ -55,14 +57,20 @@ function Staffs() {
     const end = start + perPage;
 
     newList = newList.slice(start, end);
+
+    if (searchTerm) {
+      newList = newList.filter(
+        (i) => i.name.toLowerCase().indexOf(searchTerm.toLowerCase()) >= 0
+      );
+    }
     setCurrentStaff(newList);
-  }, [users, perPage, currentPage]);
+  }, [users, perPage, currentPage, searchTerm]);
 
   return (
     <>
       {(isAdminB || isAdminHQ) && (
         <Container>
-          <Group>
+          <Group position="apart" mb="lg">
             <select
               value={perPage}
               onChange={(event) => {
@@ -76,6 +84,12 @@ function Staffs() {
               <option value="9">9 Per Page</option>
               <option value="6">6 Per Page</option>
             </select>
+            <TextInput
+              w="200px"
+              value={searchTerm}
+              placeholder="Search"
+              onChange={(event) => setSearchTerm(event.target.value)}
+            />
           </Group>
 
           <SimpleGrid
@@ -166,6 +180,11 @@ function Staffs() {
             color="red"
             radius="xl"
             size="xl"
+            style={{
+              position: "fixed",
+              bottom: "15px",
+              right: "15px",
+            }}
             compact
             component={Link}
             to={"/add-staff"}

@@ -28,6 +28,7 @@ import "./checkout.css";
 import { fetchPackage } from "../api/package";
 import { createOrderPackage } from "../api/orderspackage";
 import HeaderClient from "../HeaderClient";
+import { Row } from "jspdf-autotable";
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -35,14 +36,14 @@ export default function Checkout() {
   const { currentUser } = cookies;
   const { id } = useParams();
   const [loading, setLoading] = useState(false);
-  const [name, setName] = useState("");
-  const [address, setAddress] = useState("");
-  const [phone, setPhone] = useState("");
-  const [tax, setTax] = useState("");
   const [selectedClient, setSelectedClient] = useState("");
   const [selectedPackage, setSelectedPackage] = useState("");
-  const [orderNumber, setOrderNumber] = useState(1);
-  const [paid_at, setPaid_At] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("");
+  const [installmentMonth, setInstallmentMonth] = useState("");
+  // const [installmentAmount1, setInstallmentAmount1] = useState(0);
+  // const [installmentAmount2, setInstallmentAmount2] = useState(0);
+  // const [installmentAmount3, setInstallmentAmount3] = useState(0);
+  // const [outstanding, seOutstanding] = useState();
   // const { data: cart = [] } = useQuery({
   //   queryKey: ["cart"],
   //   queryFn: getCartItems,
@@ -100,12 +101,43 @@ export default function Checkout() {
           parseFloat(selectedPackageObject.price) + parseFloat(calculateTax());
         return totalPrice.toFixed(2); // Ensure totalPrice has two decimal places
       } else {
-        return "0.00"; // Or any default value if the package is not found
+        return "0.00";
       }
     } else {
-      return "0.00"; // Handle the case when packages or selectedPackage is undefined
+      return "0.00";
     }
   };
+
+  const calculateOutstanding = () => {
+    const price = calculateTotal();
+    return price;
+  };
+
+  const outstandingAmount = calculateOutstanding();
+  let installmentAmount1Percentage = 0;
+  let installmentAmount2Percentage = 0;
+  let installmentAmount3Percentage = 0;
+
+  if (installmentMonth === 1) {
+    installmentAmount1Percentage = 1; // 100%
+  } else if (installmentMonth === 2) {
+    installmentAmount1Percentage = 0.6; // 60%
+    installmentAmount2Percentage = 0.4; // 40%
+  } else if (installmentMonth === 3) {
+    installmentAmount1Percentage = 0.4; // 40%
+    installmentAmount2Percentage = 0.3; // 30%
+    installmentAmount3Percentage = 0.3; // 30%
+  }
+
+  const installmentAmount1 = (
+    outstandingAmount * installmentAmount1Percentage
+  ).toFixed(2);
+  const installmentAmount2 = (
+    outstandingAmount * installmentAmount2Percentage
+  ).toFixed(2);
+  const installmentAmount3 = (
+    outstandingAmount * installmentAmount3Percentage
+  ).toFixed(2);
 
   const doCheckout = () => {
     let error = false;
@@ -116,21 +148,25 @@ export default function Checkout() {
         color: "red",
       });
     } else {
-      // if no error, trigger the order API to create a new order
+      // Trigger the order API to create a new order
       createOrderMutation.mutate({
         data: JSON.stringify({
           paid_at: new Date(),
           packages: selectedPackage,
           totalPrice: calculateTotal(),
           clientId: selectedClient,
+          paymentMethod: paymentMethod,
+          installmentMonth: installmentMonth,
+          installmentAmount1: installmentAmount1,
+          installmentAmount2: installmentAmount2,
+          installmentAmount3: installmentAmount3,
+          outstanding: outstandingAmount,
           tax: calculateTax(),
           user: currentUser._id,
         }),
         token: currentUser ? currentUser.token : "",
       });
       setLoading(true);
-
-      // Increment the order number for the month after creating an order
     }
   };
 
@@ -138,8 +174,8 @@ export default function Checkout() {
     <>
       <HeaderClient page="Package" />
       <Grid span={12}>
-        <Grid.Col span={3}></Grid.Col>
-        <Grid.Col span={6}>
+        <Grid.Col span={2}></Grid.Col>
+        <Grid.Col span={8}>
           <Title order={1} align="center">
             Package
           </Title>
@@ -169,6 +205,77 @@ export default function Checkout() {
             onChange={(value) => setSelectedPackage(value)}
             placeholder="Select a Package"
           />
+          <Space h="20px" />
+          <Select
+            data={[
+              {
+                value: "Full payment",
+                label: "Full payment",
+              },
+              {
+                value: "Installment",
+                label: "Installment",
+              },
+            ]}
+            value={paymentMethod}
+            label="Select a Payment Method"
+            onChange={(value) => setPaymentMethod(value)}
+            placeholder="Select a Package"
+          />
+          {paymentMethod === "Installment" && (
+            <Grid.Col span={12}>
+              {/* Installment month selection and installment amounts */}
+              <Group position="apart">
+                <Grid.Col span={5}>
+                  <Select
+                    data={[
+                      { value: 1, label: 1 },
+                      { value: 2, label: 2 },
+                      { value: 3, label: 3 },
+                    ]}
+                    value={installmentMonth}
+                    label="Select a Installment Month"
+                    onChange={(value) => setInstallmentMonth(value)}
+                    placeholder="Select a Package"
+                  />
+                </Grid.Col>
+                <Grid.Col span={5}>
+                  <TextInput
+                    label="Outstanding  "
+                    value={outstandingAmount}
+                    readOnly
+                  />
+                </Grid.Col>
+              </Group>
+              <Space h="5px" />
+              <Grid.Col span={12}>
+                <Group position="apart">
+                  {" "}
+                  <Grid.Col span={3}>
+                    <TextInput
+                      label="First Month"
+                      value={installmentAmount1}
+                      readOnly
+                    />
+                  </Grid.Col>
+                  <Grid.Col span={3}>
+                    <TextInput
+                      label="Second Month"
+                      value={installmentAmount2}
+                      readOnly
+                    />
+                  </Grid.Col>
+                  <Grid.Col span={3}>
+                    <TextInput
+                      label="Thrid Month"
+                      value={installmentAmount3}
+                      readOnly
+                    />
+                  </Grid.Col>
+                </Group>
+              </Grid.Col>
+            </Grid.Col>
+          )}
           <Space h="20px" />
           <Text fz={12} fw={500}>
             *Pls Check member package correct or not, only press Confirm
@@ -252,7 +359,7 @@ export default function Checkout() {
             </Button>
           </Group>
         </Grid.Col>
-        <Grid.Col span={3}></Grid.Col>
+        <Grid.Col span={2}></Grid.Col>
       </Grid>
     </>
   );

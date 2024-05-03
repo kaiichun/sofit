@@ -3,6 +3,7 @@ import {
   Card,
   Image,
   Text,
+  TextInput,
   Button,
   Group,
   UnstyledButton,
@@ -30,10 +31,27 @@ export default function Clients() {
   const [showClientDeleteModal, setShowClientDeleteModal] = useState(false);
   const [packageIdToDelete, setPackageIdToDelete] = useState(null);
   const [clientIdToDelete, setClientIdToDelete] = useState(null);
+  const [sort, setSort] = useState("");
+  const [currentClients, setCurrentClients] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [perPage, setPerPage] = useState(6);
+  const [totalPages, setTotalPages] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // const { isLoading, data: clients = [] } = useQuery({
+  //   queryKey: ["clients"],
+  //   queryFn: () => fetchClients(),
+  // });
 
   const { isLoading, data: clients = [] } = useQuery({
     queryKey: ["clients"],
-    queryFn: () => fetchClients(),
+    queryFn: () => {
+      if (isAdmin) {
+        return fetchClients(); // Fetch all clients
+      } else {
+        return fetchClients(currentUser.coachId); // Fetch clients filtered by coachId for non-admin users
+      }
+    },
   });
 
   const { data: packages = [] } = useQuery({
@@ -75,6 +93,48 @@ export default function Clients() {
       ? true
       : false;
   }, [cookies]);
+
+  useEffect(() => {
+    let newList = clients ? [...clients] : [];
+
+    switch (sort) {
+      case "name":
+        newList = newList.sort((a, b) => {
+          return a.clientName.localeCompare(b.clientName);
+        });
+        break;
+      case "male":
+        newList = newList.filter((item) => item.clientGender === "Male");
+        break;
+      case "female":
+        newList = newList.filter((item) => item.clientGender === "Female");
+        break;
+      default:
+        break;
+    }
+    // do pagination
+    const start = (currentPage - 1) * perPage;
+    const end = start + perPage;
+
+    const total = Math.ceil(newList.length / perPage);
+    // convert the total number into array
+    const pages = [];
+    for (let i = 1; i <= total; i++) {
+      pages.push(i);
+    }
+    setTotalPages(pages);
+    newList = newList.slice(start, end);
+
+    if (searchTerm) {
+      newList = newList.filter(
+        (i) =>
+          i.clientName.toLowerCase().indexOf(searchTerm.toLowerCase()) >= 0 ||
+          i.coachName.toLowerCase().indexOf(searchTerm.toLowerCase()) >= 0
+      );
+    }
+
+    setCurrentClients(newList);
+  }, [clients, sort, perPage, searchTerm, currentPage]);
 
   function formatDate(date) {
     const year = date.getFullYear();
@@ -267,7 +327,41 @@ export default function Clients() {
               Member
             </Title>
           </Group>
-          <Space h="20px" />
+          <Space h="20px" />{" "}
+          <Group position="apart" mb="lg">
+            <Group>
+              <select
+                value={sort}
+                onChange={(event) => {
+                  setSort(event.target.value);
+                  setCurrentPage(1);
+                }}
+              >
+                <option value="">No Sorting</option>
+                <option value="name">Sort by Name</option>
+                <option value="male">Sort by Male</option>
+                <option value="female">Sort by Female</option>
+              </select>
+              <select
+                value={perPage}
+                onChange={(event) => {
+                  setPerPage(parseInt(event.target.value));
+                  // reset it back to page 1
+                  setCurrentPage(1);
+                }}
+              >
+                <option value="6">6 Per Page</option>
+                <option value="10">10 Per Page</option>
+                <option value={9999999}>All</option>
+              </select>
+            </Group>
+            <TextInput
+              value={searchTerm}
+              placeholder="Search"
+              onChange={(event) => setSearchTerm(event.target.value)}
+            />
+          </Group>
+          <Space h="20px" />{" "}
         </>
       )}
       <SimpleGrid
@@ -279,115 +373,235 @@ export default function Clients() {
           { maxWidth: 600, cols: 2, spacing: "sm" },
         ]}
       >
-        {clients
-          ? clients.map((c) => {
-              return (
-                // <UnstyledButton
-                //   component={Link}
-                //   to={"/composition-client/" + c._id}
-                //   variant="transparent"
-                // >
-                <>
-                  {" "}
-                  <Card
-                    shadow="md"
-                    p="lg"
-                    radius="md"
-                    withBorder
-                    style={{
-                      backgroundColor:
-                        getColorForValidityPeriod(c.packageValidityPeriod) ===
-                        "red"
-                          ? "#ffd9d9"
-                          : getColorForValidityPeriod(
-                              c.packageValidityPeriod
-                            ) === "yellow"
-                          ? "#fff7d9"
-                          : "initial",
-                    }}
-                  >
-                    <Card.Section>
-                      {" "}
-                      <UnstyledButton
-                        component={Link}
-                        to={"/composition-client/" + c._id}
-                        variant="transparent"
-                      >
-                        <Image
-                          src="https://wac-cdn.atlassian.com/dam/jcr:ba03a215-2f45-40f5-8540-b2015223c918/Max-R_Headshot%20(1).jpg?cdnVersion=1483"
-                          height={280}
-                          alt="Norway"
-                          style={{ borderRadius: "10px", padding: "5px" }}
-                        />{" "}
-                      </UnstyledButton>
-                    </Card.Section>
-
-                    <Group position="apart" mt="md" mb="xs">
-                      <Text fw={700}>{c.clientName}</Text>
-
-                      <Group>
-                        <Button
-                          variant="outline"
-                          color="indigo"
-                          radius="md"
-                          size="xs"
-                          compact
+        {currentClients
+          ? isAdmin
+            ? currentClients.map((c) => {
+                return (
+                  // <UnstyledButton
+                  //   component={Link}
+                  //   to={"/composition-client/" + c._id}
+                  //   variant="transparent"
+                  // >
+                  <>
+                    {" "}
+                    <Card
+                      shadow="md"
+                      p="lg"
+                      radius="md"
+                      withBorder
+                      style={{
+                        backgroundColor:
+                          getColorForValidityPeriod(c.packageValidityPeriod) ===
+                          "red"
+                            ? "#ffd9d9"
+                            : getColorForValidityPeriod(
+                                c.packageValidityPeriod
+                              ) === "yellow"
+                            ? "#fff7d9"
+                            : "initial",
+                      }}
+                    >
+                      <Card.Section>
+                        {" "}
+                        <UnstyledButton
                           component={Link}
-                          to={"/edit-client-info/" + c._id}
+                          to={"/composition-client/" + c._id}
+                          variant="transparent"
                         >
-                          EDIT
-                        </Button>
-                        {isAdmin && (
+                          <Image
+                            src="https://wac-cdn.atlassian.com/dam/jcr:ba03a215-2f45-40f5-8540-b2015223c918/Max-R_Headshot%20(1).jpg?cdnVersion=1483"
+                            height={280}
+                            alt="Norway"
+                            style={{ borderRadius: "10px", padding: "5px" }}
+                          />{" "}
+                        </UnstyledButton>
+                      </Card.Section>
+
+                      <Group position="apart" mt="md" mb="xs">
+                        <Text fw={700}>{c.clientName}</Text>
+
+                        <Group>
                           <Button
-                            onClick={() => {
-                              setClientIdToDelete(c._id);
-                              setShowClientDeleteModal(true);
-                            }}
                             variant="outline"
-                            color="red"
+                            color="indigo"
                             radius="md"
                             size="xs"
                             compact
+                            component={Link}
+                            to={"/edit-client-info/" + c._id}
                           >
-                            DELETE
+                            EDIT
                           </Button>
-                        )}
+                          {isAdmin && (
+                            <Button
+                              onClick={() => {
+                                setClientIdToDelete(c._id);
+                                setShowClientDeleteModal(true);
+                              }}
+                              variant="outline"
+                              color="red"
+                              radius="md"
+                              size="xs"
+                              compact
+                            >
+                              DELETE
+                            </Button>
+                          )}
+                        </Group>
                       </Group>
-                    </Group>
 
-                    <Text size="sm">Gender: {c.clientGender}</Text>
-                    <Text size="sm">Height: {c.clientHeight} (CM)</Text>
-                    <Text size="sm">Weight: {c.clientWeight} (KG)</Text>
-                    <Group>
-                      <Text size="sm"> Sessions: </Text>
-                      <Text
-                        size="sm"
-                        color={getColorForSessionDuration(c.sessions)}
-                        style={{ marginLeft: "-10px" }}
-                        fw={700}
-                      >
-                        {c.sessions}
-                      </Text>
-                    </Group>
-                    <Group>
-                      <Text size="sm">Package validity period:</Text>
-                      <Text
-                        size="sm"
-                        style={{ marginLeft: "-10px" }}
-                        fw={700}
-                        color={getColorForValidityPeriod(
-                          c.packageValidityPeriod
-                        )}
-                      >
-                        {formatDate(new Date(c.packageValidityPeriod))}
-                      </Text>
-                    </Group>
+                      <Text size="sm">Gender: {c.clientGender}</Text>
+                      <Text size="sm">Height: {c.clientHeight} (CM)</Text>
+                      <Text size="sm">Weight: {c.clientWeight} (KG)</Text>
+                      <Group>
+                        <Text size="sm"> Sessions: </Text>
+                        <Text
+                          size="sm"
+                          color={getColorForSessionDuration(c.sessions)}
+                          style={{ marginLeft: "-10px" }}
+                          fw={700}
+                        >
+                          {c.sessions}
+                        </Text>
+                      </Group>
+                      <Group>
+                        <Text size="sm">Package validity period:</Text>
+                        <Text
+                          size="sm"
+                          style={{ marginLeft: "-10px" }}
+                          fw={700}
+                          color={getColorForValidityPeriod(
+                            c.packageValidityPeriod
+                          )}
+                        >
+                          {c.packageValidityPeriod
+                            ? formatDate(new Date(c.packageValidityPeriod))
+                            : " - "}
+                        </Text>
+                      </Group>
 
-                    <Text size="sm">Staff: {c.user.name}</Text>
-                  </Card>
-                </>
-              );
-            })
+                      <Text size="sm">Choch: {c.coachName}</Text>
+                    </Card>
+                  </>
+                );
+              })
+            : currentClients
+                .filter((c) => c.coachId === currentUser.id)
+                .map((c) => {
+                  return (
+                    <>
+                      {" "}
+                      <Card
+                        shadow="md"
+                        p="lg"
+                        radius="md"
+                        withBorder
+                        style={{
+                          backgroundColor:
+                            getColorForValidityPeriod(
+                              c.packageValidityPeriod
+                            ) === "red"
+                              ? "#ffd9d9"
+                              : getColorForValidityPeriod(
+                                  c.packageValidityPeriod
+                                ) === "yellow"
+                              ? "#fff7d9"
+                              : "initial",
+                        }}
+                      >
+                        <Card.Section>
+                          {" "}
+                          <UnstyledButton
+                            component={Link}
+                            to={"/composition-client/" + c._id}
+                            variant="transparent"
+                          >
+                            <Image
+                              src="https://wac-cdn.atlassian.com/dam/jcr:ba03a215-2f45-40f5-8540-b2015223c918/Max-R_Headshot%20(1).jpg?cdnVersion=1483"
+                              height={280}
+                              alt="Norway"
+                              style={{ borderRadius: "10px", padding: "5px" }}
+                            />{" "}
+                          </UnstyledButton>
+                        </Card.Section>
+
+                        <Group position="apart" mt="md" mb="xs">
+                          <Text fw={700}>{c.clientName}</Text>
+
+                          <Group>
+                            <Button
+                              variant="outline"
+                              color="indigo"
+                              radius="md"
+                              size="xs"
+                              compact
+                              component={Link}
+                              to={"/edit-client-info/" + c._id}
+                            >
+                              EDIT
+                            </Button>
+                            {isAdmin && (
+                              <Button
+                                onClick={() => {
+                                  setClientIdToDelete(c._id);
+                                  setShowClientDeleteModal(true);
+                                }}
+                                variant="outline"
+                                color="red"
+                                radius="md"
+                                size="xs"
+                                compact
+                              >
+                                DELETE
+                              </Button>
+                            )}
+                          </Group>
+                        </Group>
+
+                        <Text size="sm">Gender: {c.clientGender}</Text>
+                        <Text size="sm">Height: {c.clientHeight} (CM)</Text>
+                        <Text size="sm">Weight: {c.clientWeight} (KG)</Text>
+                        <Group>
+                          <Text size="sm"> Sessions: </Text>
+                          <Text
+                            size="sm"
+                            color={getColorForSessionDuration(c.sessions)}
+                            style={{ marginLeft: "-10px" }}
+                            fw={700}
+                          >
+                            {c.sessions}
+                          </Text>
+                        </Group>
+                        <Group>
+                          <Text size="sm">Package validity period:</Text>
+                          <Text
+                            size="sm"
+                            style={{ marginLeft: "-10px" }}
+                            fw={700}
+                            color={getColorForValidityPeriod(
+                              c.packageValidityPeriod
+                            )}
+                          >
+                            <Text
+                              size="sm"
+                              style={{ marginLeft: "-10px" }}
+                              fw={700}
+                              color={getColorForValidityPeriod(
+                                c.packageValidityPeriod
+                              )}
+                            >
+                              {c.packageValidityPeriod
+                                ? formatDate(new Date(c.packageValidityPeriod))
+                                : "-"}
+                            </Text>
+                          </Text>
+                        </Group>
+
+                        <Text size="sm">Choch: {c.coachName}</Text>
+                      </Card>
+                    </>
+                  );
+                })
           : null}
         <Modal
           opened={showClientDeleteModal}
@@ -436,21 +650,6 @@ export default function Clients() {
           </Group>
         </Modal>
       </SimpleGrid>
-      <Group position="apart" mt={300}>
-        <div></div>
-        <div>
-          <Button
-            color="red"
-            radius="xl"
-            size="xl"
-            compact
-            component={Link}
-            to={"/add-client"}
-          >
-            +
-          </Button>
-        </div>
-      </Group>
     </>
   );
 }

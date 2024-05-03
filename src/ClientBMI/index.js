@@ -85,33 +85,51 @@ export default function Video({ videoSource }) {
   });
 
   const handleAddNewClientBmi = async (event) => {
-    event.preventDefault();
-    createClientBmiMutation.mutate({
-      data: JSON.stringify({
-        clientBmi: clientBmi,
-        clientKg: clientKg,
-        clientBodyAge: clientBodyAge,
-        clientVFat: clientVFat,
-        clientBodyFat: clientBodyFat,
-        clientImageFront: clientImageFront,
-        clientImageBack: clientImageBack,
-        clientImageLeft: clientImageLeft,
-        clientImageRight: clientImageRight,
-        clientVideo: clientVideo,
-        clientId: id,
-      }),
-      token: currentUser ? currentUser.token : "",
-    });
-    setClientBmi("");
-    setClientKg("");
-    setClientBodyAge("");
-    setClientVFat("");
-    setClientBodyFat("");
-    setClientImageFront("");
-    setClientImageBack("");
-    setClientImageLeft("");
-    setClientImageRight("");
-    setClientVideo("");
+    if (
+      !clientBmi ||
+      !clientKg ||
+      !clientBodyAge ||
+      !clientVFat ||
+      !clientBodyFat ||
+      !clientImageFront ||
+      !clientImageBack ||
+      !clientImageLeft ||
+      !clientImageRight ||
+      !clientVideo
+    ) {
+      notifications.show({
+        title: "Please fill in all fields",
+        color: "red",
+      });
+    } else {
+      event.preventDefault();
+      createClientBmiMutation.mutate({
+        data: JSON.stringify({
+          clientBmi: clientBmi,
+          clientKg: clientKg,
+          clientBodyAge: clientBodyAge,
+          clientVFat: clientVFat,
+          clientBodyFat: clientBodyFat,
+          clientImageFront: clientImageFront,
+          clientImageBack: clientImageBack,
+          clientImageLeft: clientImageLeft,
+          clientImageRight: clientImageRight,
+          clientVideo: clientVideo,
+          clientId: id,
+        }),
+        token: currentUser ? currentUser.token : "",
+      });
+      setClientBmi("");
+      setClientKg("");
+      setClientBodyAge("");
+      setClientVFat("");
+      setClientBodyFat("");
+      setClientImageFront("");
+      setClientImageBack("");
+      setClientImageLeft("");
+      setClientImageRight("");
+      setClientVideo("");
+    }
   };
 
   const deleteClientBmiMutation = useMutation({

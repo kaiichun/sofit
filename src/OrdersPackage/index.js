@@ -1,5 +1,6 @@
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import { useState, useEffect, useMemo } from "react";
+import { useDisclosure } from "@mantine/hooks";
 import {
   Container,
   Table,
@@ -8,6 +9,10 @@ import {
   HoverCard,
   Text,
   LoadingOverlay,
+  Checkbox,
+  Modal,
+  NumberInput,
+  TextInput,
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useParams } from "react-router-dom";
@@ -18,7 +23,11 @@ import { useCookies } from "react-cookie";
 import { fetchClients } from "../api/client";
 import logo from "../Logo/sofit-black.png";
 import { fetchUsers } from "../api/auth";
-import { deleteOrderPackage, fetchOrderPackages } from "../api/orderspackage";
+import {
+  deleteOrderPackage,
+  fetchOrderPackages,
+  updateOrderPackage,
+} from "../api/orderspackage";
 import HeaderClient from "../HeaderClient";
 
 export default function OrdersPackage() {
@@ -26,11 +35,16 @@ export default function OrdersPackage() {
   const { currentUser } = cookies;
   const { id } = useParams();
   const queryClient = useQueryClient();
+  const [opened, { open, close }] = useDisclosure(false);
+  const [openedOrderId, setOpenedOrderId] = useState(null);
+
   const [currentProducts, setCurrentProducts] = useState([]);
   const [category, setCategory] = useState("");
   const [sort, setSort] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [perPage, setPerPage] = useState(6);
+  const [outstanding, setOutStanding] = useState("");
+  const [currentOutstanding, setCurrentOutStanding] = useState("");
   const [totalPages, setTotalPages] = useState([]);
   const { isLoading, data: orderspackage = [] } = useQuery({
     queryKey: ["orderspackage"],
@@ -64,6 +78,44 @@ export default function OrdersPackage() {
     },
   });
 
+  const openModal = (orderId) => {
+    setOpenedOrderId(orderId);
+  };
+
+  const closeModal = () => {
+    setOpenedOrderId(null);
+  };
+
+  const updateMutation = useMutation({
+    mutationFn: updateOrderPackage,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["orderspackage"],
+      });
+      notifications.show({
+        title: "Status Edited",
+        color: "green",
+      });
+    },
+    onError: (error) => {
+      notifications.show({
+        title: error.response.data.message,
+        color: "red",
+      });
+    },
+  });
+
+  const handleUpdateOutstanding = (orderId) => {
+    updateMutation.mutate({
+      id: orderId,
+      data: JSON.stringify({
+        outstanding: outstanding,
+      }),
+      token: currentUser ? currentUser.token : "",
+    });
+    closeModal(); // Close the modal after updating
+  };
+
   const { data: users = [] } = useQuery({
     queryKey: ["users"],
     queryFn: () => fetchUsers(currentUser ? currentUser.token : ""),
@@ -71,14 +123,10 @@ export default function OrdersPackage() {
 
   const handleDownloadPDF = (order) => {
     const doc = new jsPDF();
-
     const client = clients.find((client) => client._id === order.clientId);
     const user = users.find((user) => user._id === order.user);
-
     const imgData = logo;
-
     doc.addImage(imgData, "PNG", 10, 13, 30, 30);
-
     // Add group data
     const groupYPos = 20;
     doc.setFontSize(9);
@@ -100,41 +148,29 @@ export default function OrdersPackage() {
       50,
       groupYPos + 20
     );
-
     doc.text(`INVOICE: ${order.invoiceNo}`, 160, groupYPos);
     const paidDate = new Date(order.paid_at);
     const year = paidDate.getFullYear();
     const month = String(paidDate.getMonth() + 1).padStart(2, "0");
     const day = String(paidDate.getDate()).padStart(2, "0");
     const formattedDate = `${year}-${month}-${day}`;
-
     doc.text(`Date: ${formattedDate}`, 160, groupYPos + 5);
     if (user && user.name) {
       doc.text(`Staff: ${user.name}`, 160, groupYPos + 10);
     }
-
     doc.setLineWidth(0.3);
     doc.line(10, 75, 200, 75);
-
     const group2YPos = 45;
     doc.text(`Name:`, 10, 50);
     doc.text(`Phone Number:`, 10, 55);
     doc.text(`Adress:`, 10, 60);
-
     doc.setFontSize(8);
     doc.text(`${client.clientName}`, 40, group2YPos + 5);
     doc.text(`${client.clientPhonenumber}`, 40, group2YPos + 10);
     doc.text(`${client.clientAddress1}`, 40, group2YPos + 15);
-    // doc.text(
-    //   `${client.clientZip}, ${client.clientState}.`,
-    //   40,
-    //   group2YPos + 25
-    // );
-    // Check if clientAddress2 is not empty before adding it to the document
     if (client.clientAddress2 && client.clientAddress2.trim() !== "") {
       doc.text(`${client.clientAddress2}`, 40, group2YPos + 20);
     }
-
     doc.text(
       `${client.clientZip}, ${client.clientState}.`,
       40,
@@ -142,12 +178,10 @@ export default function OrdersPackage() {
     );
 
     doc.setFontSize(10);
-
     doc.setFontSize(11);
     doc.setFont("bold");
     doc.text(`DESCRIPTION`, 13, 82);
     doc.text(`AMOUNT (RM)`, 170, 82);
-
     doc.setLineWidth(0.1);
     doc.line(12, 84, 198, 84);
 
@@ -197,75 +231,15 @@ export default function OrdersPackage() {
     const totalPriceYPos = doc.autoTable.previous.finalY + 15;
     const totalPriceXPos = 160;
     doc.setLineWidth(0.5);
-    // doc.line(159, totalPriceYPos - 5, 196, totalPriceYPos - 5);
     doc.setLineWidth(0.2);
     doc.line(12, 203, 198, 203);
-    // doc.line(12, 84, 12, 203);
-    // doc.line(198, 84, 198, 203);
-    // doc.line(138, 203, 138, 215);
-    // doc.line(198, 203, 198, 215);
-    // doc.line(138, 215, 198, 215);
     doc.setFontSize(10);
     doc.text(`Service Tax (8%) :`, 140, 208);
     doc.text(`${order.tax.toFixed(2)}`, 184.2, 208);
     doc.text(`Total Price:`, 140, 213);
     doc.text(`${order.totalPrice.toFixed(2)}`, 182.3, 213);
-    // let tableYPos = 85;
-    // const tableHeaders = ["DESCRIPTION", "AMOUNT (RM)"];
-
-    // const tableData = order.packages.map((packages) => [
-    //   packages.sofitpackage,
-    //   `${packages.price.toFixed(2)}`,
-    // ]);
-
-    // const options = {
-    //   headStyles: {
-    //     fillColor: [211, 211, 211],
-    //     textColor: [0, 0, 0],
-    //     0: { halign: "left" },
-    //     1: { halign: "right" },
-    //   },
-    //   columnStyles: {
-    //     0: { halign: "left" },
-    //     1: { halign: "right" },
-    //   },
-    // };
-
-    // // Add the table
-    // const addTable = () => {
-    //   doc.autoTable({
-    //     startY: tableYPos,
-    //     head: [tableHeaders],
-    //     body: tableData,
-    //     theme: "plain",
-    //     styles: {
-    //       cellPadding: 2,
-    //       fontSize: 10,
-    //       cellWidth: "wrap",
-    //       valign: "middle",
-    //     },
-    //     ...options,
-    //   });
-    // };
-
-    // addTable();
-
-    // const maxYPos = 200;
-    // if (doc.autoTable.previous.finalY > maxYPos) {
-    //   doc.addPage();
-    //   tableYPos = 20;
-    //   addTable();
-    // }
-
-    // const totalPriceYPos = doc.autoTable.previous.finalY + 15;
-    // const totalPriceXPos = 160;
-    // doc.setLineWidth(0.5);
-    // doc.line(159, totalPriceYPos - 5, 196, totalPriceYPos - 5);
-    // doc.line(159, totalPriceYPos + 2, 196, totalPriceYPos + 2);
 
     doc.setFontSize(10);
-    // doc.text(`Service Tax (8%):  ${order.tax.toFixed(2)}`);
-    // doc.text(`Total Price:    ${order.totalPrice.toFixed(2)}`, 10, 180);
     const tableY2Pos = 235;
     doc.setLineWidth(0.2);
     doc.line(10, 250, 200, 250);
@@ -289,7 +263,6 @@ export default function OrdersPackage() {
       tableY2Pos + 57
     );
 
-    // Save the PDF
     doc.save(`invoice_${order.invoiceNo}.pdf`);
   };
 
@@ -355,6 +328,12 @@ export default function OrdersPackage() {
               <th>Member Details</th>
               <th>Package</th>
               <th>Amount</th>
+              <th>Payment Method</th>
+              <th>First Payment</th>
+              <th>Second Payment</th>
+              <th>Third Payment</th>
+              <th>Outstanding</th>
+              <th>Update</th>
               <th>Sales Date</th>
               <th>Sales By</th>
               <th>Action</th>
@@ -397,6 +376,83 @@ export default function OrdersPackage() {
                         ))}
                       </td>
                       <td>MYR {o.totalPrice.toFixed(2)}</td>
+                      <td>{o.paymentMethod}</td>
+                      <td>{o.installmentAmount1}</td>
+                      <td>{o.installmentAmount2}</td>
+                      <td>{o.installmentAmount3}</td>
+                      <td>{o.outstanding ? o.outstanding.toFixed(2) : 0.0}</td>
+
+                      <td>
+                        <Modal
+                          opened={openedOrderId === o._id}
+                          onClose={closeModal}
+                          title="Outstanding Update"
+                        >
+                          <NumberInput
+                            label="Balance"
+                            value={o.outstanding}
+                            placeholder={o.outstanding}
+                            precision={2}
+                            onChange={(value) => setOutStanding(value)}
+                            readOnly
+                          />
+
+                          {/* <NumberInput
+                            label="Payment"
+                            value={currentOutstanding}
+                            precision={2}
+                            onChange={(value) => setCurrentOutStanding(value)}
+                          /> */}
+
+                          <NumberInput
+                            label="Payment"
+                            value={currentOutstanding}
+                            precision={2}
+                            onChange={(value) => {
+                              const newOutstanding =
+                                parseFloat(o.outstanding) - parseFloat(value);
+                              setCurrentOutStanding(value);
+                              setOutStanding(newOutstanding);
+                            }}
+                          />
+
+                          <NumberInput
+                            label="New Balance"
+                            value={outstanding} // Assuming `outstanding` is the state variable where you store the new outstanding balance
+                            precision={2}
+                          />
+
+                          <Button
+                            onClick={() => {
+                              // Handle submission
+                              // After submission, clear the currentOutstanding value
+                              handleUpdateOutstanding(o._id);
+                              setCurrentOutStanding("");
+                              setOutStanding("");
+                            }}
+                          >
+                            Submit
+                          </Button>
+                        </Modal>
+
+                        <Button onClick={() => openModal(o._id)}>Update</Button>
+
+                        {/* <TextInput
+                          value={o.outstanding}
+                          placeholder=""
+                          label=" Sessions"
+                          onChange={(event) => {
+                            const newValue = event.currentTarget.value;
+                            updateMutation.mutate({
+                              id: o._id,
+                              data: JSON.stringify({
+                                outstanding: newValue,
+                              }),
+                              token: currentUser ? currentUser.token : "",
+                            });
+                          }}
+                        />{" "} */}
+                      </td>
 
                       <td>{formattedDate}</td>
                       <td> {user && user.name}</td>

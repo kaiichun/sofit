@@ -8,6 +8,7 @@ import {
   Card,
   Badge,
   Text,
+  TextInput,
   Group,
   Space,
   Image,
@@ -38,6 +39,7 @@ function Products() {
   const [totalPages, setTotalPages] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [productIdToDelete, setProductIdToDelete] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const { isLoading, data: products } = useQuery({
     queryKey: ["products"],
@@ -85,8 +87,14 @@ function Products() {
 
     newList = newList.slice(start, end);
 
+    if (searchTerm) {
+      newList = newList.filter(
+        (i) => i.name.toLowerCase().indexOf(searchTerm.toLowerCase()) >= 0
+      );
+    }
+
     setCurrentProducts(newList);
-  }, [products, category, sort, perPage, currentPage]);
+  }, [products, category, sort, perPage, searchTerm, currentPage]);
 
   const categoryOptions = useMemo(() => {
     let options = [];
@@ -157,46 +165,53 @@ function Products() {
         )}
       </Group>
       <Space h="20px" />
-      <Group>
-        <select
-          value={category}
-          onChange={(event) => {
-            setCategory(event.target.value);
-            setCurrentPage(1);
-          }}
-        >
-          <option value="">All Category</option>
-          {categoryOptions.map((category) => {
-            return (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            );
-          })}
-        </select>
-        <select
-          value={sort}
-          onChange={(event) => {
-            setSort(event.target.value);
-            setCurrentPage(1);
-          }}
-        >
-          <option value="">No Sorting</option>
-          <option value="name">Sort by Name</option>
-          <option value="price">Sort by Price</option>
-        </select>
-        <select
-          value={perPage}
-          onChange={(event) => {
-            setPerPage(parseInt(event.target.value));
-            // reset it back to page 1
-            setCurrentPage(1);
-          }}
-        >
-          <option value="6">6 Per Page</option>
-          <option value="10">10 Per Page</option>
-          <option value={9999999}>All</option>
-        </select>
+      <Group position="apart" mb="lg">
+        <Group>
+          <select
+            value={category}
+            onChange={(event) => {
+              setCategory(event.target.value);
+              setCurrentPage(1);
+            }}
+          >
+            <option value="">All Category</option>
+            {categoryOptions.map((category) => {
+              return (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              );
+            })}
+          </select>
+          <select
+            value={sort}
+            onChange={(event) => {
+              setSort(event.target.value);
+              setCurrentPage(1);
+            }}
+          >
+            <option value="">No Sorting</option>
+            <option value="name">Sort by Name</option>
+            <option value="price">Sort by Price</option>
+          </select>
+          <select
+            value={perPage}
+            onChange={(event) => {
+              setPerPage(parseInt(event.target.value));
+              // reset it back to page 1
+              setCurrentPage(1);
+            }}
+          >
+            <option value="6">6 Per Page</option>
+            <option value="10">10 Per Page</option>
+            <option value={9999999}>All</option>
+          </select>
+        </Group>
+        <TextInput
+          value={searchTerm}
+          placeholder="Search"
+          onChange={(event) => setSearchTerm(event.target.value)}
+        />
       </Group>
       <Space h="20px" />
       <LoadingOverlay visible={isLoading} />

@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useCookies } from "react-cookie";
 import { useNavigate } from "react-router-dom";
-import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import {
   Container,
   Space,
+  Select,
   TextInput,
   Card,
   Button,
@@ -21,10 +22,12 @@ import {
 } from "@mantine/core";
 import { fetchClients, addClientDetails } from "../api/client";
 import HeaderClient from "../HeaderClient";
+import { fetchUsers } from "../api/auth";
 
 const ClientAdd = () => {
   const [cookies, setCookie] = useCookies(["currentUser"]);
   const { currentUser } = cookies;
+  const [selectedUser, setSelectedUser] = useState("");
   const [clientName, setClientName] = useState("");
   const [clientGender, setClientGender] = useState("Male");
   const [clientIc, setClientIc] = useState();
@@ -80,16 +83,27 @@ const ClientAdd = () => {
     mutationFn: fetchClients,
     onSuccess: (data) => {
       queryClient.setQueryData(["clients"], data);
-      navigate("/");
+      navigate("/home");
     },
   });
+
+  const { data: users = [] } = useQuery({
+    queryKey: ["users"],
+    queryFn: () => fetchUsers(),
+  });
+
+  const selectedUserName =
+    selectedUser && users
+      ? users.find((c) => c._id === selectedUser)?.name || ""
+      : "-";
+
   const createMutation = useMutation({
     mutationFn: addClientDetails,
     onSuccess: (data) => {
-      navigate("/checkout-package");
+      navigate("/clients");
       notifications.show({
         title: "Member created successfully, please select a package",
-        color: "yellow",
+        color: "green",
       });
     },
     onError: (error) => {
@@ -165,6 +179,7 @@ const ClientAdd = () => {
           medQ4: medQ4,
           medQ5: medQ5,
           addNote: addNote,
+          coachId: selectedUser,
         }),
         token: currentUser ? currentUser.token : "",
       });
@@ -708,6 +723,24 @@ const ClientAdd = () => {
                 onChange={(event) => setAddNote(event.target.value)}
               />
             </Grid.Col>
+            <Select
+              data={users
+                .filter((user) =>
+                  [
+                    "Junior Trainee",
+                    "Senior Trainee",
+                    "Advanced Senior Trainee",
+                  ].includes(user.department)
+                )
+                .map((user) => ({
+                  value: user._id,
+                  label: `${user.name} (${user.department})`,
+                }))}
+              value={selectedUser}
+              onChange={(value) => setSelectedUser(value)}
+              label="Staff"
+              placeholder="Select a Staff"
+            />
           </Grid>
           <Space h="50px" />
           <Group position="center">

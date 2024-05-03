@@ -14,8 +14,10 @@ import {
   Space,
   Divider,
   Image,
+  Modal,
 } from "@mantine/core";
 import { useCookies } from "react-cookie";
+import { useDisclosure } from "@mantine/hooks";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import "../App.css";
 import { FaUsers } from "react-icons/fa";
@@ -137,11 +139,27 @@ const AppWrapper = ({ children }) => {
                 </Group>
               </div>
             </UnstyledButton>
-            <UnstyledButton component={Link} to={"/pms"} variant="transparent">
+            <UnstyledButton
+              component={Link}
+              to={"/performance-management-system"}
+              variant="transparent"
+            >
               <div className="item">
                 <Group>
                   <FaMoneyBillTrendUp width="80px" height="80px" />
                   PMS
+                </Group>
+              </div>
+            </UnstyledButton>
+            <UnstyledButton
+              component={Link}
+              to={"/performance-management-system-add"}
+              variant="transparent"
+            >
+              <div className="item">
+                <Group>
+                  <FaMoneyBillTrendUp width="80px" height="80px" />
+                  PMS_add
                 </Group>
               </div>
             </UnstyledButton>
@@ -162,7 +180,7 @@ const AppWrapper = ({ children }) => {
             {(isAdminB || isAdminHQ) && (
               <UnstyledButton
                 component={Link}
-                to={"/wage-add"}
+                to={"/wage"}
                 variant="transparent"
               >
                 <div className="item">
@@ -260,7 +278,7 @@ const AppWrapper = ({ children }) => {
                             variant="transparent"
                             size="sm"
                             component={Link}
-                            to={"/edit-info/" + cookies.currentUser._id}
+                            to={"/post"}
                           >
                             <Group>
                               <MdPostAdd

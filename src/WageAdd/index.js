@@ -28,29 +28,18 @@ function WageAdd() {
   const navigate = useNavigate();
   const [selectedUser, setSelectedUser] = useState("");
   const [selectedPMS1, setSelectedPMS1] = useState(null);
-  const [selectedPMS2, setSelectedPMS2] = useState();
+  const [selectedPMS2, setSelectedPMS2] = useState(null);
   const [selectedPMS3, setSelectedPMS3] = useState(null);
-  const [selectedPMS4, setSelectedPMS4] = useState(null);
-  const [selectedPMS5, setSelectedPMS5] = useState(null);
-  const [selectedPMS6, setSelectedPMS6] = useState(null);
-  const [selectedPMS7, setSelectedPMS7] = useState(null);
-  const [selectedPMS8, setSelectedPMS8] = useState(null);
-  const [selectedPMS9, setSelectedPMS9] = useState(null);
-  const [selectedPMS10, setSelectedPMS10] = useState(null);
-  const [selectedPMS11, setSelectedPMS11] = useState(null);
-  const [selectedPMS12, setSelectedPMS12] = useState(null);
-  const [selectedPMS13, setSelectedPMS13] = useState(null);
-  const [selectedPMS14, setSelectedPMS14] = useState(null);
-  const [selectedPMS15, setSelectedPMS15] = useState(null);
+
   const [selectedOrder, setSelectedOrder] = useState("");
   const [pmsTotal, setPMSTotal] = useState("");
-  const [selectedMonth, setSelectedMonth] = useState("1"); // Initialize with January as default
+  const [selectedMonth, setSelectedMonth] = useState(); // Initialize with January as default
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [year, setYear] = useState(new Date().getFullYear());
-  const [basic, setBasic] = useState(0);
-  const [pcd, setPcd] = useState("");
-  const [allowance, setAllowance] = useState("");
-  const [claims, setClaims] = useState("");
+  const [basic, setBasic] = useState("");
+  const [pcd, setPcd] = useState(0);
+  const [allowance, setAllowance] = useState(0);
+  const [claims, setClaims] = useState(0);
   const [totalIncome, setTotalIncome] = useState("");
   const [overtime, setOvertime] = useState(0);
   const [nettPay, setNettPay] = useState(0);
@@ -62,6 +51,8 @@ function WageAdd() {
   const [epfNo, setEpfNo] = useState("");
   const [socsoNo, setSocsoNo] = useState("");
   const [sessions, setSessions] = useState("");
+  const [sessionsS, setSessionsS] = useState("");
+  const [sessionsAvd, setSessionsAvd] = useState("");
 
   const { data: users = [] } = useQuery({
     queryKey: ["users"],
@@ -115,7 +106,7 @@ function WageAdd() {
           .filter((pmsRecord) => pmsRecord.user === selectedUser)
           .map((pmsRecord) => ({
             value: pmsRecord.total,
-            label: `${pmsRecord.year} ${pmsRecord.month}, ${pmsRecord.week} (Score: ${pmsRecord.total})`, // You can change the label format as needed
+            label: `Year: ${pmsRecord.year}, Month: ${pmsRecord.month} (Score: ${pmsRecord.total})`, // You can change the label format as needed
           }))
       : [];
 
@@ -123,27 +114,14 @@ function WageAdd() {
     let total = 0;
     let validCount = 0;
 
-    const pmsValues = [
-      selectedPMS1,
-      selectedPMS2,
-      selectedPMS3,
-      selectedPMS4,
-      selectedPMS5,
-      selectedPMS6,
-      selectedPMS7,
-      selectedPMS8,
-      selectedPMS9,
-      selectedPMS10,
-      selectedPMS11,
-      selectedPMS12,
-      selectedPMS13,
-      selectedPMS14,
-      selectedPMS15,
-    ];
+    const pmsValues = [selectedPMS1, selectedPMS2, selectedPMS3];
 
     pmsValues.forEach((pmsValue) => {
       if (pmsValue) {
         total += parseFloat(pmsValue);
+        validCount++;
+      } else {
+        total += 0;
         validCount++;
       }
     });
@@ -154,7 +132,7 @@ function WageAdd() {
 
     // 计算百分比
     const percentage = ((total / (validCount * 100)) * 100).toFixed(2);
-    return percentage + "%"; // 返回百分比
+    return percentage;
   };
 
   const calculateReward = () => {
@@ -179,6 +157,36 @@ function WageAdd() {
       ? users.find((c) => c._id === selectedUser)?.name || ""
       : "-";
 
+  const selectedUserIC =
+    selectedUser && users
+      ? users.find((c) => c._id === selectedUser)?.ic || ""
+      : "-";
+
+  const bankname =
+    selectedUser && users
+      ? users.find((u) => u._id === selectedUser)?.bankname
+      : undefined;
+
+  const bankacc =
+    selectedUser && users
+      ? users.find((u) => u._id === selectedUser)?.bankacc
+      : undefined;
+
+  const epfno =
+    selectedUser && users
+      ? users.find((u) => u._id === selectedUser)?.epf
+      : undefined;
+
+  const soscono =
+    selectedUser && users
+      ? users.find((u) => u._id === selectedUser)?.socso
+      : undefined;
+
+  const eisno =
+    selectedUser && users
+      ? users.find((u) => u._id === selectedUser)?.eis
+      : undefined;
+
   const months = [
     { value: "1", label: "January" },
     { value: "2", label: "February" },
@@ -195,56 +203,134 @@ function WageAdd() {
   ];
 
   const calculateCoachingFee = () => {
+    // Check if a user is selected
     if (!selectedUser) {
-      return 0;
+      return 0; // Return 0 if no user is selected
     }
+    const currentUser = users.find((u) => u._id === selectedUser);
+
     let rate;
 
-    const currentUser = users.find((u) => u._id === selectedUser);
-    if (currentUser.department === "Junior Trainee") {
-      if (sessions <= 50) {
-        rate = 30;
-      } else if (sessions <= 80) {
-        rate = 35;
-      } else {
-        rate = 40;
-      }
-    } else if (currentUser.department === "Senior Trainee") {
-      if (sessions <= 50) {
-        rate = 40;
-      } else if (sessions <= 80) {
-        rate = 45;
-      } else {
-        rate = 50;
-      }
-    } else if (currentUser.department === "Advanced Senior Trainee") {
-      if (sessions <= 50) {
-        rate = 50;
-      } else if (sessions <= 80) {
-        rate = 55;
-      } else {
-        rate = 60;
-      }
+    if (sessions <= 50) {
+      rate = 30;
+    } else if (sessions <= 80) {
+      rate = 35;
     } else {
-      // Default to a rate of 0 for unknown departments
-      rate = 0;
+      rate = 40;
     }
 
+    // Return the calculated fee
     return rate * sessions;
   };
 
+  const calculateSCoachingFee = () => {
+    // Check if a user is selected
+    if (!selectedUser) {
+      return 0; // Return 0 if no user is selected
+    }
+
+    // Find the selected user
+    const currentUser = users.find((u) => u._id === selectedUser);
+
+    let rate;
+
+    // Define rates based on the number of sessions
+    if (sessionsS <= 50) {
+      rate = 40;
+    } else if (sessionsS <= 80) {
+      rate = 45;
+    } else {
+      rate = 50;
+    }
+
+    // Return the calculated fee
+    return rate * sessionsS;
+  };
+
+  const calculateAvdCoachingFee = () => {
+    // Check if a user is selected
+    if (!selectedUser) {
+      return 0; // Return 0 if no user is selected
+    }
+
+    // Find the selected user
+    const currentUser = users.find((u) => u._id === selectedUser);
+
+    let rate;
+
+    // Define rates based on the number of sessions
+    if (sessionsAvd <= 50) {
+      rate = 50;
+    } else if (sessionsAvd <= 80) {
+      rate = 55;
+    } else {
+      rate = 60;
+    }
+
+    // Return the calculated fee
+    return rate * sessionsAvd;
+  };
+
+  // const calculateCoachingFee = () => {
+  //   if (!selectedUser) {
+  //     return 0;
+  //   }
+  //   let rate;
+
+  //   const currentUser = users.find((u) => u._id === selectedUser);
+  //   if (currentUser.department === "Junior Trainee") {
+  //     if (sessions <= 50) {
+  //       rate = 30;
+  //     } else if (sessions <= 80) {
+  //       rate = 35;
+  //     } else {
+  //       rate = 40;
+  //     }
+  //   } else if (currentUser.department === "Senior Trainee") {
+  //     if (sessions <= 50) {
+  //       rate = 40;
+  //     } else if (sessions <= 80) {
+  //       rate = 45;
+  //     } else {
+  //       rate = 50;
+  //     }
+  //   } else if (currentUser.department === "Advanced Senior Trainee") {
+  //     if (sessions <= 50) {
+  //       rate = 50;
+  //     } else if (sessions <= 80) {
+  //       rate = 55;
+  //     } else {
+  //       rate = 60;
+  //     }
+  //   } else {
+  //     // Default to a rate of 0 for unknown departments
+  //     rate = 0;
+  //   }
+
+  //   return rate * sessions;
+  // };
+
   const [coachingFee, setCoachingFee] = useState();
+
+  const calculateTotalCoachingFee =
+    parseFloat(calculateCoachingFee()) +
+    parseFloat(calculateSCoachingFee()) +
+    parseFloat(calculateAvdCoachingFee());
 
   const calculateTotalIncomeWithoutAllowClaim = () => {
     const totalcom = parseFloat(calculateTotalCom()) || 0;
     const totalPMS = parseFloat(calculateTotalPMS()) || 0;
-    const coachingFee = parseFloat(calculateCoachingFee()) || 0;
+    const coachingFee = parseFloat(calculateTotalCoachingFee) || 0;
     const basicValue = parseFloat(basic) || 0;
     const overtimeValue = parseFloat(overtime) || 0;
 
     // Calculate the total income
     const totalIncome =
-      totalcom + totalPMS + coachingFee + basicValue + overtimeValue;
+      totalcom +
+      totalPMS +
+      calculateTotalCoachingFee +
+      basicValue +
+      overtimeValue;
 
     return totalIncome.toFixed(2);
   };
@@ -272,7 +358,10 @@ function WageAdd() {
     const employerContribution = totalIncomeWithoutAllowClaim * employerEPFRate;
     const employeeContribution = totalIncomeWithoutAllowClaim * employeeEPFRate;
 
-    return { employerEpf: employerContribution, epf: employeeContribution };
+    return {
+      employerEpf: employerContribution.toFixed(2),
+      epf: employeeContribution.toFixed(2),
+    };
   };
 
   const { epf, employerEpf } = calculateEPF(totalIncomeWithoutAllowClaim);
@@ -448,7 +537,10 @@ function WageAdd() {
       employeeSocsoRate = 24.75;
     }
 
-    return { socso: employeeSocsoRate, employerSocso: employerSocsoRate };
+    return {
+      socso: employeeSocsoRate.toFixed(2),
+      employerSocso: employerSocsoRate.toFixed(2),
+    };
   };
 
   const { socso, employerSocso } = calculateSocso(totalIncomeWithoutAllowClaim);
@@ -624,14 +716,17 @@ function WageAdd() {
       employeeESIRate = 9.9; // Default rate for income above RM 5000
     }
 
-    return { eis: employerESIRate, employerEis: employeeESIRate };
+    return {
+      eis: employerESIRate.toFixed(2),
+      employerEis: employeeESIRate.toFixed(2),
+    };
   };
   const { eis, employerEis } = calculateESI(totalIncomeWithoutAllowClaim);
 
   const calculateTotalIncome = () => {
     const totalcom = parseFloat(calculateTotalCom()) || 0;
     const totalPMS = parseFloat(calculateTotalPMS()) || 0;
-    const coachingFee = parseFloat(calculateCoachingFee()) || 0;
+    const totalCoachingFee = parseFloat(calculateTotalCoachingFee) || 0;
     const basicValue = parseFloat(basic) || 0;
     const allowanceValue = parseFloat(allowance) || 0;
     const pmsValue = parseFloat(calculateReward()) || 0;
@@ -642,7 +737,7 @@ function WageAdd() {
     const totalIncome =
       totalcom +
       totalPMS +
-      coachingFee +
+      totalCoachingFee +
       basicValue +
       allowanceValue +
       claimsValue +
@@ -650,6 +745,28 @@ function WageAdd() {
       overtimeValue;
 
     return totalIncome.toFixed(2); // Return the total income rounded to 2 decimal places
+  };
+
+  const calculateTotalDeduction = () => {
+    const epfValue = parseFloat(epf) || 0;
+    const socsoValue = parseFloat(socso) || 0;
+    const eisValue = parseFloat(eis) || 0;
+    const pcdValue = parseFloat(pcd) || 0;
+
+    // Calculate the total income
+    const totalDeduction = epfValue + socsoValue + eisValue + pcdValue;
+
+    return totalDeduction.toFixed(2); // Return the total income rounded to 2 decimal places
+  };
+
+  const calculateNetpay = () => {
+    const deductionValue = parseFloat(calculateTotalDeduction()) || 0;
+    const totalIncomeValue = parseFloat(calculateTotalIncome()) || 0;
+
+    // Calculate the total income
+    const net = totalIncomeValue - deductionValue;
+
+    return net.toFixed(2); // Return the total income rounded to 2 decimal places
   };
 
   const createMutation = useMutation({
@@ -675,8 +792,9 @@ function WageAdd() {
         user: currentUser._id,
         staffId: selectedUser,
         name: selectedUserName,
-        totalpms: calculateTotalPMS(),
-        coachingFee: calculateCoachingFee(),
+        ic: selectedUserIC,
+        totalpms: calculateReward(),
+        coachingFee: calculateTotalCoachingFee,
         year: year,
         month: selectedMonth,
         basic: basic,
@@ -692,8 +810,14 @@ function WageAdd() {
         employerSocso: employerSocso,
         employerEis: employerEis,
         totalIncome: calculateTotalIncome(),
+        totalDeduction: calculateTotalDeduction(),
         overtime: overtime,
-        nettPay: nettPay,
+        nettPay: calculateNetpay(),
+        bankname: bankname,
+        bankacc: bankacc,
+        epfNo: epfno,
+        socsoNo: soscono,
+        eisNo: eisno,
       }),
       token: currentUser ? currentUser.token : "",
     });
@@ -704,23 +828,21 @@ function WageAdd() {
       <Space h="100px" />
       <Card withBorder shadow="md" p="20px">
         <Grid grow gutter="xs">
-          <Grid.Col span={4}>{calculateTotalCom()}</Grid.Col>
-          <Grid.Col span={4}>{calculateTotalPMS()}</Grid.Col>
-          <Grid.Col span={4}>
-            <TextInput
-              value={calculateReward()}
-              label="Reward Amount"
-              readOnly
+          <Grid.Col span={3}>
+            <TextInput label="Year" value={year} readOnly />
+          </Grid.Col>
+          <Grid.Col span={3}>
+            <Select
+              data={months}
+              value={selectedMonth}
+              onChange={(value) => setSelectedMonth(value)}
+              label="Month"
+              placeholder="Select a month"
             />
           </Grid.Col>
-          <Select
-            data={months}
-            value={selectedMonth}
-            onChange={(value) => setSelectedMonth(value)}
-            label="Select Month"
-            placeholder="Select a month"
-          />
-          <Grid.Col span={4}>
+          <Grid.Col span={6}></Grid.Col>
+          <Space h={100} />
+          <Grid.Col span={3}>
             <Select
               data={users.map((user) => ({
                 value: user._id,
@@ -728,43 +850,182 @@ function WageAdd() {
               }))}
               value={selectedUser}
               onChange={(value) => setSelectedUser(value)}
-              label="Select Staff"
+              label="Staff"
               placeholder="Select a Staff"
             />
           </Grid.Col>
-          <Grid.Col span={4}>
-            <TextInput
-              label="Basic"
-              value={
-                selectedUser && users
-                  ? users.find((u) => u._id === selectedUser)?.salary || ""
-                  : 0
-              }
-              onChange={(event) => setBasic(event.target.value)}
-              readOnly
-            />
-          </Grid.Col>
-          <Grid.Col span={4}>
+          <Grid.Col span={3}>
             <TextInput
               label="Department"
               value={
                 selectedUser && users
                   ? users.find((u) => u._id === selectedUser)?.department ||
                     "pls contact your supervisor to add to system"
-                  : "-"
+                  : ""
               }
               onChange={(e) => setDepartment(e.target.value)}
               readOnly
             />
           </Grid.Col>
-          <Select
-            data={pmsdata}
-            value={selectedPMS1}
-            label=" "
-            disabled={false}
-            onChange={setSelectedPMS1}
-            placeholder="Select a PMS"
-          />
+          <Grid.Col span={3}>
+            <TextInput
+              label="Identity Card No"
+              value={selectedUserIC}
+              readOnly
+            />
+          </Grid.Col>
+          <Grid.Col span={3}></Grid.Col>
+          <Grid.Col span={3}>
+            <TextInput label="Bank Name" value={bankname} readOnly />
+          </Grid.Col>
+          <Grid.Col span={3}>
+            <TextInput label="Bank Account" value={bankacc} readOnly />
+          </Grid.Col>
+          <Grid.Col span={6}></Grid.Col>
+          <Grid.Col span={3}>
+            <TextInput label="EPF Account" value={epfno} readOnly />
+          </Grid.Col>
+          <Grid.Col span={3}>
+            <TextInput label="SOSCO Account" value={soscono} readOnly />
+          </Grid.Col>
+          {/* <Grid.Col span={3}>
+            <TextInput label="EIS Account" value={eisno} readOnly />
+          </Grid.Col> */}
+          <Grid.Col span={6}></Grid.Col>
+          <Space h={100} />
+          <Grid.Col span={3}>
+            <TextInput
+              label="Salary"
+              value={
+                selectedUser && users
+                  ? users
+                      .find((u) => u._id === selectedUser)
+                      ?.salary.toFixed(2) || ""
+                  : 0
+              }
+              onChange={(event) => setBasic(event.target.value)}
+              readOnly
+            />
+          </Grid.Col>
+          <Grid.Col span={9}></Grid.Col>
+          <Grid.Col span={1}>
+            <NumberInput
+              value={sessions}
+              label="Sessions"
+              precision={0}
+              onChange={(value) => setSessions(value)}
+              readOnly={!selectedMonth || !selectedUser}
+            />
+          </Grid.Col>
+          <Grid.Col span={2}>
+            <TextInput
+              value={calculateCoachingFee().toFixed(2)}
+              label="Junior"
+              readOnly
+            />
+          </Grid.Col>
+          <Grid.Col span={1}>
+            <NumberInput
+              value={sessionsS}
+              label="Sessions"
+              precision={0}
+              onChange={(value) => setSessionsS(value)}
+              readOnly={!selectedMonth || !selectedUser}
+            />
+          </Grid.Col>
+          <Grid.Col span={2}>
+            <TextInput
+              value={calculateSCoachingFee().toFixed(2)}
+              label="Senior"
+              readOnly
+            />
+          </Grid.Col>
+          <Grid.Col span={1}>
+            <NumberInput
+              value={sessionsAvd}
+              label="Sessions"
+              precision={0}
+              onChange={(value) => setSessionsAvd(value)}
+              readOnly={!selectedMonth || !selectedUser}
+            />
+          </Grid.Col>
+          <Grid.Col span={2}>
+            <TextInput
+              value={calculateAvdCoachingFee().toFixed(2)}
+              label="Advanced Senior"
+              readOnly
+            />
+          </Grid.Col>
+          <Grid.Col span={3}>
+            <TextInput
+              value={calculateTotalCoachingFee.toFixed(2)}
+              label="Total Coaching Fee"
+              readOnly
+            />
+          </Grid.Col>
+          <Grid.Col span={3}>
+            {" "}
+            <TextInput
+              value={calculateTotalCom()}
+              label="Commission"
+              readOnly
+            />
+          </Grid.Col>
+          <Grid.Col span={3}>
+            <TextInput
+              value={allowance}
+              label="Allowance"
+              readOnly={!selectedMonth || !selectedUser}
+              onChange={(event) => setAllowance(event.target.value)}
+            />
+          </Grid.Col>
+          <Grid.Col span={3}>
+            <TextInput
+              value={claims}
+              label="Claims"
+              readOnly={!selectedMonth || !selectedUser}
+              onChange={(event) => setClaims(event.target.value)}
+            />
+          </Grid.Col>
+          <Grid.Col span={3}></Grid.Col>
+          <Grid.Col span={3}>
+            <TextInput value={epf} label="Epf" readOnly />
+          </Grid.Col>
+          <Grid.Col span={3}>
+            <TextInput value={socso} label="Socso" readOnly />
+          </Grid.Col>
+          <Grid.Col span={3}>
+            <TextInput value={eis} label="Eis" readOnly />
+          </Grid.Col>
+          <Grid.Col span={3}>
+            <TextInput
+              value={pcd}
+              label="PCD"
+              onChange={(event) => setPcd(event.target.value)}
+            />
+          </Grid.Col>
+          <Grid.Col span={3}>
+            <TextInput value={employerEpf} label="Employer EPF" readOnly />
+          </Grid.Col>
+          <Grid.Col span={3}>
+            <TextInput value={employerSocso} label="Employer Socso" readOnly />
+          </Grid.Col>
+          <Grid.Col span={3}>
+            <TextInput value={employerEis} label="Employer EIS" readOnly />
+          </Grid.Col>
+          <Grid.Col span={3}></Grid.Col>
+          <Space h={100} />
+          <Grid.Col span={4}>
+            <Select
+              data={pmsdata}
+              value={selectedPMS1}
+              label="PMS"
+              disabled={false}
+              onChange={setSelectedPMS1}
+              placeholder="Select a PMS"
+              readOnly={!selectedMonth || !selectedUser}
+            />
+          </Grid.Col>
           <Grid.Col span={4}>
             <Select
               data={pmsdata}
@@ -786,202 +1047,44 @@ function WageAdd() {
             />
           </Grid.Col>
           <Grid.Col span={4}>
-            <Select
-              data={pmsdata}
-              value={selectedPMS4}
-              disabled={!selectedPMS3}
-              label=" "
-              onChange={setSelectedPMS4}
-              placeholder="Select a PMS"
-            />
-          </Grid.Col>{" "}
-          <Grid.Col span={4}>
-            <Select
-              data={pmsdata}
-              value={selectedPMS5}
-              disabled={!selectedPMS4}
-              onChange={setSelectedPMS5}
-              placeholder="Select a PMS"
-            />
-          </Grid.Col>
-          <Grid.Col span={4}>
-            <Select
-              data={pmsdata}
-              value={selectedPMS6}
-              disabled={!selectedPMS5}
-              onChange={setSelectedPMS6}
-              placeholder="Select a PMS"
-            />
-          </Grid.Col>
-          <Grid.Col span={4}>
-            <Select
-              data={pmsdata}
-              value={selectedPMS7}
-              disabled={!selectedPMS6}
-              onChange={setSelectedPMS7}
-              placeholder="Select a PMS"
-            />
-          </Grid.Col>
-          <Grid.Col span={4}>
-            <Select
-              data={pmsdata}
-              value={selectedPMS8}
-              disabled={!selectedPMS7}
-              onChange={setSelectedPMS8}
-              placeholder="Select a PMS"
-            />
-          </Grid.Col>
-          <Grid.Col span={4}>
-            <Select
-              data={pmsdata}
-              value={selectedPMS9}
-              disabled={!selectedPMS8}
-              onChange={setSelectedPMS9}
-              placeholder="Select a PMS"
-            />
-          </Grid.Col>
-          <Grid.Col span={4}>
-            <Select
-              data={pmsdata}
-              value={selectedPMS10}
-              disabled={!selectedPMS9}
-              onChange={setSelectedPMS10}
-              placeholder="Select a PMS"
-            />
-          </Grid.Col>
-          <Grid.Col span={4}>
-            <Select
-              data={pmsdata}
-              disabled={!selectedPMS10}
-              onChange={setSelectedPMS11}
-              placeholder="Select a PMS"
-            />
-          </Grid.Col>
-          <Grid.Col span={4}>
-            <Select
-              data={pmsdata}
-              value={selectedPMS12}
-              disabled={!selectedPMS11}
-              onChange={setSelectedPMS12}
-              placeholder="Select a PMS"
-            />
-          </Grid.Col>
-          <Grid.Col span={4}>
-            <Select
-              data={pmsdata}
-              value={selectedPMS13}
-              disabled={!selectedPMS12}
-              onChange={setSelectedPMS13}
-              placeholder="Select a PMS"
-            />
-          </Grid.Col>
-          <Grid.Col span={4}>
-            <Select
-              data={pmsdata}
-              value={selectedPMS14}
-              disabled={!selectedPMS13}
-              onChange={setSelectedPMS14}
-              placeholder="Select a PMS"
-            />
-          </Grid.Col>
-          <Grid.Col span={4}>
-            <Select
-              data={pmsdata}
-              value={selectedPMS15}
-              disabled={!selectedPMS14}
-              onChange={setSelectedPMS15}
-              placeholder="Select a PMS"
-            />
-          </Grid.Col>
-          <Grid.Col span={4}>
-            <Text>
-              Bank Name:{" "}
-              {selectedUser && users
-                ? users.find((u) => u._id === selectedUser)?.bankname ||
-                  "pls contact your supervisor to add to system"
-                : "-"}
-            </Text>
-            <Text>
-              Bank Account:{" "}
-              {selectedUser && users
-                ? users.find((u) => u._id === selectedUser)?.bankacc ||
-                  "pls contact your supervisor to add to system"
-                : "-"}
-            </Text>
-          </Grid.Col>
-          <Text></Text>
-          <Grid.Col span={4}>
-            <NumberInput
-              value={sessions}
-              label="Sessions"
-              precision={0}
-              onChange={(value) => setSessions(value)}
-            />
-          </Grid.Col>
-          <Grid.Col span={4}>
+            {" "}
             <TextInput
-              value={calculateCoachingFee()}
-              label="Coaching Fee"
-              disabled
+              value={calculateTotalPMS()}
+              label="PMS Total Score"
+              readOnly
             />
           </Grid.Col>
+          <Grid.Col span={4}>
+            <TextInput value={calculateReward()} label="Bonus" readOnly />
+          </Grid.Col>{" "}
+          <Grid.Col span={4}></Grid.Col>
+          <Space h={100} />
           <Grid.Col span={4}>
             <TextInput
               value={calculateTotalIncome()}
               label="Total Income"
-              disabled
+              readOnly
             />
           </Grid.Col>
           <Grid.Col span={4}>
             <TextInput
-              value={totalIncomeWithoutAllowClaim}
-              label="Total Income Without Claim"
-            />
-          </Grid.Col>
-          <Grid.Col span={4}>
-            <TextInput value={epf} label="Epf" disabled />
-          </Grid.Col>
-          <Grid.Col span={4}>
-            <TextInput value={socso} label="Socso" disabled />
-          </Grid.Col>
-          <Grid.Col span={4}>
-            <TextInput value={eis} label="Eis" disabled />
-          </Grid.Col>
-          <Grid.Col span={4}>
-            <TextInput
-              value={pcd}
-              label="PCD"
-              onChange={(event) => setPcd(event.target.value)}
+              value={calculateTotalDeduction()}
+              label="Total Deduction"
+              readOnly
             />
           </Grid.Col>
           <Grid.Col span={4}>
             <TextInput
-              value={allowance}
-              label="Allowance"
-              onChange={(event) => setAllowance(event.target.value)}
+              value={calculateNetpay()}
+              label="Nett Pay (RM)"
+              readOnly
             />
-          </Grid.Col>
-          <Grid.Col span={4}>
-            <TextInput
-              value={claims}
-              label="Claims"
-              onChange={(event) => setClaims(event.target.value)}
-            />
-          </Grid.Col>
-          <Grid.Col span={4}>
-            <TextInput value={employerEpf} label="Employer EPF" disabled />
-          </Grid.Col>
-          <Grid.Col span={4}>
-            <TextInput value={employerSocso} label="Employer Socso" disabled />
-          </Grid.Col>
-          <Grid.Col span={4}>
-            <TextInput value={employerEis} label="Employer EIS" disabled />
           </Grid.Col>
         </Grid>
 
-        <Space h="20px" />
+        <Space h="60px" />
         <Button fullWidth onClick={handleAddNewStaffWage}>
-          Add New
+          Create
         </Button>
       </Card>
       <Space h="50px" />

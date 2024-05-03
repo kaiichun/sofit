@@ -17,7 +17,7 @@ import ClientEdit from "./ClientEdit";
 import ClientAdd from "./ClientAdd";
 import ClientBMI from "./ClientBMI";
 import CalendarTest from "./CalendarTest";
-import PerformanceManagementSystem from "./PerformanceManagementSystem";
+import PerformanceManagementSystemAdd from "./PerformanceManagementSystemAdd";
 import Product from "./Product";
 import ProductAdd from "./ProductAdd";
 import ProductEdit from "./ProductEdit";
@@ -30,6 +30,9 @@ import CheckoutPackage from "./CheckoutPackage";
 import OrdersPackage from "./OrdersPackage";
 import WageAdd from "./WageAdd";
 import Wages from "./Wage";
+import PostAdd from "./Post_Add";
+import PerformanceManagementSystem from "./PerformanceManagementSystem";
+import PerformanceManagementSystemUpdate from "./PerformanceManagementSystemUpdate";
 
 function App() {
   const [cookies] = useCookies(["currentUser"]);
@@ -127,6 +130,14 @@ function App() {
             }
           />
         )}
+        <Route
+          path="/post"
+          element={
+            <AppWrapper>
+              <PostAdd />
+            </AppWrapper>
+          }
+        />
         <Route
           path="/edit-info/:id"
           element={
@@ -232,7 +243,23 @@ function App() {
           }
         />
         <Route
-          path="/pms"
+          path="/performance-management-system-add"
+          element={
+            <AppWrapper>
+              <PerformanceManagementSystemAdd />
+            </AppWrapper>
+          }
+        />
+        <Route
+          path="/performance-management-system-update/:id"
+          element={
+            <AppWrapper>
+              <PerformanceManagementSystemUpdate />
+            </AppWrapper>
+          }
+        />
+        <Route
+          path="/performance-management-system"
           element={
             <AppWrapper>
               <PerformanceManagementSystem />

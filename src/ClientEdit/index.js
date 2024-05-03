@@ -11,6 +11,7 @@ import {
   TextInput,
   Card,
   Button,
+  Select,
   Group,
   Image,
   Grid,
@@ -24,21 +25,17 @@ import {
   NumberInput,
 } from "@mantine/core";
 import { Dropzone, IMAGE_MIME_TYPE } from "@mantine/dropzone";
-import {
-  fetchClients,
-  addClientDetails,
-  getClients,
-  updateClient,
-} from "../api/client";
+import { getClients, updateClient } from "../api/client";
 import sofitLogo from "../Logo/sofit-black.png";
 import { MdUpload } from "react-icons/md";
+import { fetchUsers } from "../api/auth";
 
 const ClientEdit = () => {
   const [cookies] = useCookies(["currentUser"]);
   const { currentUser } = cookies;
   const { id } = useParams();
   const navigate = useNavigate();
-
+  const [coachId, setcoachId] = useState("");
   const [clientName, setClientName] = useState("");
   const [clientGender, setClientGender] = useState("Male");
   const [clientIc, setClientIc] = useState();
@@ -85,7 +82,6 @@ const ClientEdit = () => {
   const [addNote, setAddNote] = useState();
   const [packageValidityPeriod, setPackageValidityPeriod] = useState();
   const [clientPackage, setClientPackage] = useState("");
-  const [sessions, setSessions] = useState("");
 
   const [visible, { toggle }] = useDisclosure(false);
   const { isLoading } = useQuery({
@@ -135,11 +131,17 @@ const ClientEdit = () => {
       setMedQ4(data.medQ4);
       setMedQ5(data.medQ5);
       setAddNote(data.addNote);
-      setPackageValidityPeriod(data.packageValidityPeriod);
-      setClientPackage(data.clientPackage);
-      setSessions(data.sessions);
+      setcoachId(data.coachId);
     },
   });
+
+  const { data: users = [] } = useQuery({
+    queryKey: ["users"],
+    queryFn: () => fetchUsers(),
+  });
+
+  const selectedUserName =
+    coachId && users ? users.find((c) => c._id === coachId)?.name || "" : "-";
 
   const updateMutation = useMutation({
     mutationFn: updateClient,
@@ -214,7 +216,8 @@ const ClientEdit = () => {
         addNote: addNote,
         packageValidityPeriod: packageValidityPeriod,
         clientPackage: clientPackage,
-        sessions: sessions,
+        coachId: coachId,
+        coachName: selectedUserName,
       }),
       token: currentUser ? currentUser.token : "",
     });
@@ -762,31 +765,27 @@ const ClientEdit = () => {
           </Grid.Col>
           <Grid.Col span={12}>
             <Text fw={700} td="underline">
-              Package Information
+              Coach
             </Text>
           </Grid.Col>
           <Grid.Col span={4}>
-            <TextInput
-              value={packageValidityPeriod}
-              placeholder=""
-              label="Package Validity Period"
-              onChange={(event) => setPackageValidityPeriod(event.target.value)}
-            />
-          </Grid.Col>
-          <Grid.Col span={4}>
-            <TextInput
-              value={clientPackage}
-              placeholder=""
-              label="Package"
-              onChange={(event) => setClientPackage(event.target.value)}
-            />
-          </Grid.Col>
-          <Grid.Col span={4}>
-            <TextInput
-              value={sessions}
-              placeholder=""
-              label=" Sessions"
-              onChange={(event) => setSessions(event.target.value)}
+            <Select
+              data={users
+                .filter((user) =>
+                  [
+                    "Junior Trainee",
+                    "Senior Trainee",
+                    "Advanced Senior Trainee",
+                  ].includes(user.department)
+                )
+                .map((user) => ({
+                  value: user._id,
+                  label: `${user.name} (${user.department})`,
+                }))}
+              value={coachId}
+              onChange={(value) => setcoachId(value)}
+              label="Staff"
+              placeholder="Select a Staff"
             />
           </Grid.Col>
         </Grid>
@@ -809,7 +808,7 @@ const ClientEdit = () => {
         <div></div>
         <Button
           component={Link}
-          to="/home"
+          to="/clients"
           variant="subtle"
           size="xs"
           color="gray"
