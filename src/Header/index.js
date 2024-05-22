@@ -13,7 +13,6 @@ import { Link } from "react-router-dom";
 import { useCookies } from "react-cookie";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { FaShoppingCart } from "react-icons/fa";
-
 import { addToCart, getCartItems } from "../api/cart";
 
 export default function Header({ title, page = "", text = "" }) {

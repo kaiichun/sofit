@@ -5,12 +5,16 @@ import { API_URL } from "./data";
 export const fetchPosts = async (keyword = "") => {
   const response = await axios({
     method: "GET",
-    url: API_URL + "/videos?" + (keyword !== "" ? "keyword=" + keyword : ""),
+    url: API_URL + "/posts?" + (keyword !== "" ? "keyword=" + keyword : ""),
   });
   return response.data;
 };
+
 export const getPosts = async (id) => {
-  const response = await axios.get(API_URL + "/posts/" + id);
+  const response = await axios({
+    method: "GET",
+    url: API_URL + "/posts/" + id,
+  });
   return response.data;
 };
 

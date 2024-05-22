@@ -20,7 +20,12 @@ import {
   em,
 } from "@mantine/core";
 import { Dropzone, IMAGE_MIME_TYPE } from "@mantine/dropzone";
-import { updateUser, uploadProfileImage, getUser } from "../api/auth";
+import {
+  updateUser,
+  uploadProfileImage,
+  getUser,
+  fetchBranch,
+} from "../api/auth";
 import sofitLogo from "../Logo/sofit-black.png";
 import { MdUpload } from "react-icons/md";
 
@@ -103,6 +108,11 @@ const StaffEdit = () => {
       setBranch(data.branch);
       setRole(data.role);
     },
+  });
+
+  const { data: branchs } = useQuery({
+    queryKey: ["fetchB"],
+    queryFn: () => fetchBranch(),
   });
 
   const isAdminB = useMemo(() => {
@@ -509,12 +519,15 @@ const StaffEdit = () => {
           </Grid.Col>
           <Grid.Col span={3}>
             <NativeSelect
-              data={["Setia Alam", "Other"]}
-              label="Department"
+              data={branchs.map((b) => ({
+                value: b._id,
+                label: b.branch,
+              }))}
+              label="Branch"
               value={branch}
-              placeholder="Branch"
-              onChange={(event) => setBranch(event.target.value)}
+              placeholder=""
               disabled={isAdminB || isAdminHQ ? false : true}
+              onChange={(event) => setBranch(event.currentTarget.value)}
             />
           </Grid.Col>
           <Grid.Col span={3}>

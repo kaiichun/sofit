@@ -17,23 +17,16 @@ import {
   Select,
   LoadingOverlay,
 } from "@mantine/core";
-import { Checkbox } from "@mantine/core";
 import { useNavigate, Link } from "react-router-dom";
-import { notifications } from "@mantine/notifications";
 import Header from "../Header";
 import { useParams } from "react-router-dom";
-import { MdDownloadForOffline, MdDelete } from "react-icons/md";
-
+import { MdDownloadForOffline } from "react-icons/md";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-
 import { useCookies } from "react-cookie";
-import { fetchOrders, deleteOrder, updateOrder } from "../api/order";
-import { fetchClients } from "../api/client";
 import logo from "../Logo/sofit-black.png";
 import { fetchUsers } from "../api/auth";
 import { fetchWages2 } from "../api/wage";
-import { max } from "date-fns";
 
 export default function Wages() {
   const [cookies] = useCookies(["currentUser"]);

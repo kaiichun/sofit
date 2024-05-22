@@ -33,6 +33,8 @@ import Wages from "./Wage";
 import PostAdd from "./Post_Add";
 import PerformanceManagementSystem from "./PerformanceManagementSystem";
 import PerformanceManagementSystemUpdate from "./PerformanceManagementSystemUpdate";
+import BranchEdit from "./BranchEdit";
+import Post from "./Post";
 
 function App() {
   const [cookies] = useCookies(["currentUser"]);
@@ -130,11 +132,29 @@ function App() {
             }
           />
         )}
+        {isAdminHQ && (
+          <Route
+            path="/edit-branch/:id"
+            element={
+              <AppWrapper>
+                <BranchEdit />
+              </AppWrapper>
+            }
+          />
+        )}
         <Route
-          path="/post"
+          path="/post-add"
           element={
             <AppWrapper>
               <PostAdd />
+            </AppWrapper>
+          }
+        />
+        <Route
+          path="/post/:id"
+          element={
+            <AppWrapper>
+              <Post />
             </AppWrapper>
           }
         />

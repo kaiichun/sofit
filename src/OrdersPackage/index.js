@@ -383,59 +383,76 @@ export default function OrdersPackage() {
                       <td>{o.outstanding ? o.outstanding.toFixed(2) : 0.0}</td>
 
                       <td>
-                        <Modal
-                          opened={openedOrderId === o._id}
-                          onClose={closeModal}
-                          title="Outstanding Update"
-                        >
-                          <NumberInput
-                            label="Balance"
-                            value={o.outstanding}
-                            placeholder={o.outstanding}
-                            precision={2}
-                            onChange={(value) => setOutStanding(value)}
-                            readOnly
-                          />
+                        {o.outstanding ? (
+                          <>
+                            <Modal
+                              opened={openedOrderId === o._id}
+                              onClose={closeModal}
+                              title="Outstanding Update"
+                            >
+                              <NumberInput
+                                label="Balance"
+                                value={o.outstanding}
+                                placeholder={o.outstanding}
+                                precision={2}
+                                onChange={(value) => setOutStanding(value)}
+                                readOnly
+                              />
 
-                          {/* <NumberInput
+                              {/* <NumberInput
                             label="Payment"
                             value={currentOutstanding}
                             precision={2}
                             onChange={(value) => setCurrentOutStanding(value)}
                           /> */}
 
-                          <NumberInput
-                            label="Payment"
-                            value={currentOutstanding}
-                            precision={2}
-                            onChange={(value) => {
-                              const newOutstanding =
-                                parseFloat(o.outstanding) - parseFloat(value);
-                              setCurrentOutStanding(value);
-                              setOutStanding(newOutstanding);
-                            }}
-                          />
+                              <NumberInput
+                                label="Payment"
+                                value={currentOutstanding}
+                                precision={2}
+                                onChange={(value) => {
+                                  const newOutstanding =
+                                    parseFloat(o.outstanding) -
+                                    parseFloat(value);
+                                  setCurrentOutStanding(value);
+                                  setOutStanding(newOutstanding);
+                                }}
+                              />
 
-                          <NumberInput
-                            label="New Balance"
-                            value={outstanding} // Assuming `outstanding` is the state variable where you store the new outstanding balance
-                            precision={2}
-                          />
+                              <NumberInput
+                                label="New Balance"
+                                value={outstanding} // Assuming `outstanding` is the state variable where you store the new outstanding balance
+                                precision={2}
+                              />
 
+                              <Button
+                                onClick={() => {
+                                  // Handle submission
+                                  // After submission, clear the currentOutstanding value
+                                  handleUpdateOutstanding(o._id);
+                                  setCurrentOutStanding("");
+                                  setOutStanding("");
+                                }}
+                              >
+                                Submit
+                              </Button>
+                            </Modal>
+
+                            <Button
+                              disabled={o.outstanding === 0} // Disable the button if outstanding is 0
+                              onClick={() => openModal(o._id)}
+                            >
+                              Update
+                            </Button>
+                          </>
+                        ) : (
                           <Button
-                            onClick={() => {
-                              // Handle submission
-                              // After submission, clear the currentOutstanding value
-                              handleUpdateOutstanding(o._id);
-                              setCurrentOutStanding("");
-                              setOutStanding("");
-                            }}
+                            disabled={o.outstanding === 0} // Disable the button if outstanding is 0
+                            onClick={() => openModal(o._id)}
                           >
-                            Submit
+                            Update
                           </Button>
-                        </Modal>
-
-                        <Button onClick={() => openModal(o._id)}>Update</Button>
+                        )}
 
                         {/* <TextInput
                           value={o.outstanding}
@@ -478,7 +495,7 @@ export default function OrdersPackage() {
                             <Text size="sm">INVOICE</Text>
                           </HoverCard.Dropdown>
                         </HoverCard>
-                        {o.status === "Pending" && isAdmin && (
+                        {isAdmin && (
                           <HoverCard shadow="md">
                             <HoverCard.Target>
                               <Button

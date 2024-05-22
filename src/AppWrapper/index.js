@@ -278,7 +278,7 @@ const AppWrapper = ({ children }) => {
                             variant="transparent"
                             size="sm"
                             component={Link}
-                            to={"/post"}
+                            to={"/post-add"}
                           >
                             <Group>
                               <MdPostAdd

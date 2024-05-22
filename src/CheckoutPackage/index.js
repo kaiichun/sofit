@@ -28,7 +28,6 @@ import "./checkout.css";
 import { fetchPackage } from "../api/package";
 import { createOrderPackage } from "../api/orderspackage";
 import HeaderClient from "../HeaderClient";
-import { Row } from "jspdf-autotable";
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -40,14 +39,6 @@ export default function Checkout() {
   const [selectedPackage, setSelectedPackage] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
   const [installmentMonth, setInstallmentMonth] = useState("");
-  // const [installmentAmount1, setInstallmentAmount1] = useState(0);
-  // const [installmentAmount2, setInstallmentAmount2] = useState(0);
-  // const [installmentAmount3, setInstallmentAmount3] = useState(0);
-  // const [outstanding, seOutstanding] = useState();
-  // const { data: cart = [] } = useQuery({
-  //   queryKey: ["cart"],
-  //   queryFn: getCartItems,
-  // });
 
   const { data: clients = [] } = useQuery({
     queryKey: ["clients"],
@@ -142,6 +133,13 @@ export default function Checkout() {
   const doCheckout = () => {
     let error = false;
 
+    let calculatedOutstanding = outstandingAmount; // Initialize calculatedOutstanding with the current outstanding amount
+
+    if (paymentMethod === "Full payment") {
+      // If payment method is full payment, set outstanding amount to 0
+      calculatedOutstanding = 0;
+    }
+
     if (error) {
       notifications.show({
         title: error,
@@ -160,9 +158,12 @@ export default function Checkout() {
           installmentAmount1: installmentAmount1,
           installmentAmount2: installmentAmount2,
           installmentAmount3: installmentAmount3,
-          outstanding: outstandingAmount,
+          outstanding: calculatedOutstanding,
           tax: calculateTax(),
           user: currentUser._id,
+          year: new Date().getFullYear(), // Get the current year
+          month: new Date().getMonth() + 1, // Get the current month (adding 1 because months are zero-based)
+          day: new Date().getDate(), // Get the current day of the month
         }),
         token: currentUser ? currentUser.token : "",
       });

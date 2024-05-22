@@ -17,6 +17,7 @@ import {
   UnstyledButton,
   Text,
   Textarea,
+  NativeSelect,
 } from "@mantine/core";
 import {
   addPostDetails,
@@ -32,6 +33,7 @@ export default function PostAdd() {
   const { id } = useParams();
   const [content, setContent] = useState("");
   const [postimage, setPostimage] = useState("");
+  const [status, setStatus] = useState("Draft");
   const [cookies, setCookies, removeCookies] = useCookies(["currentUser"]);
   const { currentUser } = cookies;
   const queryClient = useQueryClient();
@@ -51,6 +53,7 @@ export default function PostAdd() {
         title: currentUser.name + "post created",
         color: "green",
       });
+      navigate("/home");
     },
     onError: (error) => {
       notifications.show({
@@ -65,6 +68,7 @@ export default function PostAdd() {
     createPostMutation.mutate({
       data: JSON.stringify({
         content: content,
+        status: status,
         postimage: postimage,
       }),
       token: currentUser ? currentUser.token : "",
@@ -89,17 +93,6 @@ export default function PostAdd() {
       });
     },
   });
-
-  const handleUpdatePosts = async (event) => {
-    event.preventDefault();
-    updateMutation.mutate({
-      id: id,
-      data: JSON.stringify({
-        content: content,
-      }),
-      token: currentUser ? currentUser.token : "",
-    });
-  };
 
   const uploadPostImageMutation = useMutation({
     mutationFn: uploadPostImage,
@@ -171,6 +164,7 @@ export default function PostAdd() {
 
   return (
     <>
+      <Space h="100px" />
       <Group position="center">
         <Card radius="md" withBorder style={{ width: "700px" }}>
           <>
@@ -245,6 +239,12 @@ export default function PostAdd() {
             </div>
             <Space h="10px" />
             <Group position="right">
+              <NativeSelect
+                data={["Draft", "Publish"]}
+                value={status}
+                placeholder=""
+                onChange={(event) => setStatus(event.target.value)}
+              />
               <Button style={{ margin: "0px" }} onClick={handleAddNewPost}>
                 Publish
               </Button>
@@ -254,120 +254,6 @@ export default function PostAdd() {
       </Group>
 
       <Space h="30px" />
-
-      {cookies && cookies.currentUser && cookies.currentUser._id ? (
-        <div>
-          {posts && posts.length > 0 ? (
-            posts
-              .filter((post) => post && post.user && post.user._id === id)
-              .map((v) => (
-                <div key={v._id}>
-                  <Group position="center">
-                    <Card radius="md" withBorder style={{ width: "700px" }}>
-                      <div style={{ paddingTop: "8px", paddingLeft: "0px" }}>
-                        <Text size={18}>
-                          <strong>{v.content}</strong>
-                        </Text>
-                      </div>
-                      <Space h="15px" />
-                      {v.postimage && (
-                        <img
-                          // src={"http://10.1.104.3:1205/" + v.postimage}
-                          src={"http://localhost:2019/" + v.postimage}
-                          alt="Post Image"
-                          style={{
-                            width: "100%",
-                            height: "500px",
-                            borderRadius: "1%",
-                          }}
-                        />
-                      )}
-                      <Space h="20px" />
-                      <Text fz="xs" c="dimmed">
-                        {v.createdAt}
-                      </Text>
-                      <Group position="right">
-                        {isAdmin && (
-                          <>
-                            {cookies.currentUser._id === id &&
-                              cookies.currentUser.role === "Admin HQ" && (
-                                <UnstyledButton
-                                  component={Link}
-                                  to={"/post_edit/" + v._id}
-                                >
-                                  <BiEdit
-                                    style={{ width: "20px", height: "20px" }}
-                                  />
-                                </UnstyledButton>
-                              )}
-                            <Link
-                              style={{
-                                textDecoration: "none",
-                                color: "inherit",
-                              }}
-                              onClick={() => {
-                                deleteAdminPostMutation.mutate({
-                                  id: v._id,
-                                  token: currentUser?.token || "",
-                                });
-                              }}
-                            >
-                              <RiDeleteBin6Line
-                                style={{
-                                  width: "24px",
-                                  height: "24px",
-                                  paddingTop: "4px",
-                                }}
-                              />
-                            </Link>
-                          </>
-                        )}
-                        {cookies.currentUser._id === id &&
-                          cookies.currentUser.role === "user" && (
-                            <>
-                              <UnstyledButton
-                                component={Link}
-                                to={"/post_edit/" + v._id}
-                              >
-                                <BiEdit
-                                  style={{ width: "20px", height: "20px" }}
-                                />
-                              </UnstyledButton>
-                              <Link
-                                style={{
-                                  textDecoration: "none",
-                                  color: "inherit",
-                                }}
-                                onClick={() => {
-                                  deletePostMutation.mutate({
-                                    id: v._id,
-                                    token: currentUser ? currentUser.token : "",
-                                  });
-                                }}
-                              >
-                                <RiDeleteBin6Line
-                                  style={{
-                                    width: "24px",
-                                    height: "24px",
-                                    paddingTop: "4px",
-                                  }}
-                                />
-                              </Link>
-                            </>
-                          )}
-                      </Group>
-                    </Card>
-                  </Group>
-                  <Space h="30px" />
-                </div>
-              ))
-          ) : (
-            <Group position="center">
-              <Text size={16}>No Yet Create notifications</Text>
-            </Group>
-          )}
-        </div>
-      ) : null}
     </>
   );
 }

@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 
 import { useCookies } from "react-cookie";
 import { Link, useNavigate } from "react-router-dom";
-import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import {
@@ -21,7 +21,7 @@ import {
   Avatar,
 } from "@mantine/core";
 import { Dropzone, IMAGE_MIME_TYPE } from "@mantine/dropzone";
-import { registerUser, uploadProfileImage } from "../api/auth";
+import { fetchBranch, registerUser, uploadProfileImage } from "../api/auth";
 import sofitLogo from "../Logo/sofit-black.png";
 import { MdUpload } from "react-icons/md";
 
@@ -49,12 +49,28 @@ const StaffAdd = () => {
   const [epf, setEPF] = useState();
   const [socso, setSocso] = useState();
   const [salary, setSalary] = useState();
-  const [department, setDepartment] = useState("Coach");
+  const [department, setDepartment] = useState("Junior Trainee");
   const [branch, setBranch] = useState("Setia Alam");
   const [role, setRole] = useState("Staff");
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [visible, { toggle }] = useDisclosure(false);
+
+  const { data: branchs } = useQuery({
+    queryKey: ["fetchB"],
+    queryFn: () => fetchBranch(),
+  });
+
+  const memoryBranch = queryClient.getQueryData("fetchB");
+
+  // useMemo to memoize the branch options
+  const branchOptions = useMemo(() => {
+    if (memoryBranch && memoryBranch.length > 0) {
+      // Creating a unique list of branch options
+      return [...new Set(memoryBranch.map((branch) => branch))];
+    }
+    return [];
+  }, [memoryBranch]);
 
   // sign up mutation
   const signMutation = useMutation({
@@ -498,11 +514,14 @@ const StaffAdd = () => {
               </Grid.Col>
               <Grid.Col span={3}>
                 <NativeSelect
-                  data={["Setia Alam", "Other"]}
-                  label="Department"
+                  data={branchOptions.map((branch) => ({
+                    value: branch._id,
+                    label: branch.name,
+                  }))}
+                  label="Branch"
                   value={branch}
-                  placeholder="Branch"
-                  onChange={(event) => setBranch(event.target.value)}
+                  placeholder=""
+                  onChange={(event) => setBranch(event.currentTarget.value)}
                 />
               </Grid.Col>
               <Grid.Col span={3}>
