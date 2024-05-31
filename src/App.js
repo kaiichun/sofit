@@ -35,6 +35,10 @@ import PerformanceManagementSystem from "./PerformanceManagementSystem";
 import PerformanceManagementSystemUpdate from "./PerformanceManagementSystemUpdate";
 import BranchEdit from "./BranchEdit";
 import Post from "./Post";
+import PostAll from "./Post_All";
+import CalendarAdd from "./CalendarAdd";
+import CalendarAll from "./CalendarAll";
+import CalendarEdit from "./CalendarEdit";
 
 function App() {
   const [cookies] = useCookies(["currentUser"]);
@@ -114,14 +118,16 @@ function App() {
             </AppWrapper>
           }
         />
-        <Route
-          path="/add-staff"
-          element={
-            <AppWrapper>
-              <StaffAdd />
-            </AppWrapper>
-          }
-        />
+        {(isAdminB || isAdminHQ) && (
+          <Route
+            path="/add-staff"
+            element={
+              <AppWrapper>
+                <StaffAdd />
+              </AppWrapper>
+            }
+          />
+        )}
         {(isAdminB || isAdminHQ) && (
           <Route
             path="/staffs"
@@ -142,6 +148,14 @@ function App() {
             }
           />
         )}
+        <Route
+          path="/all-post"
+          element={
+            <AppWrapper>
+              <PostAll />
+            </AppWrapper>
+          }
+        />
         <Route
           path="/post-add"
           element={
@@ -250,7 +264,23 @@ function App() {
           path="/calendar"
           element={
             <AppWrapper>
-              <AppointmentCalendar />
+              <CalendarAll />
+            </AppWrapper>
+          }
+        />
+        <Route
+          path="/calendar-add"
+          element={
+            <AppWrapper>
+              <CalendarAdd />
+            </AppWrapper>
+          }
+        />
+        <Route
+          path="/calendar-edit/:id"
+          element={
+            <AppWrapper>
+              <CalendarEdit />
             </AppWrapper>
           }
         />

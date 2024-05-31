@@ -15,8 +15,14 @@ export const addPMS = async ({ data, token = "" }) => {
   return response.data;
 };
 
-export const fetchPMS = async () => {
-  const response = await axios.get(API_URL + "/pms");
+export const fetchPMS = async (token = "") => {
+  const response = await axios({
+    method: "GET",
+    url: API_URL + "/pms",
+    headers: {
+      Authorization: "Bearer" + token,
+    },
+  });
   return response.data;
 };
 

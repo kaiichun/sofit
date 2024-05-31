@@ -16,6 +16,7 @@ import {
   Grid,
   PasswordInput,
   NativeSelect,
+  Select,
   Text,
   Title,
   Avatar,
@@ -50,27 +51,29 @@ const StaffAdd = () => {
   const [socso, setSocso] = useState();
   const [salary, setSalary] = useState();
   const [department, setDepartment] = useState("Junior Trainee");
-  const [branch, setBranch] = useState("Setia Alam");
+  const [branch, setBranch] = useState();
   const [role, setRole] = useState("Staff");
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [visible, { toggle }] = useDisclosure(false);
 
   const { data: branchs } = useQuery({
-    queryKey: ["fetchB"],
+    queryKey: ["branch"],
     queryFn: () => fetchBranch(),
   });
 
-  const memoryBranch = queryClient.getQueryData("fetchB");
-
-  // useMemo to memoize the branch options
-  const branchOptions = useMemo(() => {
-    if (memoryBranch && memoryBranch.length > 0) {
-      // Creating a unique list of branch options
-      return [...new Set(memoryBranch.map((branch) => branch))];
-    }
-    return [];
-  }, [memoryBranch]);
+  // const memoryCategories = queryClient.getQueryData(["branch", ""]);
+  // const categoryOptions = useMemo(() => {
+  //   let options = [];
+  //   if (memoryCategories && memoryCategories.length > 0) {
+  //     memoryCategories.forEach((branch) => {
+  //       if (!options.includes(branch)) {
+  //         options.push(branch);
+  //       }
+  //     });
+  //   }
+  //   return options;
+  // }, [memoryCategories]);
 
   // sign up mutation
   const signMutation = useMutation({
@@ -497,12 +500,12 @@ const StaffAdd = () => {
               <Grid.Col span={3}>
                 <NativeSelect
                   data={[
-                    "Management",
                     "Junior Trainee",
                     "Senior Trainee",
                     "Advanced Senior Trainee",
                     "Sales",
                     "Marketing",
+                    "Management",
                     "Accounting",
                     "Other",
                   ]}
@@ -513,15 +516,15 @@ const StaffAdd = () => {
                 />
               </Grid.Col>
               <Grid.Col span={3}>
-                <NativeSelect
-                  data={branchOptions.map((branch) => ({
-                    value: branch._id,
-                    label: branch.name,
+                <Select
+                  data={branchs.map((user) => ({
+                    value: user._id,
+                    label: `${user.branch}`,
                   }))}
-                  label="Branch"
                   value={branch}
-                  placeholder=""
-                  onChange={(event) => setBranch(event.currentTarget.value)}
+                  onChange={(value) => setBranch(value)}
+                  label="Branch"
+                  placeholder="Select a Branch"
                 />
               </Grid.Col>
               <Grid.Col span={3}>

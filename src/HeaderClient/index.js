@@ -32,6 +32,22 @@ export default function HeaderClient({ title, page = "", text = "" }) {
     return total;
   }, [cart]);
 
+  const isAdminB = useMemo(() => {
+    return cookies &&
+      cookies.currentUser &&
+      cookies.currentUser.role === "Admin Branch"
+      ? true
+      : false;
+  }, [cookies]);
+
+  const isAdminHQ = useMemo(() => {
+    return cookies &&
+      cookies.currentUser &&
+      cookies.currentUser.role === "Admin HQ"
+      ? true
+      : false;
+  }, [cookies]);
+
   return (
     <div className="header">
       <Space h="30px" />
@@ -45,13 +61,15 @@ export default function HeaderClient({ title, page = "", text = "" }) {
           >
             Clients
           </Button>
-          <Button
-            component={Link}
-            to="/add-client"
-            variant={page === "AddMember" ? "light" : "subtle"}
-          >
-            Add Member
-          </Button>
+          {(isAdminB || isAdminHQ) && (
+            <Button
+              component={Link}
+              to="/add-client"
+              variant={page === "AddMember" ? "light" : "subtle"}
+            >
+              Add Member
+            </Button>
+          )}
           <Button
             component={Link}
             to="/checkout-package"

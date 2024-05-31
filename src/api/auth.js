@@ -70,6 +70,19 @@ export const updateUser = async ({ id, data, token = "" }) => {
   return response.data;
 };
 
+export const updateUserAdmin = async ({ id, data, token = "" }) => {
+  const response = await axios({
+    method: "PUT",
+    url: API_URL + "/users/admin/" + id,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + token,
+    },
+    data: data,
+  });
+  return response.data;
+};
+
 export const registerUser = async (data) => {
   const response = await axios({
     method: "POST",

@@ -52,7 +52,7 @@ export default function Wages() {
       newList = newList.filter(
         (i) =>
           i.name.toLowerCase().indexOf(searchTerm.toLowerCase()) >= 0 ||
-          i.user.name.toLowerCase().indexOf(searchTerm.toLowerCase()) >= 0
+          i.payslipNo.toLowerCase().indexOf(searchTerm.toLowerCase()) >= 0
       );
     }
 
@@ -257,8 +257,8 @@ export default function Wages() {
   return (
     <>
       <Container size="100%">
-        <Header title="My Orders" page="orders" />
-        <Space h="15px" />
+        <Space h="105px" />
+        <LoadingOverlay visible={isLoading} />
         <Group position="right" mb="lg">
           <TextInput
             w="200px"
@@ -268,7 +268,6 @@ export default function Wages() {
           />
         </Group>
         <Space h="35px" />
-        {/* <LoadingOverlay visible={isLoading} /> */}
         <Table>
           {" "}
           <thead>
@@ -278,13 +277,6 @@ export default function Wages() {
               <th>Bacis</th>
               <th>Coaching Fee</th>
               <th>Commission</th>
-              {/* <th>EPF</th>
-              <th>SOCSO</th>
-              <th>EIS</th>
-              <th>PCD</th>
-              <th>Employer EPF</th>
-              <th>Employer SOCSO</th>
-              <th>EmployerEIS</th> */}
               <th>Total Income</th>
               <th>Total Deduction</th>
               <th>Nett Pay</th>

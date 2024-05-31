@@ -39,16 +39,16 @@ const DataAnalysis = () => {
   return (
     <>
       {/* Render WageChart */}
-      {/* {currentWage && currentWage.length > 0 && (
+      {currentWage && currentWage.length > 0 && (
         <WageChart wages={currentWage} />
-      )} */}
+      )}
 
       {/* Render SalesChart */}
 
       <SalesChart />
 
       {/* Render OutstandingChart */}
-      <OutstandingChart />
+      {/* <OutstandingChart /> */}
     </>
   );
 };

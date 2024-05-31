@@ -41,7 +41,7 @@ const PerformanceManagementSystem = () => {
 
   const { isLoading, data: pms3 = [] } = useQuery({
     queryKey: ["pms3"],
-    queryFn: () => fetchPMS(),
+    queryFn: () => fetchPMS(currentClients ? currentClients.token : ""),
   });
 
   const { data: users = [] } = useQuery({
@@ -53,7 +53,7 @@ const PerformanceManagementSystem = () => {
     mutationFn: deleteUserPMSAdmin,
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["clients"],
+        queryKey: ["pms3"],
       });
       notifications.show({
         title: "PMS Deleted",
@@ -189,7 +189,7 @@ const PerformanceManagementSystem = () => {
         <Modal
           opened={showClientDeleteModal}
           onClose={() => setShowClientDeleteModal(false)}
-          title="Delete Member"
+          title="Delete PMS"
           size="lg"
           hideCloseButton
           centered
@@ -201,10 +201,17 @@ const PerformanceManagementSystem = () => {
           <Group>
             {pms3.length > 0 ? (
               <>
-                <Text>Are you sure you want to delete this member </Text>
+                <Text>Are you sure you want to delete this PMS </Text>
                 <Text c="red" fw={500}>
-                  {pms3.find((c) => c._id === clientIdToDelete)?.clientName ||
-                    "Unknown Client"}
+                  {pms3.find((c) => c._id === clientIdToDelete)?.name ||
+                    "Unknown PMS Name"}{" "}
+                  ({" "}
+                  {pms3.find((c) => c._id === clientIdToDelete)?.year ||
+                    "Unknown PMS Name"}{" "}
+                  -{" "}
+                  {pms3.find((c) => c._id === clientIdToDelete)?.month ||
+                    "Unknown PMS Name"}{" "}
+                  )
                 </Text>
                 <Text>?</Text>
               </>

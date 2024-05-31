@@ -79,23 +79,10 @@ const ClientAdd = () => {
   const queryClient = useQueryClient();
   const [visible, { toggle }] = useDisclosure(false);
 
-  const searchClientMutation = useMutation({
-    mutationFn: fetchClients,
-    onSuccess: (data) => {
-      queryClient.setQueryData(["clients"], data);
-      navigate("/home");
-    },
-  });
-
   const { data: users = [] } = useQuery({
     queryKey: ["users"],
     queryFn: () => fetchUsers(),
   });
-
-  const selectedUserName =
-    selectedUser && users
-      ? users.find((c) => c._id === selectedUser)?.name || ""
-      : "-";
 
   const createMutation = useMutation({
     mutationFn: addClientDetails,

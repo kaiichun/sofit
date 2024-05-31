@@ -7,12 +7,13 @@ import {
   Button,
   Group,
   Container,
+  Space,
 } from "@mantine/core";
 import { Link } from "react-router-dom";
 import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useCookies } from "react-cookie";
-import { fetchUsers } from "../api/auth";
+import { fetchBranch, fetchUsers } from "../api/auth";
 
 function Staffs() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -28,7 +29,12 @@ function Staffs() {
     queryFn: () => fetchUsers(currentUser ? currentUser.token : ""),
   });
 
-  const isAdminB = useMemo(() => {
+  const { data: branchs } = useQuery({
+    queryKey: ["fetchB"],
+    queryFn: () => fetchBranch(),
+  });
+
+  const isAdminBranch = useMemo(() => {
     return cookies &&
       cookies.currentUser &&
       cookies.currentUser.role === "Admin Branch"
@@ -68,7 +74,7 @@ function Staffs() {
 
   return (
     <>
-      {(isAdminB || isAdminHQ) && (
+      {(isAdminBranch || isAdminHQ) && (
         <Container>
           <Group position="apart" mb="lg">
             <select
@@ -134,12 +140,18 @@ function Staffs() {
                     <Text size="sm" color="dimmed">
                       Department: {u.department}
                     </Text>
-                    <Text size="sm" color="dimmed">
-                      Role: {u.role}
-                    </Text>
                     {isAdminHQ && (
                       <Text size="sm" color="dimmed">
-                        Department: {u.branch}
+                        Role: {u.role}
+                      </Text>
+                    )}
+                    {isAdminHQ && (
+                      <Text size="sm" color="dimmed">
+                        Branch:{" "}
+                        {
+                          branchs.find((branch) => branch._id === u.branch)
+                            ?.branch
+                        }
                       </Text>
                     )}
                   </Card>
@@ -149,6 +161,7 @@ function Staffs() {
               <Text>User Not Found</Text>
             )}
           </SimpleGrid>
+          <Space h={20} />
           <div>
             <span
               style={{

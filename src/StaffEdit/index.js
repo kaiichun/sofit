@@ -18,6 +18,7 @@ import {
   Title,
   Avatar,
   em,
+  LoadingOverlay,
 } from "@mantine/core";
 import { Dropzone, IMAGE_MIME_TYPE } from "@mantine/dropzone";
 import {
@@ -25,6 +26,7 @@ import {
   uploadProfileImage,
   getUser,
   fetchBranch,
+  updateUserAdmin,
 } from "../api/auth";
 import sofitLogo from "../Logo/sofit-black.png";
 import { MdUpload } from "react-icons/md";
@@ -80,6 +82,7 @@ const StaffEdit = () => {
   const [role, setRole] = useState(currentUser ? currentUser.role : "");
   const navigate = useNavigate();
   const [visible, { toggle }] = useDisclosure(false);
+  const [loading, setLoading] = useState(false);
   const { isLoading } = useQuery({
     queryKey: ["auth", id],
     queryFn: () => getUser(id),
@@ -148,9 +151,28 @@ const StaffEdit = () => {
     },
   });
 
+  const updateUserAdminMutation = useMutation({
+    mutationFn: updateUserAdmin,
+    onSuccess: () => {
+      notifications.show({
+        title: currentUser.name + " info updated successfully",
+        color: "green",
+      });
+      navigate("/staffs");
+    },
+    onError: (error) => {
+      notifications.show({
+        title: error.response.data.message,
+        color: "red",
+      });
+      setLoading(false);
+    },
+  });
+
   const handleUserUpdate = async (event) => {
     event.preventDefault();
-    updateUserMutation.mutate({
+
+    const userUpdateData = {
       id: id,
       data: JSON.stringify({
         name: name,
@@ -178,7 +200,14 @@ const StaffEdit = () => {
         role: role,
       }),
       token: currentUser ? currentUser.token : "",
-    });
+    };
+    setLoading(true);
+
+    if (isAdminB || isAdminHQ) {
+      updateUserAdminMutation.mutate(userUpdateData);
+    } else {
+      updateUserMutation.mutate(userUpdateData);
+    }
   };
 
   const uploadMutation = useMutation({
@@ -519,10 +548,14 @@ const StaffEdit = () => {
           </Grid.Col>
           <Grid.Col span={3}>
             <NativeSelect
-              data={branchs.map((b) => ({
-                value: b._id,
-                label: b.branch,
-              }))}
+              data={
+                branchs
+                  ? branchs.map((b) => ({
+                      value: b._id,
+                      label: b.branch,
+                    }))
+                  : []
+              }
               label="Branch"
               value={branch}
               placeholder=""
@@ -549,33 +582,14 @@ const StaffEdit = () => {
         </Grid>
         <Space h="50px" />
         <Group position="center">
-          <Button fullWidth onClick={handleUserUpdate}>
-            Update
+          <Button type="submit" onClick={handleUserUpdate}>
+            <LoadingOverlay loading={loading} />
+            Save Changes
           </Button>
         </Group>
         <Space h="20px" />
       </Card>
       <Space h="10px" />
-      <Group
-        position="apart"
-        mx="auto"
-        sx={{
-          maxWidth: "500px",
-        }}
-      >
-        <Button
-          component={Link}
-          to="/login"
-          variant="subtle"
-          size="xs"
-          color="gray"
-        >
-          Already have account
-        </Button>
-        <Button component={Link} to="/" variant="subtle" size="xs" color="gray">
-          Go back
-        </Button>
-      </Group>
     </Container>
   );
 };

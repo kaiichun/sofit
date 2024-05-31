@@ -100,20 +100,6 @@ const AppWrapper = ({ children }) => {
                 </Group>
               </div>
             </UnstyledButton>
-            {/* <Divider mt="4px" mb="4px" /> */}
-            {/* <UnstyledButton
-              component={Link}
-              to={"/trains"}
-              variant="transparent"
-            >
-              <div className="item">
-                <Group>
-                  <IoIosFitness width="80px" height="80px" />
-                  Trains
-                </Group>
-              </div>
-            </UnstyledButton> */}
-            {/* <Divider mt="4px" mb="4px" /> */}
             <UnstyledButton
               component={Link}
               to={"/calendar"}
@@ -151,19 +137,7 @@ const AppWrapper = ({ children }) => {
                 </Group>
               </div>
             </UnstyledButton>
-            <UnstyledButton
-              component={Link}
-              to={"/performance-management-system-add"}
-              variant="transparent"
-            >
-              <div className="item">
-                <Group>
-                  <FaMoneyBillTrendUp width="80px" height="80px" />
-                  PMS_add
-                </Group>
-              </div>
-            </UnstyledButton>
-            {(isAdminB || isAdminHQ) && (
+            {isAdmin && (
               <UnstyledButton
                 component={Link}
                 to={"/staffs"}

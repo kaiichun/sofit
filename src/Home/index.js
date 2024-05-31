@@ -11,6 +11,7 @@ import {
   Modal,
   Space,
   Container,
+  Divider,
 } from "@mantine/core";
 import React, { useState, useMemo } from "react";
 import { useDisclosure } from "@mantine/hooks";
@@ -92,13 +93,104 @@ export default function Home() {
       <div>
         <Group position="left">
           <div>
-            <Text fw={700} fz="30px">
+            <Text fw={700} fz="30px" mx={10}>
               Welcome, {currentUser.name}
             </Text>
           </div>
         </Group>
       </div>
-      <Space h="20px" />{" "}
+      <Space h="150px" />{" "}
+      <Container w={1000}>
+        <Group position="apart">
+          <Text color="">New Notifications</Text>
+          <UnstyledButton
+            component={Link}
+            to={"/all-post"}
+            variant="transparent"
+          >
+            See All
+          </UnstyledButton>
+        </Group>
+        <Space h="15px" />{" "}
+        <Grid>
+          {posts ? (
+            posts
+              .filter((v) => v.status == "Publish")
+              .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) // Sort by creation date descending
+              .slice(0, 3)
+              .map((v) => {
+                return (
+                  <Grid.Col md={12} lg={12} sm={12} key={v._id}>
+                    <UnstyledButton
+                      component={Link}
+                      to={"/post/" + v._id}
+                      variant="transparent"
+                    >
+                      <Card style={{ border: 0 }} radius="md">
+                        <Group position="left">
+                          <img
+                            src={
+                              v && v.user && v.user.image
+                                ? "http://localhost:2019/" + v.user.image
+                                : ""
+                            }
+                            alt="Profile Picture"
+                            style={{
+                              width: "28px",
+                              height: "28px",
+                              borderRadius: "50%",
+                              marginTop: "-40px",
+                            }}
+                          />
+                          <div
+                            style={{
+                              paddingTop: "10px",
+                            }}
+                          >
+                            <Title order={3}>{v.content}</Title>
+                            <Space h="15px" />{" "}
+                            {v && v.user && v.user.name ? (
+                              <Text size="sm" color="dimmed">
+                                {v.user.name}
+                              </Text>
+                            ) : null}
+                            <Group position="left">
+                              <Text size="sm" color="dimmed">
+                                {v.createdAt
+                                  ? new Date(v.createdAt)
+                                      .toISOString()
+                                      .split("T")[0]
+                                  : null}
+                              </Text>
+                              <Text size="sm" color="dimmed">
+                                {v.createdAt
+                                  ? formatDistanceToNow(parseISO(v.createdAt), {
+                                      addSuffix: true,
+                                    })
+                                  : null}
+                              </Text>
+                            </Group>
+                          </div>
+                        </Group>
+                      </Card>
+                    </UnstyledButton>
+                  </Grid.Col>
+                );
+              })
+          ) : (
+            <>
+              <Space h={100} />
+              <Card>
+                <Group position="center">
+                  <Text size={16}>No Notification</Text>
+                </Group>
+              </Card>
+            </>
+          )}
+        </Grid>
+      </Container>
+      <Space h="200px" /> <Divider />
+      <Space h="50px" />{" "}
       {isAdminHQ ? (
         <>
           <Group position="apart">
@@ -139,7 +231,7 @@ export default function Home() {
                             to={"/edit-branch/" + f._id}
                             variant="transparent"
                           >
-                            Eidt
+                            Edit
                           </UnstyledButton>
                         </td>
                       </tr>
@@ -204,88 +296,6 @@ export default function Home() {
           <Button onClick={handleAddNewBranch}>Create</Button>
         </Group>
       </Modal>
-      <Space h="100px" />{" "}
-      <Container w={1000}>
-        <Grid>
-          <Group position="apart">
-            <Text color="dimmed">New Notifications</Text>
-            <UnstyledButton
-              component={Link}
-              to={"/all-post"}
-              variant="transparent"
-            >
-              See All
-            </UnstyledButton>
-          </Group>
-          {posts
-            ? posts
-                .filter((v) => v.status == "Publish")
-                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) // Sort by creation date descending
-                .slice(0, 3)
-                .map((v) => {
-                  return (
-                    <Grid.Col md={12} lg={12} sm={12} key={v._id}>
-                      <UnstyledButton
-                        component={Link}
-                        to={"/post/" + v._id}
-                        variant="transparent"
-                      >
-                        <Card style={{ border: 0 }}>
-                          <Group position="left">
-                            <img
-                              src={
-                                v && v.user && v.user.image
-                                  ? "http://localhost:2019/" + v.user.image
-                                  : ""
-                              }
-                              alt="Profile Picture"
-                              style={{
-                                width: "28px",
-                                height: "28px",
-                                borderRadius: "50%",
-                                marginTop: "-25px",
-                              }}
-                            />
-                            <div
-                              style={{
-                                paddingTop: "10px",
-                              }}
-                            >
-                              <Title order={3}>{v.content}</Title>
-                              {v && v.user && v.user.name ? (
-                                <Text size="sm" color="dimmed">
-                                  {v.user.name}
-                                </Text>
-                              ) : null}
-                              <Group position="left">
-                                <Text size="sm" color="dimmed">
-                                  {v.createdAt
-                                    ? new Date(v.createdAt)
-                                        .toISOString()
-                                        .split("T")[0]
-                                    : null}
-                                </Text>
-                                <Text size="sm" color="dimmed">
-                                  {v.createdAt
-                                    ? formatDistanceToNow(
-                                        parseISO(v.createdAt),
-                                        {
-                                          addSuffix: true,
-                                        }
-                                      )
-                                    : null}
-                                </Text>
-                              </Group>
-                            </div>
-                          </Group>
-                        </Card>
-                      </UnstyledButton>
-                    </Grid.Col>
-                  );
-                })
-            : null}
-        </Grid>
-      </Container>
     </>
   );
 }
