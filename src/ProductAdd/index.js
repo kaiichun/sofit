@@ -1,20 +1,18 @@
 import React, { useState, useEffect } from "react";
 import {
   Container,
-  Title,
   Text,
   Space,
   Card,
   Grid,
   TextInput,
   NumberInput,
-  Divider,
   Button,
   Group,
   Image,
 } from "@mantine/core";
 import { IoImages } from "react-icons/io5";
-
+import { API_URL } from "../api/data";
 import { Dropzone, IMAGE_MIME_TYPE } from "@mantine/dropzone";
 import { Link, useNavigate } from "react-router-dom";
 import { notifications } from "@mantine/notifications";
@@ -146,7 +144,7 @@ function ProductAdd() {
               {productImage && productImage !== "" ? (
                 <>
                   <Image
-                    src={"http://localhost:2019/" + productImage}
+                    src={API_URL + "/" + productImage}
                     width="100%"
                     height="180px"
                   />

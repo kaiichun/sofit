@@ -57,6 +57,19 @@ export const getUser = async (id) => {
   return response.data;
 };
 
+export const passwordUser = async ({ data, token = "" }) => {
+  const response = await axios({
+    method: "POST",
+    url: API_URL + "/auth/password",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + token,
+    },
+    data: data,
+  });
+  return response.data;
+};
+
 export const updateUser = async ({ id, data, token = "" }) => {
   const response = await axios({
     method: "PUT",

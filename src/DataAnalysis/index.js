@@ -8,6 +8,8 @@ import { fetchOrderPackages } from "../api/orderspackage";
 import WageChart from "../api/Chart/WageChart";
 import OutstandingChart from "../api/Chart/OutstandingChart";
 import SalesChart from "../api/Chart/SalesChart";
+import { Group, Text, Avatar } from "@mantine/core";
+import settingLogo from "../Logo/setting.gif";
 
 const DataAnalysis = () => {
   const [cookies] = useCookies(["currentUser"]);
@@ -39,16 +41,26 @@ const DataAnalysis = () => {
   return (
     <>
       {/* Render WageChart */}
-      {currentWage && currentWage.length > 0 && (
+      {/* {currentWage && currentWage.length > 0 && (
         <WageChart wages={currentWage} />
-      )}
+      )} */}
 
       {/* Render SalesChart */}
 
-      <SalesChart />
+      {/* <SalesChart /> */}
 
       {/* Render OutstandingChart */}
       {/* <OutstandingChart /> */}
+
+      <Group position="center" mt={300}>
+        <Avatar
+          src={settingLogo}
+          style={{ width: "60px", height: "60px" }}
+        ></Avatar>
+        <Text size="xl" fw={500}>
+          Coming Soon...
+        </Text>
+      </Group>
     </>
   );
 };

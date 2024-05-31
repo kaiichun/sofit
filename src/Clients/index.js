@@ -600,7 +600,7 @@ export default function Clients() {
             ))
           ) : (
             currentClients
-              .filter((c) => c.coachId === currentUser.id)
+              .filter((c) => c.coachId === currentUser._id)
               .map((c) => (
                 <Card
                   shadow="md"

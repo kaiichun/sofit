@@ -66,6 +66,7 @@ function Login() {
         <Space h="160px" />
         <Card
           withBorder
+          shadow="sm"
           mx="auto"
           sx={{
             maxWidth: "500px",
@@ -133,23 +134,11 @@ function Login() {
             variant="subtle"
             color="gray"
             component={Link}
-            to="https://support.google.com/accounts?hl=en&visit_id=638318542210869798-2506381406&rd=2&p=account_iph#topic=3382296"
+            to="/resigter"
             size="xs"
             radius="xs"
           >
-            <FaFacebook /> <Space w={3} /> <Text>Facebook</Text>
-          </Button>
-
-          <Button
-            variant="subtle"
-            color="gray"
-            component={Link}
-            to="https://policies.google.com/terms?gl=MY&hl=en"
-            size="xs"
-            radius="xs"
-          >
-            <RiInstagramFill />
-            <Space w={3} /> <Text>Instagram</Text>
+            <Space w={3} /> <Text>Resigter</Text> <Space w={3} />
           </Button>
         </Group>
       </Container>

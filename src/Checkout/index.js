@@ -18,6 +18,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { notifications } from "@mantine/notifications";
 import Header from "../Header";
+import { API_URL } from "../api/data";
 import { createOrder } from "../api/order";
 import { useCookies } from "react-cookie";
 import { useParams } from "react-router-dom";
@@ -184,7 +185,7 @@ export default function Checkout() {
                         {c.productImage && c.productImage !== "" ? (
                           <>
                             <Image
-                              src={"http://localhost:2019/" + c.productImage}
+                              src={API_URL + "/" + c.productImage}
                               width="100px"
                             />
                           </>

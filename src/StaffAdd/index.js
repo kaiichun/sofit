@@ -25,6 +25,7 @@ import { Dropzone, IMAGE_MIME_TYPE } from "@mantine/dropzone";
 import { fetchBranch, registerUser, uploadProfileImage } from "../api/auth";
 import sofitLogo from "../Logo/sofit-black.png";
 import { MdUpload } from "react-icons/md";
+import { API_URL } from "../api/data";
 
 const StaffAdd = () => {
   const [cookies, setCookie] = useCookies(["currentUser"]);
@@ -91,6 +92,18 @@ const StaffAdd = () => {
       });
     },
   });
+
+  function generateRandomNumbers() {
+    return Math.floor(1000 + Math.random() * 9000); // Generates a random 4-digit number
+  }
+
+  const [isDisabled, setIsDisabled] = useState(false);
+
+  const handleBlur = () => {
+    const randomNumbers = generateRandomNumbers();
+    setUsername((prevUsername) => prevUsername + randomNumbers);
+    setIsDisabled(true);
+  };
 
   const handleSubmit = () => {
     if (
@@ -227,11 +240,7 @@ const StaffAdd = () => {
                 {image && image !== "" ? (
                   <Group position="center">
                     <Card radius="md">
-                      <Image
-                        src={"http://localhost:2019/" + image}
-                        w={300}
-                        h={300}
-                      />
+                      <Image src={API_URL + "/" + image} w={300} h={300} />
                       <Group position="center">
                         <Button
                           color="red"
@@ -310,6 +319,8 @@ const StaffAdd = () => {
                   placeholder="Username"
                   label="Username"
                   onChange={(event) => setUsername(event.target.value)}
+                  onBlur={handleBlur}
+                  disabled={isDisabled}
                 />
               </Grid.Col>
               <Grid.Col span={4}>

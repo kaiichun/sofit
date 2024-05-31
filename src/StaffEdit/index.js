@@ -30,6 +30,7 @@ import {
 } from "../api/auth";
 import sofitLogo from "../Logo/sofit-black.png";
 import { MdUpload } from "react-icons/md";
+import { API_URL } from "../api/data";
 
 const StaffEdit = () => {
   const { id } = useParams();
@@ -259,11 +260,7 @@ const StaffEdit = () => {
             {image && image !== "" ? (
               <Group position="center">
                 <Card radius="md">
-                  <Image
-                    src={"http://localhost:2019/" + image}
-                    w={300}
-                    h={300}
-                  />
+                  <Image src={API_URL + "/" + image} w={300} h={300} />
                   <Group position="center">
                     <Button color="red" size="xs" onClick={() => setImage("")}>
                       Remove
@@ -338,6 +335,7 @@ const StaffEdit = () => {
               placeholder="UserName"
               label="Username"
               onChange={(event) => setUsername(event.target.value)}
+              disabled={isAdminHQ ? false : true}
             />
           </Grid.Col>
           <Grid.Col span={4}>

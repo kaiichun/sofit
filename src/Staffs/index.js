@@ -14,6 +14,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useCookies } from "react-cookie";
 import { fetchBranch, fetchUsers } from "../api/auth";
+import { API_URL } from "../api/data";
 
 function Staffs() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -113,7 +114,7 @@ function Staffs() {
                   <Card shadow="sm" p="lg" radius="md" withBorder key={u.id}>
                     <Card.Section>
                       <Image
-                        src={"http://localhost:2019/" + u.image}
+                        src={API_URL + "/" + u.image}
                         height={220}
                         alt="Norway"
                       />

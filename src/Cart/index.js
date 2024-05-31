@@ -15,6 +15,7 @@ import {
   Space,
   Divider,
 } from "@mantine/core";
+import { API_URL } from "../api/data";
 import { Checkbox } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { Link } from "react-router-dom";
@@ -146,7 +147,7 @@ export default function Cart() {
                     {c.productImage && c.productImage !== "" ? (
                       <>
                         <Image
-                          src={"http://localhost:2019/" + c.productImage}
+                          src={API_URL + "/" + c.productImage}
                           width="100px"
                         />
                       </>

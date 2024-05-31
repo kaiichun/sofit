@@ -34,6 +34,7 @@ import {
   fetchComments,
 } from "../api/comment";
 import { deletePostAdmin, getPosts } from "../api/post";
+import { API_URL } from "../api/data";
 
 export default function Post() {
   const [cookies] = useCookies(["currentUser"]);
@@ -198,7 +199,7 @@ export default function Post() {
                             <Space h="15px" />
                             {v.postimage && (
                               <img
-                                src={"http://localhost:2019/" + v.postimage}
+                                src={API_URL + "/" + v.postimage}
                                 alt="Post Image"
                                 style={{
                                   width: "100%",
@@ -304,7 +305,7 @@ export default function Post() {
                 {posts.user ? (
                   <>
                     <img
-                      src={"http://localhost:2019/" + posts.user.image}
+                      src={API_URL + "/" + posts.user.image}
                       alt="Login Picture"
                       style={{
                         width: "46px",
@@ -417,7 +418,7 @@ export default function Post() {
               <>
                 <Group style={{ paddingLeft: "12px" }}>
                   <img
-                    src={"http://localhost:2019/" + cookies.currentUser.image}
+                    src={API_URL + "/" + cookies.currentUser.image}
                     alt="Login Picture"
                     style={{
                       width: "38px",
@@ -485,7 +486,7 @@ export default function Post() {
                   <Group position="apart">
                     <Group>
                       <img
-                        src={"http://localhost:2019/" + com.user.image}
+                        src={API_URL + "/" + com.user.image}
                         alt="Login Picture"
                         style={{
                           width: "38px",

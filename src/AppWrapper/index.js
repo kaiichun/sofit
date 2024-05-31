@@ -12,18 +12,16 @@ import {
   Burger,
   useMantineTheme,
   Space,
-  Divider,
-  Image,
-  Modal,
 } from "@mantine/core";
 import { useCookies } from "react-cookie";
-import { useDisclosure } from "@mantine/hooks";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import "../App.css";
+import { API_URL } from "../api/data";
 import { FaUsers } from "react-icons/fa";
 import { IoIosLogIn } from "react-icons/io";
 import { FaUserEdit } from "react-icons/fa";
 import { MdPostAdd } from "react-icons/md";
+import { RiLockPasswordLine } from "react-icons/ri";
 import { GiMuscleUp } from "react-icons/gi";
 import { IoCalendarSharp } from "react-icons/io5";
 import { FaMoneyBillTrendUp } from "react-icons/fa6";
@@ -202,9 +200,7 @@ const AppWrapper = ({ children }) => {
                       }}
                     >
                       <img
-                        src={
-                          "http://localhost:2019/" + cookies.currentUser.image
-                        }
+                        src={API_URL + "/" + cookies.currentUser.image}
                         alt="Login Picture"
                         style={{
                           width: "28px",
@@ -240,6 +236,34 @@ const AppWrapper = ({ children }) => {
                             }}
                           >
                             Edit Profile
+                          </span>
+                        </Group>
+                      </UnstyledButton>
+                    </Menu.Item>
+                    <Menu.Divider />
+
+                    <Menu.Item>
+                      <UnstyledButton
+                        variant="transparent"
+                        size="sm"
+                        component={Link}
+                        to={"/chg-password/" + cookies.currentUser._id}
+                      >
+                        <Group>
+                          <RiLockPasswordLine
+                            style={{
+                              width: "20px",
+                              height: "20px",
+                              margin: "0",
+                            }}
+                          />
+                          <span
+                            style={{
+                              padding: "0",
+                              margin: "0",
+                            }}
+                          >
+                            Password
                           </span>
                         </Group>
                       </UnstyledButton>

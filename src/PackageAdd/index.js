@@ -109,17 +109,7 @@ function PackageAdd() {
         </Button>
       </Card>
       <Space h="50px" />
-      <Group position="center">
-        <Button
-          component={Link}
-          to="/product"
-          variant="subtle"
-          size="xs"
-          color="gray"
-        >
-          Go back to Home
-        </Button>
-      </Group>
+
       <Space h="50px" />
     </Container>
   );

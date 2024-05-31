@@ -1,4 +1,5 @@
 import "../App.css";
+import { API_URL } from "../api/data";
 import React, { useRef, useState, useMemo } from "react";
 import noDataIcon from "../Logo/no-data-found.png";
 import { useCookies } from "react-cookie";
@@ -23,8 +24,6 @@ import {
   Table,
   Title,
   ScrollArea,
-  UnstyledButton,
-  Divider,
 } from "@mantine/core";
 
 import {
@@ -322,7 +321,7 @@ export default function Video({ videoSource }) {
               {clientImageFront && clientImageFront !== "" ? (
                 <>
                   <Image
-                    src={"http://localhost:2019/" + clientImageFront}
+                    src={API_URL + "/" + clientImageFront}
                     width="100%"
                     height="300px"
                   />
@@ -385,7 +384,7 @@ export default function Video({ videoSource }) {
               {clientImageBack && clientImageBack !== "" ? (
                 <>
                   <Image
-                    src={"http://localhost:2019/" + clientImageBack}
+                    src={API_URL + "/" + clientImageBack}
                     width="100%"
                     height="300px"
                   />
@@ -447,7 +446,7 @@ export default function Video({ videoSource }) {
               {clientImageLeft && clientImageLeft !== "" ? (
                 <>
                   <Image
-                    src={"http://localhost:2019/" + clientImageLeft}
+                    src={API_URL + "/" + clientImageLeft}
                     width="100%"
                     height="300px"
                   />
@@ -510,7 +509,7 @@ export default function Video({ videoSource }) {
               {clientImageRight && clientImageRight !== "" ? (
                 <>
                   <Image
-                    src={"http://localhost:2019/" + clientImageRight}
+                    src={API_URL + "/" + clientImageRight}
                     width="100%"
                     height="300px"
                   />
@@ -577,7 +576,7 @@ export default function Video({ videoSource }) {
                     <Group>
                       <video ref={videoRef} controls height="300" width="100%">
                         <source
-                          src={"http://localhost:2019/" + clientVideo}
+                          src={API_URL + "/" + clientVideo}
                           type="video/mp4"
                           frameborder="0"
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -712,10 +711,7 @@ export default function Video({ videoSource }) {
                 <>
                   <Grid.Col span={clientBmis.length > 1 ? 6 : 12}>
                     <Image
-                      src={
-                        "http://localhost:2019/" +
-                        clientBmis[0].clientImageFront
-                      }
+                      src={API_URL + "/" + clientBmis[0].clientImageFront}
                       height={clientBmis.length > 1 ? 300 : 600}
                       width="100%"
                     />
@@ -735,7 +731,8 @@ export default function Video({ videoSource }) {
                       <Image
                         height={300}
                         src={
-                          "http://localhost:2019/" +
+                          API_URL +
+                          "/" +
                           clientBmis[clientBmis.length - 1].clientImageFront
                         }
                         width="100%"
@@ -779,9 +776,7 @@ export default function Video({ videoSource }) {
                 <>
                   <Grid.Col span={clientBmis.length > 1 ? 6 : 12}>
                     <Image
-                      src={
-                        "http://localhost:2019/" + clientBmis[0].clientImageBack
-                      }
+                      src={API_URL + "/" + clientBmis[0].clientImageBack}
                       height={clientBmis.length > 1 ? 300 : 600}
                       width="100%"
                     />
@@ -801,7 +796,8 @@ export default function Video({ videoSource }) {
                       <Image
                         height={300}
                         src={
-                          "http://localhost:2019/" +
+                          API_URL +
+                          "/" +
                           clientBmis[clientBmis.length - 1].clientImageBack
                         }
                         width="100%"
@@ -844,9 +840,7 @@ export default function Video({ videoSource }) {
                 <>
                   <Grid.Col span={clientBmis.length > 1 ? 6 : 12}>
                     <Image
-                      src={
-                        "http://localhost:2019/" + clientBmis[0].clientImageLeft
-                      }
+                      src={API_URL + "/" + clientBmis[0].clientImageLeft}
                       height={clientBmis.length > 1 ? 300 : 600}
                       width="100%"
                     />
@@ -865,7 +859,8 @@ export default function Video({ videoSource }) {
                       <Image
                         height={300}
                         src={
-                          "http://localhost:2019/" +
+                          API_URL +
+                          "/" +
                           clientBmis[clientBmis.length - 1].clientImageLeft
                         }
                         width="100%"
@@ -909,10 +904,7 @@ export default function Video({ videoSource }) {
                 <>
                   <Grid.Col span={clientBmis.length > 1 ? 6 : 12}>
                     <Image
-                      src={
-                        "http://localhost:2019/" +
-                        clientBmis[0].clientImageRight
-                      }
+                      src={API_URL + "/" + clientBmis[0].clientImageRight}
                       height={clientBmis.length > 1 ? 300 : 600}
                       width="100%"
                     />
@@ -932,7 +924,8 @@ export default function Video({ videoSource }) {
                       <Image
                         height={300}
                         src={
-                          "http://localhost:2019/" +
+                          API_URL +
+                          "/" +
                           clientBmis[clientBmis.length - 1].clientImageRight
                         }
                         width="100%"
@@ -981,9 +974,7 @@ export default function Video({ videoSource }) {
                       width="100%"
                     >
                       <source
-                        src={
-                          "http://localhost:2019/" + clientBmis[0].clientVideo
-                        }
+                        src={API_URL + "/" + clientBmis[0].clientVideo}
                         type="video/mp4"
                       />
                     </video>
@@ -1002,7 +993,8 @@ export default function Video({ videoSource }) {
                       <video controls height={300} width="100%">
                         <source
                           src={
-                            "http://localhost:2019/" +
+                            API_URL +
+                            "/" +
                             clientBmis[clientBmis.length - 1].clientVideo
                           }
                           type="video/mp4"

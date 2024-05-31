@@ -13,16 +13,13 @@ import {
   Button,
   Select,
   Group,
-  Image,
   Grid,
   Radio,
   Textarea,
-  PasswordInput,
   NativeSelect,
   Text,
   Title,
   Avatar,
-  NumberInput,
 } from "@mantine/core";
 import { Dropzone, IMAGE_MIME_TYPE } from "@mantine/dropzone";
 import { getClients, updateClient } from "../api/client";

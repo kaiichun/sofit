@@ -18,6 +18,7 @@ import { useCookies } from "react-cookie";
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import { fetchPosts } from "../api/post";
 import { addBranch, fetchBranch } from "../api/auth";
+import { API_URL } from "../api/data";
 
 export default function PostAll() {
   const [cookies] = useCookies(["currentUser"]);
@@ -147,7 +148,7 @@ export default function PostAll() {
                         <img
                           src={
                             v && v.user && v.user.image
-                              ? "http://localhost:2019/" + v.user.image
+                              ? API_URL + "/" + v.user.image
                               : ""
                           }
                           alt="Profile Picture"

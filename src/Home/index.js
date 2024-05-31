@@ -13,6 +13,7 @@ import {
   Container,
   Divider,
 } from "@mantine/core";
+import { API_URL } from "../api/data";
 import React, { useState, useMemo } from "react";
 import { useDisclosure } from "@mantine/hooks";
 import { formatDistanceToNow, parseISO } from "date-fns";
@@ -131,7 +132,7 @@ export default function Home() {
                           <img
                             src={
                               v && v.user && v.user.image
-                                ? "http://localhost:2019/" + v.user.image
+                                ? API_URL + "/" + v.user.image
                                 : ""
                             }
                             alt="Profile Picture"

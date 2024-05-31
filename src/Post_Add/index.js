@@ -5,9 +5,7 @@ import { useCookies } from "react-cookie";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { notifications } from "@mantine/notifications";
-import { RiDeleteBin6Line } from "react-icons/ri";
-import { VscAccount } from "react-icons/vsc";
-import { BiEdit } from "react-icons/bi";
+import { API_URL } from "../api/data";
 import {
   Card,
   Button,
@@ -171,7 +169,7 @@ export default function PostAdd() {
             <div style={{ width: "700px" }}>
               <Group>
                 <img
-                  src={"http://localhost:2019/" + cookies.currentUser.image}
+                  src={API_URL + "/" + cookies.currentUser.image}
                   alt="Login Picture"
                   style={{
                     width: "36px",
@@ -203,7 +201,7 @@ export default function PostAdd() {
                 <Group>
                   <div>
                     <Image
-                      src={"http://localhost:2019/" + postimage}
+                      src={API_URL + "/" + postimage}
                       width="100%"
                       height="180px"
                     />

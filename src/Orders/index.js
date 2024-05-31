@@ -12,7 +12,7 @@ import {
   Select,
   LoadingOverlay,
 } from "@mantine/core";
-import { useNavigate, Link } from "react-router-dom";
+import { API_URL } from "../api/data";
 import { notifications } from "@mantine/notifications";
 import Header from "../Header";
 import { useParams } from "react-router-dom";
@@ -312,10 +312,7 @@ export default function Orders() {
                               product.productImage !== "" ? (
                                 <>
                                   <Image
-                                    src={
-                                      "http://localhost:2019/" +
-                                      product.productImage
-                                    }
+                                    src={API_URL + "/" + product.productImage}
                                     width={40}
                                     height={40}
                                     styles={{

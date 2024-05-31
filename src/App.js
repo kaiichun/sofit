@@ -39,6 +39,8 @@ import PostAll from "./Post_All";
 import CalendarAdd from "./CalendarAdd";
 import CalendarAll from "./CalendarAll";
 import CalendarEdit from "./CalendarEdit";
+import Resigter from "./Resigter";
+import EditPwd from "./ChangePassword";
 
 function App() {
   const [cookies] = useCookies(["currentUser"]);
@@ -118,6 +120,15 @@ function App() {
             </AppWrapper>
           }
         />
+        <Route
+          path="/chg-password/:id"
+          element={
+            <AppWrapper>
+              <EditPwd />
+            </AppWrapper>
+          }
+        />
+        <Route path="/resigter" element={<Resigter />} />
         {(isAdminB || isAdminHQ) && (
           <Route
             path="/add-staff"

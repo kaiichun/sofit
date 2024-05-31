@@ -21,7 +21,7 @@ import { fetchProducts, deleteProduct } from "../api/products";
 import { fetchPackage, deletePackage } from "../api/package";
 import { addToCart, getCartItems } from "../api/cart";
 import { useCookies } from "react-cookie";
-import { FaShoppingCart } from "react-icons/fa";
+import { API_URL } from "../api/data";
 import Header from "../Header";
 
 function Package() {
@@ -205,7 +205,7 @@ function Package() {
                   <Card withBorder shadow="sm" p="20px">
                     <Card.Section>
                       <Image
-                        src={"http://localhost:2019/" + product.productImage}
+                        src={API_URL + "/" + product.productImage}
                         height={220}
                         alt="Norway"
                       />
