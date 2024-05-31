@@ -540,6 +540,7 @@ export default function Clients() {
                           <Text
                             size="sm"
                             fw={700}
+                            style={{ marginLeft: "-10px" }}
                             color={getColorForValidityPeriod(
                               c.packageValidityPeriod
                             )}
