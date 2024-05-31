@@ -6,7 +6,7 @@ import {
   TextInput,
   Button,
   Group,
-  UnstyledButton,
+  LoadingOverlay,
   Title,
   Space,
   Table,
@@ -184,6 +184,15 @@ export default function Clients() {
     <>
       {" "}
       <HeaderClient page="clients" />
+      <LoadingOverlay visible={isLoading} />
+      <Group position="right" mb="lg">
+        <TextInput
+          w="200px"
+          value={searchTerm}
+          placeholder="Search Member"
+          onChange={(event) => setSearchTerm(event.target.value)}
+        />
+      </Group>
       <Group position="apart">
         {isAdmin ? (
           <Title order={3} align="center">
@@ -425,9 +434,9 @@ export default function Clients() {
                     </Group>
                     <Group>
                       <Text size="sm">Package validity period:</Text>
+                      <Space w={10} />
                       <Text
                         size="sm"
-                        style={{ marginLeft: "10px" }}
                         fw={700}
                         color={getColorForValidityPeriod(
                           c.packageValidityPeriod
@@ -435,7 +444,7 @@ export default function Clients() {
                       >
                         {c.packageValidityPeriod
                           ? formatDate(new Date(c.packageValidityPeriod))
-                          : " - "}
+                          : "  - "}
                       </Text>
                     </Group>
 
@@ -539,8 +548,8 @@ export default function Clients() {
                         >
                           <Text
                             size="sm"
-                            fw={700}
                             style={{ marginLeft: "-10px" }}
+                            fw={700}
                             color={getColorForValidityPeriod(
                               c.packageValidityPeriod
                             )}
@@ -651,30 +660,6 @@ export default function Clients() {
           </Group>
         </Modal>
       </SimpleGrid>
-      <Space h="20px" />
-      {totalPages.length > 1 && (
-        <Group>
-          <span
-            style={{
-              marginRight: "10px",
-            }}
-          >
-            Page {currentPage} of {totalPages.length}
-          </span>
-          <Group position="center" spacing="xs">
-            {totalPages.map((page) => (
-              <Button
-                key={page}
-                variant={currentPage === page ? "filled" : "outline"}
-                size="xs"
-                onClick={() => setCurrentPage(page)}
-              >
-                {page}
-              </Button>
-            ))}
-          </Group>
-        </Group>
-      )}
     </>
   );
 }
