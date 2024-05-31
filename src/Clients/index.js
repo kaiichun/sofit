@@ -185,14 +185,6 @@ export default function Clients() {
       {" "}
       <HeaderClient page="clients" />
       <LoadingOverlay visible={isLoading} />
-      <Group position="right" mb="lg">
-        <TextInput
-          w="200px"
-          value={searchTerm}
-          placeholder="Search Member"
-          onChange={(event) => setSearchTerm(event.target.value)}
-        />
-      </Group>
       <Group position="apart">
         {isAdmin ? (
           <Title order={3} align="center">
@@ -433,7 +425,7 @@ export default function Clients() {
                       </Text>
                     </Group>
                     <Group>
-                      <Text size="sm">Package validity period: </Text>
+                      <Text size="sm">Package validity period:</Text>
 
                       <Text
                         size="sm"
@@ -445,7 +437,7 @@ export default function Clients() {
                       >
                         {c.packageValidityPeriod
                           ? formatDate(new Date(c.packageValidityPeriod))
-                          : "  -  "}
+                          : "  - "}
                       </Text>
                     </Group>
 
