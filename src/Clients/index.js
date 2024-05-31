@@ -433,18 +433,19 @@ export default function Clients() {
                       </Text>
                     </Group>
                     <Group>
-                      <Text size="sm">Package validity period:</Text>
-                      <Space w={10} />
+                      <Text size="sm">Package validity period: </Text>
+
                       <Text
                         size="sm"
                         fw={700}
+                        style={{ marginLeft: "-10px" }}
                         color={getColorForValidityPeriod(
                           c.packageValidityPeriod
                         )}
                       >
                         {c.packageValidityPeriod
                           ? formatDate(new Date(c.packageValidityPeriod))
-                          : "  - "}
+                          : "  -  "}
                       </Text>
                     </Group>
 

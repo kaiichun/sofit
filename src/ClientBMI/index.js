@@ -19,6 +19,7 @@ import {
   Button,
   Image,
   Group,
+  LoadingOverlay,
   Grid,
   Text,
   Table,
@@ -240,6 +241,7 @@ export default function Video({ videoSource }) {
 
   return (
     <Container>
+      <LoadingOverlay visible={isLoading} />
       <Space h={20} />
       <div>
         <Group position="apart">

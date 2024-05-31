@@ -5,13 +5,11 @@ import { notifications } from "@mantine/notifications";
 import {
   SimpleGrid,
   Card,
-  Image,
   Text,
-  TextInput,
   Button,
   Group,
   Space,
-  Avatar,
+  LoadingOverlay,
   Modal,
   Divider,
 } from "@mantine/core";
@@ -72,6 +70,7 @@ const PerformanceManagementSystem = () => {
 
   return (
     <>
+      <LoadingOverlay visible={isLoading} />
       <SimpleGrid
         cols={3}
         spacing="lg"

@@ -79,7 +79,7 @@ function PackageAdd() {
             <Grid.Col span={4}>
               <NumberInput
                 value={price}
-                label="Price(USD)"
+                label="Price (MYR)"
                 precision={2}
                 withAsterisk
                 onChange={setPrice}

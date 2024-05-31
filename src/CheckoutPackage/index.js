@@ -15,7 +15,7 @@ import {
   Grid,
   Text,
   Card,
-  Modal,
+  LoadingOverlay,
 } from "@mantine/core";
 import { useNavigate } from "react-router-dom";
 import { notifications } from "@mantine/notifications";
@@ -174,6 +174,7 @@ export default function Checkout() {
   return (
     <>
       <HeaderClient page="Package" />
+      <LoadingOverlay visible={isLoading} />
       <Grid span={12}>
         <Grid.Col span={2}></Grid.Col>
         <Grid.Col span={8}>

@@ -120,27 +120,27 @@ function Login() {
           </Group>
           <Space h="30px" />
         </Card>
-        <Group
-          position="right"
-          mx="auto"
-          sx={{
-            maxWidth: "500px",
-            paddingRight: "5px",
-            paddingTop: "12px",
-            textDecorationLine: "none",
-          }}
-        >
-          <Button
-            variant="subtle"
-            color="gray"
-            component={Link}
-            to="/resigter"
-            size="xs"
-            radius="xs"
+        {/* <Group
+            position="right"
+            mx="auto"
+            sx={{
+              maxWidth: "500px",
+              paddingRight: "5px",
+              paddingTop: "12px",
+              textDecorationLine: "none",
+            }}
           >
-            <Space w={3} /> <Text>Resigter</Text> <Space w={3} />
-          </Button>
-        </Group>
+            <Button
+              variant="subtle"
+              color="gray"
+              component={Link}
+              to="/resigter"
+              size="xs"
+              radius="xs"
+            >
+              <Space w={3} /> <Text>Resigter</Text> <Space w={3} />
+            </Button>
+          </Group> */}
       </Container>
       <Space h={200} />
       {/* <Text ta="center" c="dimmed" fz="sm">
