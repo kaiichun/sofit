@@ -158,13 +158,19 @@ export default function CalendarAll() {
           />
         </Group>
         <Space h="35px" />
-        <Table>
+        <Table
+          horizontalSpacing="xl"
+          verticalSpacing="sm"
+          highlightOnHover
+          withBorder
+        >
           <thead>
             <tr>
               <th>Date</th>
               <th>Time</th>
               <th>Trainee</th>
               <th>Appointment By</th>
+              <th>Content</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -200,36 +206,37 @@ export default function CalendarAll() {
 
                       <td>{user ? user.name : "Trainee not found"}</td>
                       <td>{client ? client.clientName : "Client not found"}</td>
+                      <td>{o.title}</td>
                       <td>
-                        <Button
-                          variant="outline"
-                          color="indigo"
-                          radius="md"
-                          fullWidth
-                          component={Link}
-                          to={"/calendar-edit/" + o._id}
-                          disabled={
-                            new Date(o.appointmentDate) <
-                            new Date(
-                              new Date().setDate(new Date().getDate() + 1)
-                            )
-                          }
-                        >
-                          Change
-                        </Button>
-                        <Space h={10} />
-                        <Button
-                          onClick={() => {
-                            setClientIdToDelete(o._id);
-                            setShowClientDeleteModal(true);
-                          }}
-                          fullWidth
-                          variant="outline"
-                          color="red"
-                          radius="md"
-                        >
-                          DELETE
-                        </Button>
+                        <Group position="">
+                          <Button
+                            variant="outline"
+                            color="indigo"
+                            radius="md"
+                            component={Link}
+                            to={"/calendar-edit/" + o._id}
+                            disabled={
+                              new Date(o.appointmentDate) <
+                              new Date(
+                                new Date().setDate(new Date().getDate() + 1)
+                              )
+                            }
+                          >
+                            Change
+                          </Button>
+
+                          <Button
+                            onClick={() => {
+                              setClientIdToDelete(o._id);
+                              setShowClientDeleteModal(true);
+                            }}
+                            variant="outline"
+                            color="red"
+                            radius="md"
+                          >
+                            Delete
+                          </Button>
+                        </Group>
                       </td>
                     </tr>
                   );
