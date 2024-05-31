@@ -181,6 +181,7 @@ export default function CalendarAdd() {
             }}
             label="Start Date"
             placeholder="Start Date"
+            minDate={new Date()} // Ensuring that only today or future dates can be picked
             maw={400}
             mx="end"
             w={115}

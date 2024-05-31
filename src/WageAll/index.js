@@ -29,7 +29,7 @@ import { fetchUsers } from "../api/auth";
 import { fetchWages2 } from "../api/wage";
 import { MdOutlineMoneyOffCsred } from "react-icons/md";
 
-export default function Wages() {
+export default function WagesAll() {
   const [cookies] = useCookies(["currentUser"]);
   const { currentUser } = cookies;
   const { id } = useParams();
@@ -265,9 +265,9 @@ export default function Wages() {
             radius="md"
             size="xs"
             component={Link}
-            to={`/wage-all`}
+            to={`/wage`}
           >
-            See All
+            Back
           </Button>
           <TextInput
             w="200px"
@@ -293,65 +293,61 @@ export default function Wages() {
           </thead>
           <tbody>
             {currentWage.length > 0 ? (
-              currentWage
-                .filter((c) => c.staffId === currentUser._id)
-                .map((wage) => (
-                  <tr key={wage._id}>
-                    <td>{wage.payslipNo}</td>
-                    <td>{wage.name}</td>
-                    <td>
-                      {wage.basic !== undefined ? wage.basic.toFixed(2) : ""}
-                    </td>
-                    <td>
-                      {wage.coachingFee !== undefined
-                        ? wage.coachingFee.toFixed(2)
-                        : ""}
-                    </td>
-                    <td>
-                      {wage.commission !== undefined
-                        ? wage.commission.toFixed(2)
-                        : ""}
-                    </td>
-                    <td>
-                      {wage.totalIncome !== undefined
-                        ? wage.totalIncome.toFixed(2)
-                        : ""}
-                    </td>
-                    <td>
-                      {wage.totalDeduction !== undefined
-                        ? wage.totalDeduction.toFixed(2)
-                        : ""}
-                    </td>
-                    <td>
-                      {wage.nettPay !== undefined
-                        ? wage.nettPay.toFixed(2)
-                        : ""}
-                    </td>
-                    <td>
-                      <HoverCard shadow="md">
-                        <HoverCard.Target>
-                          <Button
-                            variant="subtle"
-                            color="gray"
-                            radius="xl"
-                            size="sm"
-                            onClick={() => handleDownloadPDF(wage)}
-                          >
-                            <MdDownloadForOffline
-                              style={{
-                                height: 24,
-                                width: 24,
-                              }}
-                            />
-                          </Button>
-                        </HoverCard.Target>
-                        <HoverCard.Dropdown>
-                          <Text size="sm">Payslip</Text>
-                        </HoverCard.Dropdown>
-                      </HoverCard>
-                    </td>
-                  </tr>
-                ))
+              currentWage.map((wage) => (
+                <tr key={wage._id}>
+                  <td>{wage.payslipNo}</td>
+                  <td>{wage.name}</td>
+                  <td>
+                    {wage.basic !== undefined ? wage.basic.toFixed(2) : ""}
+                  </td>
+                  <td>
+                    {wage.coachingFee !== undefined
+                      ? wage.coachingFee.toFixed(2)
+                      : ""}
+                  </td>
+                  <td>
+                    {wage.commission !== undefined
+                      ? wage.commission.toFixed(2)
+                      : ""}
+                  </td>
+                  <td>
+                    {wage.totalIncome !== undefined
+                      ? wage.totalIncome.toFixed(2)
+                      : ""}
+                  </td>
+                  <td>
+                    {wage.totalDeduction !== undefined
+                      ? wage.totalDeduction.toFixed(2)
+                      : ""}
+                  </td>
+                  <td>
+                    {wage.nettPay !== undefined ? wage.nettPay.toFixed(2) : ""}
+                  </td>
+                  <td>
+                    <HoverCard shadow="md">
+                      <HoverCard.Target>
+                        <Button
+                          variant="subtle"
+                          color="gray"
+                          radius="xl"
+                          size="sm"
+                          onClick={() => handleDownloadPDF(wage)}
+                        >
+                          <MdDownloadForOffline
+                            style={{
+                              height: 24,
+                              width: 24,
+                            }}
+                          />
+                        </Button>
+                      </HoverCard.Target>
+                      <HoverCard.Dropdown>
+                        <Text size="sm">Payslip</Text>
+                      </HoverCard.Dropdown>
+                    </HoverCard>
+                  </td>
+                </tr>
+              ))
             ) : (
               <tr>
                 <td colSpan="9" style={{ textAlign: "center" }}>

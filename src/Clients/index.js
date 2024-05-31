@@ -22,7 +22,7 @@ import HeaderClient from "../HeaderClient";
 import { useState, useEffect, useMemo } from "react";
 import { deletePackage, fetchPackage } from "../api/package";
 import { notifications } from "@mantine/notifications";
-import { fetchBranch } from "../api/auth";
+import { fetchUsers } from "../api/auth";
 
 export default function Clients() {
   const [cookies] = useCookies(["currentUser"]);
@@ -44,11 +44,6 @@ export default function Clients() {
   //   queryFn: () => fetchClients(),
   // });
 
-  const { data: branchs } = useQuery({
-    queryKey: ["fetchB"],
-    queryFn: () => fetchBranch(),
-  });
-
   const { isLoading, data: clients = [] } = useQuery({
     queryKey: ["clients"],
     queryFn: () => {
@@ -58,6 +53,11 @@ export default function Clients() {
         return fetchClients(currentUser.coachId); // Fetch clients filtered by coachId for non-admin users
       }
     },
+  });
+
+  const { data: users = [] } = useQuery({
+    queryKey: ["users"],
+    queryFn: () => fetchUsers(),
   });
 
   const { data: packages = [] } = useQuery({
@@ -100,30 +100,8 @@ export default function Clients() {
       : false;
   }, [cookies]);
 
-  const isAdminBranch = useMemo(() => {
-    return cookies &&
-      cookies.currentUser &&
-      cookies.currentUser.role === "Admin Branch"
-      ? true
-      : false;
-  }, [cookies]);
-
-  const isAdminHQ = useMemo(() => {
-    return cookies &&
-      cookies.currentUser &&
-      cookies.currentUser.role === "Admin HQ"
-      ? true
-      : false;
-  }, [cookies]);
-
   useEffect(() => {
     let newList = clients ? [...clients] : [];
-
-    if (isAdminBranch) {
-      newList = newList.filter(
-        (branchs) => branchs._id === currentUser.branch.id
-      );
-    }
 
     switch (sort) {
       case "name":
@@ -156,8 +134,11 @@ export default function Clients() {
     if (searchTerm) {
       newList = newList.filter(
         (i) =>
-          i.clientName.toLowerCase().indexOf(searchTerm.toLowerCase()) >= 0 ||
-          i.coachName.toLowerCase().indexOf(searchTerm.toLowerCase()) >= 0
+          (i.clientName &&
+            i.clientName.toLowerCase().indexOf(searchTerm.toLowerCase()) >=
+              0) ||
+          (i.coachName &&
+            i.coachName.toLowerCase().indexOf(searchTerm.toLowerCase()) >= 0)
       );
     }
 
@@ -214,12 +195,10 @@ export default function Clients() {
           </Title>
         )}
 
-        {isAdminHQ ? (
+        {isAdmin && (
           <Button component={Link} to="/package-add" color="green">
             Create New Package
           </Button>
-        ) : (
-          <Title order={3} align="center"></Title>
         )}
       </Group>
       <Space h="20px" />
@@ -404,305 +383,226 @@ export default function Clients() {
         ]}
       >
         {currentClients ? (
-          isAdminHQ ? (
-            currentClients.map((c) => (
-              <Card
-                shadow="md"
-                p="lg"
-                radius="md"
-                withBorder
-                style={{
-                  backgroundColor:
-                    getColorForValidityPeriod(c.packageValidityPeriod) === "red"
-                      ? "#ffd9d9"
-                      : getColorForValidityPeriod(c.packageValidityPeriod) ===
-                        "yellow"
-                      ? "#fff7d9"
-                      : "initial",
-                }}
-                key={c._id}
-              >
-                <Card.Section>
-                  <UnstyledButton
-                    component={Link}
-                    to={"/composition-client/" + c._id}
-                    variant="transparent"
+          isAdmin ? (
+            currentClients.map((c) => {
+              return (
+                <>
+                  {" "}
+                  <Card
+                    shadow="md"
+                    p="lg"
+                    radius="md"
+                    withBorder
+                    style={{
+                      backgroundColor:
+                        getColorForValidityPeriod(c.packageValidityPeriod) ===
+                        "red"
+                          ? "#ffd9d9"
+                          : getColorForValidityPeriod(
+                              c.packageValidityPeriod
+                            ) === "yellow"
+                          ? "#fff7d9"
+                          : "initial",
+                    }}
                   >
-                    <Image
-                      src="https://wac-cdn.atlassian.com/dam/jcr:ba03a215-2f45-40f5-8540-b2015223c918/Max-R_Headshot%20(1).jpg?cdnVersion=1483"
-                      height={280}
-                      alt="Norway"
-                      style={{ borderRadius: "10px", padding: "5px" }}
-                    />
-                  </UnstyledButton>
-                </Card.Section>
+                    <Group position="apart" mb="xs">
+                      <Text fw={700}>{c.clientName}</Text>
+                    </Group>
 
-                <Group position="apart" mt="md" mb="xs">
-                  <Text fw={700}>{c.clientName}</Text>
-
-                  <Group>
-                    <Button
-                      variant="outline"
-                      color="indigo"
-                      radius="md"
-                      size="xs"
-                      compact
-                      component={Link}
-                      to={"/edit-client-info/" + c._id}
-                    >
-                      EDIT
-                    </Button>
-                    {isAdmin && (
-                      <Button
-                        onClick={() => {
-                          setClientIdToDelete(c._id);
-                          setShowClientDeleteModal(true);
-                        }}
-                        variant="outline"
-                        color="red"
-                        radius="md"
-                        size="xs"
-                        compact
-                      >
-                        DELETE
-                      </Button>
-                    )}
-                  </Group>
-                </Group>
-
-                <Text size="sm">Gender: {c.clientGender}</Text>
-                <Text size="sm">Height: {c.clientHeight} (CM)</Text>
-                <Text size="sm">Weight: {c.clientWeight} (KG)</Text>
-                <Group>
-                  <Text size="sm">Sessions:</Text>
-                  <Text
-                    size="sm"
-                    color={getColorForSessionDuration(c.sessions)}
-                    style={{ marginLeft: "-10px" }}
-                    fw={700}
-                  >
-                    {c.sessions}
-                  </Text>
-                </Group>
-                <Group>
-                  <Text size="sm">Package validity period:</Text>
-                  <Text
-                    size="sm"
-                    style={{ marginLeft: "-10px" }}
-                    fw={700}
-                    color={getColorForValidityPeriod(c.packageValidityPeriod)}
-                  >
-                    {c.packageValidityPeriod
-                      ? formatDate(new Date(c.packageValidityPeriod))
-                      : " - "}
-                  </Text>
-                </Group>
-
-                <Text size="sm">Coach: {c.coachName}</Text>
-              </Card>
-            ))
-          ) : isAdminBranch ? (
-            currentClients.map((c) => (
-              <Card
-                shadow="md"
-                p="lg"
-                radius="md"
-                withBorder
-                style={{
-                  backgroundColor:
-                    getColorForValidityPeriod(c.packageValidityPeriod) === "red"
-                      ? "#ffd9d9"
-                      : getColorForValidityPeriod(c.packageValidityPeriod) ===
-                        "yellow"
-                      ? "#fff7d9"
-                      : "initial",
-                }}
-                key={c._id}
-              >
-                <Card.Section>
-                  <UnstyledButton
-                    component={Link}
-                    to={"/composition-client/" + c._id}
-                    variant="transparent"
-                  >
-                    <Image
-                      src="https://wac-cdn.atlassian.com/dam/jcr:ba03a215-2f45-40f5-8540-b2015223c918/Max-R_Headshot%20(1).jpg?cdnVersion=1483"
-                      height={280}
-                      alt="Norway"
-                      style={{ borderRadius: "10px", padding: "5px" }}
-                    />
-                  </UnstyledButton>
-                </Card.Section>
-
-                <Group position="apart" mt="md" mb="xs">
-                  <Text fw={700}>{c.clientName}</Text>
-
-                  <Group>
-                    <Button
-                      variant="outline"
-                      color="indigo"
-                      radius="md"
-                      size="xs"
-                      compact
-                      component={Link}
-                      to={"/edit-client-info/" + c._id}
-                    >
-                      EDIT
-                    </Button>
-                    {isAdmin && (
-                      <Button
-                        onClick={() => {
-                          setClientIdToDelete(c._id);
-                          setShowClientDeleteModal(true);
-                        }}
-                        variant="outline"
-                        color="red"
-                        radius="md"
-                        size="xs"
-                        compact
-                      >
-                        DELETE
-                      </Button>
-                    )}
-                  </Group>
-                </Group>
-
-                <Text size="sm">Gender: {c.clientGender}</Text>
-                <Text size="sm">Height: {c.clientHeight} (CM)</Text>
-                <Text size="sm">Weight: {c.clientWeight} (KG)</Text>
-                <Group>
-                  <Text size="sm">Sessions:</Text>
-                  <Text
-                    size="sm"
-                    color={getColorForSessionDuration(c.sessions)}
-                    style={{ marginLeft: "-10px" }}
-                    fw={700}
-                  >
-                    {c.sessions}
-                  </Text>
-                </Group>
-                <Group>
-                  <Text size="sm">Package validity period:</Text>
-                  <Text
-                    size="sm"
-                    style={{ marginLeft: "-10px" }}
-                    fw={700}
-                    color={getColorForValidityPeriod(c.packageValidityPeriod)}
-                  >
-                    {c.packageValidityPeriod
-                      ? formatDate(new Date(c.packageValidityPeriod))
-                      : " - "}
-                  </Text>
-                </Group>
-
-                <Text size="sm">Coach: {c.coachName}</Text>
-              </Card>
-            ))
-          ) : (
-            currentClients
-              .filter((c) => c.coachId === currentUser._id)
-              .map((c) => (
-                <Card
-                  shadow="md"
-                  p="lg"
-                  radius="md"
-                  withBorder
-                  style={{
-                    backgroundColor:
-                      getColorForValidityPeriod(c.packageValidityPeriod) ===
-                      "red"
-                        ? "#ffd9d9"
-                        : getColorForValidityPeriod(c.packageValidityPeriod) ===
-                          "yellow"
-                        ? "#fff7d9"
-                        : "initial",
-                  }}
-                  key={c._id}
-                >
-                  <Card.Section>
-                    <UnstyledButton
-                      component={Link}
-                      to={"/composition-client/" + c._id}
-                      variant="transparent"
-                    >
-                      <Image
-                        src="https://wac-cdn.atlassian.com/dam/jcr:ba03a215-2f45-40f5-8540-b2015223c918/Max-R_Headshot%20(1).jpg?cdnVersion=1483"
-                        height={280}
-                        alt="Norway"
-                        style={{ borderRadius: "10px", padding: "5px" }}
-                      />
-                    </UnstyledButton>
-                  </Card.Section>
-
-                  <Group position="apart" mt="md" mb="xs">
-                    <Text fw={700}>{c.clientName}</Text>
-
+                    <Text size="sm">Gender: {c.clientGender}</Text>
+                    <Text size="sm">Height: {c.clientHeight} (CM)</Text>
+                    <Text size="sm">Weight: {c.clientWeight} (KG)</Text>
                     <Group>
-                      <Button
-                        variant="outline"
-                        color="indigo"
-                        radius="md"
-                        size="xs"
-                        compact
-                        component={Link}
-                        to={"/edit-client-info/" + c._id}
+                      <Text size="sm"> Sessions: </Text>
+                      <Text
+                        size="sm"
+                        color={getColorForSessionDuration(c.sessions)}
+                        style={{ marginLeft: "-10px" }}
+                        fw={700}
                       >
-                        EDIT
-                      </Button>
-                      {isAdmin && (
+                        {c.sessions}
+                      </Text>
+                    </Group>
+                    <Group>
+                      <Text size="sm">Package validity period:</Text>
+                      <Text
+                        size="sm"
+                        style={{ marginLeft: "10px" }}
+                        fw={700}
+                        color={getColorForValidityPeriod(
+                          c.packageValidityPeriod
+                        )}
+                      >
+                        {c.packageValidityPeriod
+                          ? formatDate(new Date(c.packageValidityPeriod))
+                          : " - "}
+                      </Text>
+                    </Group>
+
+                    <Text size="sm">Choch: {c.coachName}</Text>
+                    <Group position="center" mt="md" mb="xs">
+                      <Group>
                         <Button
-                          onClick={() => {
-                            setClientIdToDelete(c._id);
-                            setShowClientDeleteModal(true);
-                          }}
                           variant="outline"
-                          color="red"
+                          color="indigo"
                           radius="md"
                           size="xs"
                           compact
+                          component={Link}
+                          to={"/composition-client/" + c._id}
                         >
-                          DELETE
+                          INFO
                         </Button>
-                      )}
+                        <Button
+                          variant="outline"
+                          color="indigo"
+                          radius="md"
+                          size="xs"
+                          compact
+                          component={Link}
+                          to={"/edit-client-info/" + c._id}
+                        >
+                          EDIT
+                        </Button>
+                        {isAdmin && (
+                          <Button
+                            onClick={() => {
+                              setClientIdToDelete(c._id);
+                              setShowClientDeleteModal(true);
+                            }}
+                            variant="outline"
+                            color="red"
+                            radius="md"
+                            size="xs"
+                            compact
+                          >
+                            DELETE
+                          </Button>
+                        )}
+                      </Group>
                     </Group>
-                  </Group>
-
-                  <Text size="sm">Gender: {c.clientGender}</Text>
-                  <Text size="sm">Height: {c.clientHeight} (CM)</Text>
-                  <Text size="sm">Weight: {c.clientWeight} (KG)</Text>
-                  <Group>
-                    <Text size="sm">Sessions:</Text>
-                    <Text
-                      size="sm"
-                      color={getColorForSessionDuration(c.sessions)}
-                      style={{ marginLeft: "-10px" }}
-                      fw={700}
+                  </Card>
+                </>
+              );
+            })
+          ) : (
+            currentClients
+              .filter((c) => c.coachId === currentUser._id)
+              .map((c) => {
+                return (
+                  <>
+                    {" "}
+                    <Card
+                      shadow="md"
+                      p="lg"
+                      radius="md"
+                      withBorder
+                      style={{
+                        backgroundColor:
+                          getColorForValidityPeriod(c.packageValidityPeriod) ===
+                          "red"
+                            ? "#ffd9d9"
+                            : getColorForValidityPeriod(
+                                c.packageValidityPeriod
+                              ) === "yellow"
+                            ? "#fff7d9"
+                            : "initial",
+                      }}
                     >
-                      {c.sessions}
-                    </Text>
-                  </Group>
-                  <Group>
-                    <Text size="sm">Package validity period:</Text>
-                    <Text
-                      size="sm"
-                      style={{ marginLeft: "-10px" }}
-                      fw={700}
-                      color={getColorForValidityPeriod(c.packageValidityPeriod)}
-                    >
-                      {c.packageValidityPeriod
-                        ? formatDate(new Date(c.packageValidityPeriod))
-                        : " - "}
-                    </Text>
-                  </Group>
+                      <Group position="apart" mb="xs">
+                        <Text fw={700}>{c.clientName}</Text>
+                      </Group>
 
-                  <Text size="sm">Coach: {c.coachName}</Text>
-                </Card>
-              ))
+                      <Text size="sm">Gender: {c.clientGender}</Text>
+                      <Text size="sm">Height: {c.clientHeight} (CM)</Text>
+                      <Text size="sm">Weight: {c.clientWeight} (KG)</Text>
+                      <Group>
+                        <Text size="sm"> Sessions: </Text>
+                        <Text
+                          size="sm"
+                          color={getColorForSessionDuration(c.sessions)}
+                          style={{ marginLeft: "-10px" }}
+                          fw={700}
+                        >
+                          {c.sessions}
+                        </Text>
+                      </Group>
+                      <Group>
+                        <Text size="sm">Package validity period:</Text>
+                        <Text
+                          size="sm"
+                          style={{ marginLeft: "-10px" }}
+                          fw={700}
+                          color={getColorForValidityPeriod(
+                            c.packageValidityPeriod
+                          )}
+                        >
+                          <Text
+                            size="sm"
+                            fw={700}
+                            color={getColorForValidityPeriod(
+                              c.packageValidityPeriod
+                            )}
+                          >
+                            {c.packageValidityPeriod
+                              ? formatDate(new Date(c.packageValidityPeriod))
+                              : "-"}
+                          </Text>
+                        </Text>
+                      </Group>
+
+                      <Text size="sm">Choch: {c.coachName}</Text>
+                      <Group position="center" mt="md" mb="xs">
+                        <Group>
+                          <Button
+                            variant="outline"
+                            color="indigo"
+                            radius="md"
+                            size="xs"
+                            compact
+                            component={Link}
+                            to={"/composition-client/" + c._id}
+                          >
+                            INFO
+                          </Button>
+                          <Button
+                            variant="outline"
+                            color="indigo"
+                            radius="md"
+                            size="xs"
+                            compact
+                            component={Link}
+                            to={"/edit-client-info/" + c._id}
+                          >
+                            EDIT
+                          </Button>
+                          {isAdmin && (
+                            <Button
+                              onClick={() => {
+                                setClientIdToDelete(c._id);
+                                setShowClientDeleteModal(true);
+                              }}
+                              variant="outline"
+                              color="red"
+                              radius="md"
+                              size="xs"
+                              compact
+                            >
+                              DELETE
+                            </Button>
+                          )}
+                        </Group>
+                      </Group>
+                    </Card>
+                  </>
+                );
+              })
           )
         ) : (
-          <Text>No Member Found</Text>
+          <>
+            <Text>No Member Found</Text>
+          </>
         )}
-
         <Modal
           opened={showClientDeleteModal}
           onClose={() => setShowClientDeleteModal(false)}
@@ -750,6 +650,30 @@ export default function Clients() {
           </Group>
         </Modal>
       </SimpleGrid>
+      <Space h="20px" />
+      {totalPages.length > 1 && (
+        <Group>
+          <span
+            style={{
+              marginRight: "10px",
+            }}
+          >
+            Page {currentPage} of {totalPages.length}
+          </span>
+          <Group position="center" spacing="xs">
+            {totalPages.map((page) => (
+              <Button
+                key={page}
+                variant={currentPage === page ? "filled" : "outline"}
+                size="xs"
+                onClick={() => setCurrentPage(page)}
+              >
+                {page}
+              </Button>
+            ))}
+          </Group>
+        </Group>
+      )}
     </>
   );
 }

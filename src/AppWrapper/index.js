@@ -26,6 +26,7 @@ import { GiMuscleUp } from "react-icons/gi";
 import { IoCalendarSharp } from "react-icons/io5";
 import { FaMoneyBillTrendUp } from "react-icons/fa6";
 import { SiAlwaysdata } from "react-icons/si";
+import { GiMoneyStack } from "react-icons/gi";
 
 const AppWrapper = ({ children }) => {
   const theme = useMantineTheme();
@@ -149,20 +150,15 @@ const AppWrapper = ({ children }) => {
                 </div>
               </UnstyledButton>
             )}
-            {(isAdminB || isAdminHQ) && (
-              <UnstyledButton
-                component={Link}
-                to={"/wage"}
-                variant="transparent"
-              >
-                <div className="item">
-                  <Group>
-                    <FaUsers width="80px" height="80px" />
-                    Wage
-                  </Group>
-                </div>
-              </UnstyledButton>
-            )}
+
+            <UnstyledButton component={Link} to={"/wage"} variant="transparent">
+              <div className="item">
+                <Group>
+                  <GiMoneyStack width="80px" height="80px" />
+                  Wage
+                </Group>
+              </div>
+            </UnstyledButton>
           </Navbar>
         )
       }

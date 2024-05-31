@@ -21,6 +21,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { notifications } from "@mantine/notifications";
 import { useCookies } from "react-cookie";
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
+import { TbCalendarCancel } from "react-icons/tb";
 import {
   addCalendar,
   deleteAppointment,
@@ -158,92 +159,129 @@ export default function CalendarAll() {
           />
         </Group>
         <Space h="35px" />
-        <Table
-          horizontalSpacing="xl"
-          verticalSpacing="sm"
-          highlightOnHover
-          withBorder
-        >
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Time</th>
-              <th>Trainee</th>
-              <th>Appointment By</th>
-              <th>Content</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentStaff
-              ? currentStaff.map((o) => {
-                  const client = clients.find(
-                    (client) => client._id === o.clientId
-                  );
-                  const user = users.find((user) => user._id === o.user);
+        {currentStaff.length > 0 ? (
+          <Table
+            horizontalSpacing="xl"
+            verticalSpacing="sm"
+            highlightOnHover
+            withBorder
+          >
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Trainee</th>
+                <th>Appointment By</th>
+                <th>Content</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentStaff.map((o) => {
+                const client = clients.find(
+                  (client) => client._id === o.clientId
+                );
+                const user = users.find((user) => user._id === o.user);
 
-                  const startDate = new Date(o.appointmentDate);
+                const startDate = new Date(o.appointmentDate);
 
-                  // Get day, month, and year
-                  const startDay = startDate
-                    .getDate()
-                    .toString()
-                    .padStart(2, "0"); // Add leading zero if needed
-                  const startMonth = (startDate.getMonth() + 1)
-                    .toString()
-                    .padStart(2, "0"); // Add leading zero if needed
-                  const startYear = startDate.getFullYear();
+                // Get day, month, and year
+                const startDay = startDate
+                  .getDate()
+                  .toString()
+                  .padStart(2, "0"); // Add leading zero if needed
+                const startMonth = (startDate.getMonth() + 1)
+                  .toString()
+                  .padStart(2, "0"); // Add leading zero if needed
+                const startYear = startDate.getFullYear();
 
-                  // Format as DD MM YYYY
-                  const startFormattedDate = `${startDay}-${startMonth}-${startYear}`;
+                // Format as DD MM YYYY
+                const startFormattedDate = `${startDay}-${startMonth}-${startYear}`;
 
-                  return (
-                    <tr key={o._id}>
-                      <td>{startFormattedDate}</td>
-                      <td>
-                        {o.startTime} - to - {o.endTime}
-                      </td>
+                return (
+                  <tr key={o._id}>
+                    <td>{startFormattedDate}</td>
+                    <td>
+                      {o.startTime} - to - {o.endTime}
+                    </td>
 
-                      <td>{user ? user.name : "Trainee not found"}</td>
-                      <td>{client ? client.clientName : "Client not found"}</td>
-                      <td>{o.title}</td>
-                      <td>
-                        <Group position="">
-                          <Button
-                            variant="outline"
-                            color="indigo"
-                            radius="md"
-                            component={Link}
-                            to={"/calendar-edit/" + o._id}
-                            disabled={
-                              new Date(o.appointmentDate) <
-                              new Date(
-                                new Date().setDate(new Date().getDate() + 1)
-                              )
-                            }
-                          >
-                            Change
-                          </Button>
+                    <td>{user ? user.name : "Trainee not found"}</td>
+                    <td>{client ? client.clientName : "Client not found"}</td>
+                    <td>{o.title}</td>
+                    <td>
+                      <Group position="">
+                        <Button
+                          variant="outline"
+                          color="indigo"
+                          radius="md"
+                          component={Link}
+                          to={"/calendar-edit/" + o._id}
+                          disabled={
+                            new Date(o.appointmentDate) <
+                            new Date(
+                              new Date().setDate(new Date().getDate() + 1)
+                            )
+                          }
+                        >
+                          Change
+                        </Button>
 
-                          <Button
-                            onClick={() => {
-                              setClientIdToDelete(o._id);
-                              setShowClientDeleteModal(true);
-                            }}
-                            variant="outline"
-                            color="red"
-                            radius="md"
-                          >
-                            Delete
-                          </Button>
-                        </Group>
-                      </td>
-                    </tr>
-                  );
-                })
-              : null}
-          </tbody>
-        </Table>
+                        <Button
+                          onClick={() => {
+                            setClientIdToDelete(o._id);
+                            setShowClientDeleteModal(true);
+                          }}
+                          variant="outline"
+                          color="red"
+                          radius="md"
+                        >
+                          Delete
+                        </Button>
+                      </Group>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </Table>
+        ) : (
+          <>
+            <Table
+              horizontalSpacing="xl"
+              verticalSpacing="sm"
+              highlightOnHover
+              withBorder
+            >
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Time</th>
+                  <th>Trainee</th>
+                  <th>Appointment By</th>
+                  <th>Content</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+            </Table>
+            <Space h={150} />
+            <Group position="center">
+              <div>
+                <Group position="center">
+                  <TbCalendarCancel
+                    style={{
+                      width: "100px",
+                      height: "100px",
+                      margin: "15",
+                    }}
+                  />
+                </Group>
+                <Text align="center" size="lg" fw={700}>
+                  No appointments yet
+                </Text>
+              </div>
+            </Group>
+          </>
+        )}
         <Modal
           opened={showClientDeleteModal}
           onClose={() => setShowClientDeleteModal(false)}

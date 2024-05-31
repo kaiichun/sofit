@@ -206,6 +206,7 @@ export default function CalendarEdit() {
             maw={400}
             mx="end"
             w={115}
+            minDate={new Date()} // Ensuring that only today or future dates can be picked
           />
           <Space w="xl" />
           <Select

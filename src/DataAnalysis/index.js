@@ -8,7 +8,7 @@ import { fetchOrderPackages } from "../api/orderspackage";
 import WageChart from "../api/Chart/WageChart";
 import OutstandingChart from "../api/Chart/OutstandingChart";
 import SalesChart from "../api/Chart/SalesChart";
-import { Group, Text, Avatar } from "@mantine/core";
+import { Group, Text, Avatar, Card, Space } from "@mantine/core";
 import settingLogo from "../Logo/setting.gif";
 
 const DataAnalysis = () => {
@@ -51,16 +51,26 @@ const DataAnalysis = () => {
 
       {/* Render OutstandingChart */}
       {/* <OutstandingChart /> */}
+      <Space h="240px" />
 
-      <Group position="center" mt={300}>
-        <Avatar
-          src={settingLogo}
-          style={{ width: "60px", height: "60px" }}
-        ></Avatar>
-        <Text size="xl" fw={500}>
-          Coming Soon...
-        </Text>
+      <Group position="center">
+        <div>
+          <Group position="center">
+            <Avatar
+              src={settingLogo}
+              style={{
+                width: "80px",
+                height: "80px",
+                marginBottom: "20px",
+              }}
+            ></Avatar>
+          </Group>
+          <Text align="center" size="lg" fw={700}>
+            Coming Soon ...
+          </Text>
+        </div>
       </Group>
+      <Space h={20} />
     </>
   );
 };

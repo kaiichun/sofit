@@ -11,6 +11,7 @@ import {
   Modal,
   Space,
   Container,
+  Avatar,
   Divider,
 } from "@mantine/core";
 import { API_URL } from "../api/data";
@@ -23,6 +24,7 @@ import { useCookies } from "react-cookie";
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import { fetchPosts } from "../api/post";
 import { addBranch, fetchBranch } from "../api/auth";
+import notificationsLogo from "../Logo/no_notification.gif";
 
 export default function Home() {
   const [cookies] = useCookies(["currentUser"]);
@@ -100,7 +102,7 @@ export default function Home() {
           </div>
         </Group>
       </div>
-      <Space h="150px" />{" "}
+      <Space h="150px" />
       <Container w={1000}>
         <Group position="apart">
           <Text color="">New Notifications</Text>
@@ -112,88 +114,99 @@ export default function Home() {
             See All
           </UnstyledButton>
         </Group>
-        <Space h="15px" />{" "}
+        <Space h="15px" />
         <Grid>
-          {posts ? (
+          {posts && posts.filter((v) => v.status === "Publish").length > 0 ? (
             posts
-              .filter((v) => v.status == "Publish")
+              .filter((v) => v.status === "Publish")
               .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) // Sort by creation date descending
               .slice(0, 3)
-              .map((v) => {
-                return (
-                  <Grid.Col md={12} lg={12} sm={12} key={v._id}>
-                    <UnstyledButton
-                      component={Link}
-                      to={"/post/" + v._id}
-                      variant="transparent"
-                    >
-                      <Card style={{ border: 0 }} radius="md">
-                        <Group position="left">
-                          <img
-                            src={
-                              v && v.user && v.user.image
-                                ? API_URL + "/" + v.user.image
-                                : ""
-                            }
-                            alt="Profile Picture"
-                            style={{
-                              width: "28px",
-                              height: "28px",
-                              borderRadius: "50%",
-                              marginTop: "-40px",
-                            }}
-                          />
-                          <div
-                            style={{
-                              paddingTop: "10px",
-                            }}
-                          >
-                            <Title order={3}>{v.content}</Title>
-                            <Space h="15px" />{" "}
-                            {v && v.user && v.user.name ? (
-                              <Text size="sm" color="dimmed">
-                                {v.user.name}
-                              </Text>
-                            ) : null}
-                            <Group position="left">
-                              <Text size="sm" color="dimmed">
-                                {v.createdAt
-                                  ? new Date(v.createdAt)
-                                      .toISOString()
-                                      .split("T")[0]
-                                  : null}
-                              </Text>
-                              <Text size="sm" color="dimmed">
-                                {v.createdAt
-                                  ? formatDistanceToNow(parseISO(v.createdAt), {
-                                      addSuffix: true,
-                                    })
-                                  : null}
-                              </Text>
-                            </Group>
-                          </div>
-                        </Group>
-                      </Card>
-                    </UnstyledButton>
-                  </Grid.Col>
-                );
-              })
+              .map((v) => (
+                <Grid.Col md={12} lg={12} sm={12} key={v._id}>
+                  <UnstyledButton
+                    component={Link}
+                    to={"/post/" + v._id}
+                    variant="transparent"
+                  >
+                    <Card style={{ border: 0 }} radius="md">
+                      <Group position="left">
+                        <img
+                          src={
+                            v && v.user && v.user.image
+                              ? API_URL + "/" + v.user.image
+                              : ""
+                          }
+                          alt="Profile Picture"
+                          style={{
+                            width: "28px",
+                            height: "28px",
+                            borderRadius: "50%",
+                            marginTop: "-40px",
+                          }}
+                        />
+                        <div
+                          style={{
+                            paddingTop: "10px",
+                          }}
+                        >
+                          <Title order={3}>{v.content}</Title>
+                          <Space h="15px" />
+                          {v && v.user && v.user.name ? (
+                            <Text size="sm" color="dimmed">
+                              {v.user.name}
+                            </Text>
+                          ) : null}
+                          <Group position="left">
+                            <Text size="sm" color="dimmed">
+                              {v.createdAt
+                                ? new Date(v.createdAt)
+                                    .toISOString()
+                                    .split("T")[0]
+                                : null}
+                            </Text>
+                            <Text size="sm" color="dimmed">
+                              {v.createdAt
+                                ? formatDistanceToNow(parseISO(v.createdAt), {
+                                    addSuffix: true,
+                                  })
+                                : null}
+                            </Text>
+                          </Group>
+                        </div>
+                      </Group>
+                    </Card>
+                  </UnstyledButton>
+                </Grid.Col>
+              ))
           ) : (
-            <>
-              <Space h={100} />
+            <Grid.Col>
               <Card>
+                {" "}
+                <Space h={20} />
                 <Group position="center">
-                  <Text size={16}>No Notification</Text>
+                  <div>
+                    <Group position="center">
+                      <Avatar
+                        src={notificationsLogo}
+                        style={{ width: "100px", height: "100px" }}
+                      ></Avatar>
+                    </Group>
+                    <Text align="center" size="lg" fw={700}>
+                      No Notification Available
+                    </Text>
+                  </div>
                 </Group>
+                <Space h={20} />
               </Card>
-            </>
+            </Grid.Col>
           )}
         </Grid>
       </Container>
-      <Space h="200px" /> <Divider />
-      <Space h="50px" />{" "}
+      <Space h="200px" />
       {isAdminHQ ? (
         <>
+          <Divider />
+          <Space h="50px" />
           <Group position="apart">
             <Title order={3} align="center">
               Branch
@@ -217,33 +230,31 @@ export default function Home() {
                   <th>Address</th>
                 </tr>
               </thead>
-              {branchs ? (
-                branchs.map((f) => {
-                  return (
-                    <tbody>
-                      <tr key={f._id}>
-                        <td>{f.branch}</td>
-                        <td>{f.ssm}</td>
-                        <td>{f.hp}</td>
-                        <td>{f.address}</td>
-                        <td>
-                          <UnstyledButton
-                            component={Link}
-                            to={"/edit-branch/" + f._id}
-                            variant="transparent"
-                          >
-                            Edit
-                          </UnstyledButton>
-                        </td>
-                      </tr>
-                    </tbody>
-                  );
-                })
+              {branchs && branchs.length > 0 ? (
+                branchs.map((f) => (
+                  <tbody key={f._id}>
+                    <tr>
+                      <td>{f.branch}</td>
+                      <td>{f.ssm}</td>
+                      <td>{f.hp}</td>
+                      <td>{f.address}</td>
+                      <td>
+                        <UnstyledButton
+                          component={Link}
+                          to={"/edit-branch/" + f._id}
+                          variant="transparent"
+                        >
+                          Edit
+                        </UnstyledButton>
+                      </td>
+                    </tr>
+                  </tbody>
+                ))
               ) : (
                 <Grid.Col className="mt-5">
                   <Space h="40px" />
                   <h2 className="text-center text-muted">
-                    No Create Any Branch yet .
+                    No branches created yet.
                   </h2>
                 </Grid.Col>
               )}
@@ -274,7 +285,7 @@ export default function Home() {
           value={ssm}
           radius="md"
           withAsterisk
-          label="Company Resigter No (SSM No)"
+          label="Company Register No (SSM No)"
           onChange={(event) => setSsm(event.target.value)}
         />
         <TextInput

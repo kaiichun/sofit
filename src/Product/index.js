@@ -16,6 +16,7 @@ import {
   Button,
   Modal,
   Divider,
+  Avatar,
   LoadingOverlay,
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
@@ -25,6 +26,7 @@ import { addToCart, getCartItems } from "../api/cart";
 import { useCookies } from "react-cookie";
 import { API_URL } from "../api/data";
 import Header from "../Header";
+import noProductLogo from "../Logo/no-product.png";
 
 function Products() {
   const [cookies] = useCookies(["currentUser"]);
@@ -43,13 +45,11 @@ function Products() {
 
   const { isLoading, data: products } = useQuery({
     queryKey: ["products"],
-
     queryFn: () => fetchProducts(currentUser ? currentUser.token : ""),
   });
 
   const { data: cart = [] } = useQuery({
     queryKey: ["cart"],
-
     queryFn: getCartItems,
   });
 
@@ -216,88 +216,103 @@ function Products() {
       <Space h="20px" />
       <LoadingOverlay visible={isLoading} />
       <Grid>
-        {currentProducts
-          ? currentProducts.map((product) => {
-              return (
-                <Grid.Col key={product._id} lg={4} md={6} sm={6} xs={6}>
-                  <Card withBorder shadow="sm" p="20px">
-                    <Card.Section>
-                      <Image
-                        src={API_URL + "/" + product.productImage}
-                        height={220}
-                        alt="Norway"
-                      />
-                    </Card.Section>
-                    <Title order={5}>{product.name}</Title>
-                    <Space h="20px" />
-                    <Group position="apart" spacing="5px">
-                      <Badge color="green">MYR {product.price}</Badge>
-                      <Badge color="red">Store: {product.store}</Badge>
-                      <Badge color="yellow">Category: {product.category}</Badge>
-                    </Group>
-                    <Space h="20px" />
-                    <Button
-                      fullWidth
-                      onClick={() => {
-                        // pop a messsage if user is not logged in
-                        if (cookies && cookies.currentUser) {
-                          addToCartMutation.mutate(product);
-                        } else {
-                          notifications.show({
-                            title: "Please login to proceed",
-                            message: (
-                              <>
-                                <Button
-                                  color="red"
-                                  onClick={() => {
-                                    navigate("/login");
-                                    notifications.clean();
-                                  }}
-                                >
-                                  Click here to login
-                                </Button>
-                              </>
-                            ),
-                            color: "red",
-                          });
-                        }
-                      }}
-                      disabled={product.store === 0}
-                    >
-                      Add To Cart
-                    </Button>
-                    {isAdmin && (
-                      <>
-                        <Space h="20px" />
-                        <Group position="apart">
-                          <Button
-                            component={Link}
-                            to={"/product_edit/" + product._id}
-                            color="blue"
-                            size="xs"
-                            radius="50px"
-                          >
-                            Edit
-                          </Button>
-                          <Button
-                            color="red"
-                            size="xs"
-                            radius="50px"
-                            onClick={() => {
-                              setProductIdToDelete(product._id);
-                              setShowModal(true);
-                            }}
-                          >
-                            Delete
-                          </Button>
-                        </Group>
-                      </>
-                    )}
-                  </Card>
-                </Grid.Col>
-              );
-            })
-          : null}
+        {currentProducts.length > 0 ? (
+          currentProducts.map((product) => {
+            return (
+              <Grid.Col key={product._id} lg={4} md={6} sm={6} xs={6}>
+                <Card withBorder shadow="sm" p="20px">
+                  <Card.Section>
+                    <Image
+                      src={API_URL + "/" + product.productImage}
+                      height={220}
+                      alt="Product"
+                    />
+                  </Card.Section>
+                  <Title order={5}>{product.name}</Title>
+                  <Space h="20px" />
+                  <Group position="apart" spacing="5px">
+                    <Badge color="green">MYR {product.price}</Badge>
+                    <Badge color="red">Store: {product.store}</Badge>
+                    <Badge color="yellow">Category: {product.category}</Badge>
+                  </Group>
+                  <Space h="20px" />
+                  <Button
+                    fullWidth
+                    onClick={() => {
+                      // pop a message if user is not logged in
+                      if (cookies && cookies.currentUser) {
+                        addToCartMutation.mutate(product);
+                      } else {
+                        notifications.show({
+                          title: "Please login to proceed",
+                          message: (
+                            <>
+                              <Button
+                                color="red"
+                                onClick={() => {
+                                  navigate("/login");
+                                  notifications.clean();
+                                }}
+                              >
+                                Click here to login
+                              </Button>
+                            </>
+                          ),
+                          color: "red",
+                        });
+                      }
+                    }}
+                    disabled={product.store === 0}
+                  >
+                    Add To Cart
+                  </Button>
+                  {isAdmin && (
+                    <>
+                      <Space h="20px" />
+                      <Group position="apart">
+                        <Button
+                          component={Link}
+                          to={"/product_edit/" + product._id}
+                          color="blue"
+                          size="xs"
+                          radius="50px"
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          color="red"
+                          size="xs"
+                          radius="50px"
+                          onClick={() => {
+                            setProductIdToDelete(product._id);
+                            setShowModal(true);
+                          }}
+                        >
+                          Delete
+                        </Button>
+                      </Group>
+                    </>
+                  )}
+                </Card>
+              </Grid.Col>
+            );
+          })
+        ) : (
+          <Grid.Col span={12}>
+            <Space h={120} />
+            <Group position="center">
+              <div>
+                <Group position="center">
+                  <Avatar
+                    src={noProductLogo}
+                    style={{ width: "500px", height: "200px" }}
+                  ></Avatar>
+                </Group>
+              </div>
+            </Group>
+            <Space h={20} />
+          </Grid.Col>
+        )}
         <Modal
           centered
           overlayOpacity={0.55}
@@ -345,27 +360,31 @@ function Products() {
         </Modal>
       </Grid>
       <Space h="40px" />
-      <div>
-        <span
-          style={{
-            marginRight: "10px",
-          }}
-        >
-          Page {currentPage} of {totalPages.length}
-        </span>
-        {totalPages.map((page) => {
-          return (
-            <button
-              key={page}
-              onClick={() => {
-                setCurrentPage(page);
-              }}
-            >
-              {page}
-            </button>
-          );
-        })}
-      </div>
+      {totalPages.length > 1 && (
+        <Group>
+          <span
+            style={{
+              marginRight: "10px",
+            }}
+          >
+            Page {currentPage} of {totalPages.length}
+          </span>
+          <Group position="center" spacing="xs">
+            {totalPages.map((page) => (
+              <Button
+                key={page}
+                variant={currentPage === page ? "filled" : "outline"}
+                size="xs"
+                onClick={() => setCurrentPage(page)}
+              >
+                {page}
+              </Button>
+            ))}
+          </Group>
+        </Group>
+      )}
+      <Space h="20px" />
+
       <Space h="40px" />
     </Container>
   );

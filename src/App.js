@@ -41,6 +41,7 @@ import CalendarAll from "./CalendarAll";
 import CalendarEdit from "./CalendarEdit";
 import Resigter from "./Resigter";
 import EditPwd from "./ChangePassword";
+import WageAll from "./WageAll";
 
 function App() {
   const [cookies] = useCookies(["currentUser"]);
@@ -260,6 +261,14 @@ function App() {
           element={
             <AppWrapper>
               <Wages />
+            </AppWrapper>
+          }
+        />
+        <Route
+          path="/wage-all"
+          element={
+            <AppWrapper>
+              <WageAll />
             </AppWrapper>
           }
         />
