@@ -93,18 +93,6 @@ const StaffAdd = () => {
     },
   });
 
-  function generateRandomNumbers() {
-    return Math.floor(1000 + Math.random() * 9000); // Generates a random 4-digit number
-  }
-
-  const [isDisabled, setIsDisabled] = useState(false);
-
-  const handleBlur = () => {
-    const randomNumbers = generateRandomNumbers();
-    setUsername((prevUsername) => prevUsername + randomNumbers);
-    setIsDisabled(true);
-  };
-
   const handleSubmit = () => {
     if (
       !name ||
@@ -319,8 +307,6 @@ const StaffAdd = () => {
                   placeholder="Username"
                   label="Username"
                   onChange={(event) => setUsername(event.target.value)}
-                  onBlur={handleBlur}
-                  disabled={isDisabled}
                 />
               </Grid.Col>
               <Grid.Col span={4}>
@@ -528,10 +514,14 @@ const StaffAdd = () => {
               </Grid.Col>
               <Grid.Col span={3}>
                 <Select
-                  data={branchs.map((user) => ({
-                    value: user._id,
-                    label: `${user.branch}`,
-                  }))}
+                  data={
+                    branchs
+                      ? branchs.map((b) => ({
+                          value: b._id,
+                          label: b.branch,
+                        }))
+                      : []
+                  }
                   value={branch}
                   onChange={(value) => setBranch(value)}
                   label="Branch"
