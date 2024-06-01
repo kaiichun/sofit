@@ -55,6 +55,8 @@ export default function Video({ videoSource }) {
   const [clientImageLeft, setClientImageLeft] = useState("");
   const [clientImageRight, setClientImageRight] = useState("");
   const [clientVideo, setClientVideo] = useState("");
+  const [viewImage, setViewImage] = useState("");
+  const [viewVideo, setViewVideo] = useState("");
   const queryClient = useQueryClient();
   const videoRef = useRef(null);
 
@@ -237,6 +239,10 @@ export default function Video({ videoSource }) {
 
   const handleClientVideoUpload = (files) => {
     uploadClientVideoMutation.mutate(files[0]);
+  };
+
+  const handleImageClick = (src) => {
+    setViewImage(src);
   };
 
   return (
@@ -653,7 +659,7 @@ export default function Video({ videoSource }) {
         </Container>
       </Modal>
       <Space h={50} />
-      <ScrollArea h={800} width="100%" offsetScrollbars scrollHideDelay={300}>
+      <ScrollArea h={400} width="100%" offsetScrollbars scrollHideDelay={300}>
         {clientBmis && clientBmis.length > 0 ? (
           <Table
             highlightOnHover
@@ -693,343 +699,241 @@ export default function Video({ videoSource }) {
           </Table>
         ) : (
           <>
-            <Image height={600} src={noDataIcon} width="100%" />
+            <Image height={380} src={noDataIcon} width="100%" />
           </>
         )}
       </ScrollArea>
+      <Space h={50} />
 
-      <Text ta="center" fw={500} fz="xl">
-        Image Composition
-      </Text>
-      <Space h={5} />
-      <Text ta="center" fw={500} fz="lg">
-        (Front)
-      </Text>
-      <Group position="apart">
-        <Grid>
-          {clientBmis ? (
-            <>
-              {clientBmis.length > 0 ? (
-                <>
-                  <Grid.Col span={clientBmis.length > 1 ? 6 : 12}>
-                    <Image
-                      src={API_URL + "/" + clientBmis[0].clientImageFront}
-                      height={clientBmis.length > 1 ? 300 : 600}
-                      width="100%"
-                    />
-
-                    <Text ta="center" fw={500} fz="md">
-                      {clientBmis[0].createdAt
-                        ? new Date(clientBmis[0].createdAt)
-                            .toISOString()
-                            .split("T")[0]
-                        : null}
-                    </Text>
-                  </Grid.Col>
-
-                  {/* Display the last video if more than one */}
-                  {clientBmis.length > 1 && (
-                    <Grid.Col span={6}>
-                      <Image
-                        height={300}
-                        src={
-                          API_URL +
-                          "/" +
-                          clientBmis[clientBmis.length - 1].clientImageFront
-                        }
-                        width="100%"
-                      />
-                      <Text ta="center" fw={500} fz="md">
-                        {clientBmis[clientBmis.length - 1].createdAt
-                          ? new Date(
-                              clientBmis[clientBmis.length - 1].createdAt
-                            )
-                              .toISOString()
-                              .split("T")[0]
-                          : null}
-                      </Text>
-                    </Grid.Col>
-                  )}
-                </>
-              ) : (
-                // Display a message if clientBmis is empty
-                <Grid.Col span={12}>
-                  <Image height={600} src={noDataIcon} width="100%" />
-                </Grid.Col>
-              )}
-            </>
-          ) : (
-            // Display a message if clientBmis is null
-            <Grid.Col span={12}>
-              <Image height={600} src={noDataIcon} width="100%" />
+      <Title>Front Image</Title>
+      <Grid columns={12}>
+        {clientBmis.length > 0 && (
+          <>
+            <Grid.Col span={6}>
+              <Image
+                src={API_URL + "/" + clientBmis[0].clientImageFront}
+                alt="Client Front Image"
+                height={200}
+                width={200}
+                onClick={() =>
+                  handleImageClick(
+                    API_URL + "/" + clientBmis[0].clientImageFront
+                  )
+                }
+                style={{ cursor: "pointer" }}
+              />
+              <Text>
+                {clientBmis[0].createdAt
+                  ? new Date(clientBmis[0].createdAt)
+                      .toISOString()
+                      .split("T")[0]
+                  : null}
+              </Text>
             </Grid.Col>
-          )}
-        </Grid>
-      </Group>
-      <Space h={100} />
-      <Text ta="center" fw={500} fz="lg">
-        (Back)
-      </Text>
-      <Group position="apart">
-        <Grid>
-          {clientBmis ? (
-            <>
-              {clientBmis.length > 0 ? (
-                <>
-                  <Grid.Col span={clientBmis.length > 1 ? 6 : 12}>
-                    <Image
-                      src={API_URL + "/" + clientBmis[0].clientImageBack}
-                      height={clientBmis.length > 1 ? 300 : 600}
-                      width="100%"
-                    />
-
-                    <Text ta="center" fw={500} fz="md">
-                      {clientBmis[0].createdAt
-                        ? new Date(clientBmis[0].createdAt)
-                            .toISOString()
-                            .split("T")[0]
-                        : null}
-                    </Text>
-                  </Grid.Col>
-
-                  {/* Display the last video if more than one */}
-                  {clientBmis.length > 1 && (
-                    <Grid.Col span={6}>
-                      <Image
-                        height={300}
-                        src={
-                          API_URL +
-                          "/" +
-                          clientBmis[clientBmis.length - 1].clientImageBack
-                        }
-                        width="100%"
-                      />
-                      <Text ta="center" fw={500} fz="md">
-                        {clientBmis[clientBmis.length - 1].createdAt
-                          ? new Date(
-                              clientBmis[clientBmis.length - 1].createdAt
-                            )
-                              .toISOString()
-                              .split("T")[0]
-                          : null}
-                      </Text>
-                    </Grid.Col>
-                  )}
-                </>
-              ) : (
-                <Grid.Col span={12}>
-                  <Image height={600} src={noDataIcon} width="100%" />
-                </Grid.Col>
-              )}
-            </>
-          ) : (
-            // Display a message if clientBmis is null
-            <Grid.Col span={12}>
-              <Image height={600} src={noDataIcon} width="100%" />
+            <Grid.Col span={6}>
+              <Image
+                src={
+                  clientBmis.length > 1
+                    ? API_URL +
+                      "/" +
+                      clientBmis[clientBmis.length - 1].clientImageFront
+                    : noDataIcon
+                }
+                alt="Client Front Image"
+                height={200}
+                width={200}
+                onClick={() =>
+                  handleImageClick(
+                    API_URL +
+                      "/" +
+                      clientBmis[clientBmis.length - 1].clientImageFront
+                  )
+                }
+                style={{ cursor: "pointer" }}
+              />
+              <Text>
+                {clientBmis[clientBmis.length - 1].createdAt
+                  ? new Date(clientBmis[clientBmis.length - 1].createdAt)
+                      .toISOString()
+                      .split("T")[0]
+                  : null}
+              </Text>
             </Grid.Col>
-          )}
-        </Grid>
-      </Group>
-      <Space h={100} />
-      <Text ta="center" fw={500} fz="lg">
-        (Left)
-      </Text>
-      <Group position="apart">
-        <Grid>
-          {clientBmis ? (
-            <>
-              {clientBmis.length > 0 ? (
-                <>
-                  <Grid.Col span={clientBmis.length > 1 ? 6 : 12}>
-                    <Image
-                      src={API_URL + "/" + clientBmis[0].clientImageLeft}
-                      height={clientBmis.length > 1 ? 300 : 600}
-                      width="100%"
-                    />
-                    <Text ta="center" fw={500} fz="md">
-                      {clientBmis[0].createdAt
-                        ? new Date(clientBmis[0].createdAt)
-                            .toISOString()
-                            .split("T")[0]
-                        : null}
-                    </Text>
-                  </Grid.Col>
+          </>
+        )}
+      </Grid>
 
-                  {/* Display the last image if more than one */}
-                  {clientBmis.length > 1 && (
-                    <Grid.Col span={6}>
-                      <Image
-                        height={300}
-                        src={
-                          API_URL +
-                          "/" +
-                          clientBmis[clientBmis.length - 1].clientImageLeft
-                        }
-                        width="100%"
-                      />
-                      <Text ta="center" fw={500} fz="md">
-                        {clientBmis[clientBmis.length - 1].createdAt
-                          ? new Date(
-                              clientBmis[clientBmis.length - 1].createdAt
-                            )
-                              .toISOString()
-                              .split("T")[0]
-                          : null}
-                      </Text>
-                    </Grid.Col>
-                  )}
-                </>
-              ) : (
-                // Display a message if clientBmis is empty
-                <Grid.Col span={12}>
-                  <Image height={600} src={noDataIcon} width="100%" />
-                </Grid.Col>
-              )}
-            </>
-          ) : (
-            // Display a message if clientBmis is null
-            <Grid.Col span={12}>
-              <Image height={600} src={noDataIcon} width="100%" />
+      <Space h={50} />
+
+      <Title>Back Image</Title>
+      <Grid columns={12}>
+        {clientBmis.length > 0 && (
+          <>
+            <Grid.Col span={6}>
+              <Image
+                src={API_URL + "/" + clientBmis[0].clientImageBack}
+                alt="Client Back Image"
+                height={200}
+                width={200}
+                onClick={() =>
+                  handleImageClick(
+                    API_URL + "/" + clientBmis[0].clientImageBack
+                  )
+                }
+                style={{ cursor: "pointer" }}
+              />
             </Grid.Col>
-          )}
-        </Grid>
-      </Group>
-      <Space h={100} />
-      <Text ta="center" fw={500} fz="lg">
-        (Right)
-      </Text>
-      <Group position="apart">
-        <Grid>
-          {clientBmis ? (
-            <>
-              {clientBmis.length > 0 ? (
-                <>
-                  <Grid.Col span={clientBmis.length > 1 ? 6 : 12}>
-                    <Image
-                      src={API_URL + "/" + clientBmis[0].clientImageRight}
-                      height={clientBmis.length > 1 ? 300 : 600}
-                      width="100%"
-                    />
-
-                    <Text ta="center" fw={500} fz="md">
-                      {clientBmis[0].createdAt
-                        ? new Date(clientBmis[0].createdAt)
-                            .toISOString()
-                            .split("T")[0]
-                        : null}
-                    </Text>
-                  </Grid.Col>
-
-                  {/* Display the last video if more than one */}
-                  {clientBmis.length > 1 && (
-                    <Grid.Col span={6}>
-                      <Image
-                        height={300}
-                        src={
-                          API_URL +
-                          "/" +
-                          clientBmis[clientBmis.length - 1].clientImageRight
-                        }
-                        width="100%"
-                      />
-                      <Text ta="center" fw={500} fz="md">
-                        {clientBmis[clientBmis.length - 1].createdAt
-                          ? new Date(
-                              clientBmis[clientBmis.length - 1].createdAt
-                            )
-                              .toISOString()
-                              .split("T")[0]
-                          : null}
-                      </Text>
-                    </Grid.Col>
-                  )}
-                </>
-              ) : (
-                // Display a message if clientBmis is empty
-                <Grid.Col span={12}>
-                  <Image height={600} src={noDataIcon} width="100%" />
-                </Grid.Col>
-              )}
-            </>
-          ) : (
-            // Display a message if clientBmis is null
-            <Grid.Col span={12}>
-              <Image height={600} src={noDataIcon} width="100%" />
+            <Grid.Col span={6}>
+              <Image
+                src={
+                  clientBmis.length > 1
+                    ? API_URL +
+                      "/" +
+                      clientBmis[clientBmis.length - 1].clientImageBack
+                    : noDataIcon
+                }
+                alt="Client Back Image"
+                height={200}
+                width={200}
+                onClick={() =>
+                  handleImageClick(
+                    API_URL +
+                      "/" +
+                      clientBmis[clientBmis.length - 1].clientImageBack
+                  )
+                }
+                style={{ cursor: "pointer" }}
+              />
             </Grid.Col>
-          )}
-        </Grid>
-      </Group>
-      <Space h={100} />
-      <Text ta="center" fw={500} fz="lg">
-        Video Composition
-      </Text>
-      <Group position="apart">
-        <Grid>
-          {clientBmis ? (
-            <>
-              {clientBmis.length > 0 ? (
-                <>
-                  <Grid.Col span={clientBmis.length > 1 ? 6 : 12}>
-                    <video
-                      controls
-                      height={clientBmis.length > 1 ? 300 : 600}
-                      width="100%"
-                    >
-                      <source
-                        src={API_URL + "/" + clientBmis[0].clientVideo}
-                        type="video/mp4"
-                      />
-                    </video>
-                    <Text ta="center" fw={500} fz="md">
-                      {clientBmis[0].createdAt
-                        ? new Date(clientBmis[0].createdAt)
-                            .toISOString()
-                            .split("T")[0]
-                        : null}
-                    </Text>
-                  </Grid.Col>
+          </>
+        )}
+      </Grid>
 
-                  {/* Display the last video if more than one */}
-                  {clientBmis.length > 1 && (
-                    <Grid.Col span={6}>
-                      <video controls height={300} width="100%">
-                        <source
-                          src={
-                            API_URL +
-                            "/" +
-                            clientBmis[clientBmis.length - 1].clientVideo
-                          }
-                          type="video/mp4"
-                        />
-                      </video>
+      <Space h={50} />
 
-                      <Text ta="center" fw={500} fz="md">
-                        {clientBmis[clientBmis.length - 1].createdAt
-                          ? new Date(
-                              clientBmis[clientBmis.length - 1].createdAt
-                            )
-                              .toISOString()
-                              .split("T")[0]
-                          : null}
-                      </Text>
-                    </Grid.Col>
-                  )}
-                </>
-              ) : (
-                // Display a message if clientBmis is empty
-                <Grid.Col span={12}>
-                  <Image height={600} src={noDataIcon} width="100%" />
-                </Grid.Col>
-              )}
-            </>
-          ) : (
-            // Display a message if clientBmis is null
-            <Grid.Col span={12}>
-              <Image height={600} src={noDataIcon} width="100%" />
+      <Title>Left Image</Title>
+      <Grid columns={12}>
+        {clientBmis.length > 0 && (
+          <>
+            <Grid.Col span={6}>
+              <Image
+                src={API_URL + "/" + clientBmis[0].clientImageLeft}
+                alt="Client Left Image"
+                height={200}
+                width={200}
+                onClick={() =>
+                  handleImageClick(
+                    API_URL + "/" + clientBmis[0].clientImageLeft
+                  )
+                }
+                style={{ cursor: "pointer" }}
+              />
             </Grid.Col>
-          )}
-        </Grid>
-      </Group>
+            <Grid.Col span={6}>
+              <Image
+                src={
+                  clientBmis.length > 1
+                    ? API_URL +
+                      "/" +
+                      clientBmis[clientBmis.length - 1].clientImageLeft
+                    : noDataIcon
+                }
+                alt="Client Left Image"
+                height={200}
+                width={200}
+                onClick={() =>
+                  handleImageClick(
+                    API_URL +
+                      "/" +
+                      clientBmis[clientBmis.length - 1].clientImageLeft
+                  )
+                }
+                style={{ cursor: "pointer" }}
+              />
+            </Grid.Col>
+          </>
+        )}
+      </Grid>
+
+      <Space h={50} />
+
+      <Title>Right Image</Title>
+      <Grid columns={12}>
+        {clientBmis.length > 0 && (
+          <>
+            <Grid.Col span={6}>
+              <Image
+                src={API_URL + "/" + clientBmis[0].clientImageRight}
+                alt="Client Right Image"
+                height={200}
+                width={200}
+                onClick={() =>
+                  handleImageClick(
+                    API_URL + "/" + clientBmis[0].clientImageRight
+                  )
+                }
+                style={{ cursor: "pointer" }}
+              />
+            </Grid.Col>
+            <Grid.Col span={6}>
+              <Image
+                src={
+                  clientBmis.length > 1
+                    ? API_URL +
+                      "/" +
+                      clientBmis[clientBmis.length - 1].clientImageRight
+                    : noDataIcon
+                }
+                alt="Client Right Image"
+                height={200}
+                width={200}
+                onClick={() =>
+                  handleImageClick(
+                    API_URL +
+                      "/" +
+                      clientBmis[clientBmis.length - 1].clientImageRight
+                  )
+                }
+                style={{ cursor: "pointer" }}
+              />
+            </Grid.Col>
+          </>
+        )}
+      </Grid>
+
+      <Space h={50} />
+
+      <Title>Video</Title>
+      <Grid columns={12}>
+        {clientBmis.length > 0 && (
+          <>
+            <Grid.Col span={6}>
+              <video
+                src={API_URL + "/" + clientBmis[0].clientVideo}
+                height={200}
+                width={400}
+                controls
+                style={{ cursor: "pointer" }}
+              />
+            </Grid.Col>
+            <Grid.Col span={6}>
+              <video
+                src={
+                  API_URL + "/" + clientBmis[clientBmis.length - 1].clientVideo
+                }
+                height={200}
+                width={400}
+                controls
+                style={{ cursor: "pointer" }}
+              />
+            </Grid.Col>
+          </>
+        )}
+      </Grid>
+
+      <Modal opened={!!viewImage} onClose={() => setViewImage("")}>
+        <Image src={viewImage} alt="Enlarged" />
+      </Modal>
     </Container>
   );
 }
