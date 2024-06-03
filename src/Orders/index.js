@@ -11,16 +11,16 @@ import {
   Text,
   Select,
   LoadingOverlay,
+  ScrollArea,
 } from "@mantine/core";
+import { openConfirmModal } from "@mantine/modals";
 import { API_URL } from "../api/data";
 import { notifications } from "@mantine/notifications";
 import Header from "../Header";
 import { useParams } from "react-router-dom";
 import { MdDownloadForOffline, MdDelete } from "react-icons/md";
-
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-
 import { useCookies } from "react-cookie";
 import { fetchOrders, deleteOrder, updateOrder } from "../api/order";
 import { fetchClients } from "../api/client";
@@ -126,9 +126,7 @@ export default function Orders() {
     const formattedDate = `${year}-${month}-${day}`;
 
     doc.text(`Date: ${formattedDate}`, 160, groupYPos + 5);
-    if (user && user.name) {
-      doc.text(`Staff: ${user.name}`, 160, groupYPos + 10);
-    }
+    doc.text(`Staff: ${order.staffName}`, 160, groupYPos + 10);
 
     doc.setLineWidth(0.3);
     doc.line(10, 75, 200, 75);
@@ -171,7 +169,6 @@ export default function Orders() {
 
     const tableData = order.products.map((product) => [
       product.name,
-
       `${product.price.toFixed(2)}`,
     ]);
 
@@ -224,10 +221,16 @@ export default function Orders() {
     // doc.line(198, 203, 198, 215);
     // doc.line(138, 215, 198, 215);
     doc.setFontSize(10);
-    doc.text(`Service Tax (8%) :`, 140, 208);
-    doc.text(`${order.tax.toFixed(2)}`, 184.2, 208);
+    // doc.text(`Service Tax (8%) :`, 140, 208);
+    // doc.text(`${order.tax.toFixed(2)}`, 184.2, 208);
+    // doc.text(`Total Price:`, 140, 213);
+    // doc.text(`${order.totalPrice.toFixed(2)}`, 182.3, 213);
+    doc.text(`Discount:`, 140, 208);
+    doc.text(`${order.discount ? order.discount.toFixed(2) : 0.0}`, 182.3, 208);
     doc.text(`Total Price:`, 140, 213);
     doc.text(`${order.totalPrice.toFixed(2)}`, 182.3, 213);
+    // doc.text(`Total Price :`, 140, 208);
+    // doc.text(`${order.totalPrice.toFixed(2)}`, 182.3, 208);
 
     const tableY2Pos = 235;
     doc.setLineWidth(0.2);
@@ -256,152 +259,140 @@ export default function Orders() {
     doc.save(`invoice_${order.invoiceNo}.pdf`);
   };
 
+  const handleDeleteClick = (orderId) => {
+    openConfirmModal({
+      title: "Confirm Deletion",
+      children: <Text>Are you sure you want to delete this order?</Text>,
+      labels: { confirm: "Confirm", cancel: "Cancel" },
+      confirmProps: { color: "red" },
+      onConfirm: () => {
+        deleteMutation.mutate({
+          id: orderId,
+          token: currentUser ? currentUser.token : "",
+        });
+      },
+    });
+  };
+
   return (
     <>
       <Container size="100%">
         <Header title="My Orders" page="orders" />
         <Space h="35px" />
         <LoadingOverlay visible={isLoading} />
-        <Table>
-          <thead>
-            <tr>
-              <th>Invoice No</th>
-              <th>Customer</th>
-              <th>Products</th>
-              <th>Total Amount</th>
-              <th>Status</th>
-              <th>Payment Date</th>
-              <th>Sales By</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {orders
-              ? orders.map((o) => {
-                  const client = clients.find(
-                    (client) => client._id === o.clientId
-                  );
-                  const user = users.find((user) => user._id === o.user);
-                  // Assuming o.paid_at is in ISO 8601 format (e.g., "2024-04-08T12:00:00.000Z")
-                  const paidDate = new Date(o.paid_at);
+        <ScrollArea h={800} width="100%" offsetScrollbars scrollHideDelay={300}>
+          <Table>
+            <thead>
+              <tr>
+                <th>Invoice No</th>
+                <th>Customer</th>
+                <th>Products</th>
+                <th>Total Amount</th>
+                <th>Status</th>
+                <th>Payment Date</th>
+                <th>Sales By</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {orders
+                ? orders.map((o) => {
+                    const client = clients.find(
+                      (client) => client._id === o.clientId
+                    );
+                    const user = users.find((user) => user._id === o.user);
+                    const paidDate = new Date(o.paid_at);
+                    const day = paidDate.getDate().toString().padStart(2, "0");
+                    const month = (paidDate.getMonth() + 1)
+                      .toString()
+                      .padStart(2, "0");
+                    const year = paidDate.getFullYear();
+                    const formattedDate = `${day}-${month}-${year}`;
 
-                  // Get day, month, and year
-                  const day = paidDate.getDate().toString().padStart(2, "0"); // Add leading zero if needed
-                  const month = (paidDate.getMonth() + 1)
-                    .toString()
-                    .padStart(2, "0"); // Add leading zero if needed
-                  const year = paidDate.getFullYear();
+                    return (
+                      <tr key={o._id}>
+                        <td>{o.invoiceNo}</td>
+                        <td>
+                          {client ? client.clientName : o.name}
+                          <br />
+                          HP: {client ? client.clientPhonenumber : o.phone}
+                        </td>
 
-                  // Format as DD MM YYYY
-                  const formattedDate = `${day}-${month}-${year}`;
-
-                  return (
-                    <tr key={o._id}>
-                      <td>{o.invoiceNo}</td>
-                      <td>
-                        {client ? client.clientName : o.name}
-                        <br />
-                        HP: {client ? client.clientPhonenumber : o.phone}
-                      </td>
-
-                      <td>
-                        {o.products.map((product, index) => (
-                          <div key={index}>
-                            <Group>
-                              {product.productImage &&
-                              product.productImage !== "" ? (
-                                <>
+                        <td>
+                          {o.products.map((product, index) => (
+                            <div key={index}>
+                              <Group>
+                                {product.productImage &&
+                                product.productImage !== "" ? (
+                                  <>
+                                    <Image
+                                      src={API_URL + "/" + product.productImage}
+                                      width={40}
+                                      height={40}
+                                      styles={{
+                                        borderRadius: "20px",
+                                      }}
+                                    />
+                                  </>
+                                ) : (
                                   <Image
-                                    src={API_URL + "/" + product.productImage}
-                                    width={40}
-                                    height={40}
-                                    styles={{
-                                      borderRadius: "20px",
-                                    }}
+                                    src={
+                                      "https://www.aachifoods.com/templates/default-new/images/no-prd.jpg"
+                                    }
+                                    width="50px"
                                   />
-                                </>
-                              ) : (
-                                <Image
-                                  src={
-                                    "https://www.aachifoods.com/templates/default-new/images/no-prd.jpg"
-                                  }
-                                  width="50px"
-                                />
-                              )}
-                              <p>{product.name}</p>
-                            </Group>
-                          </div>
-                        ))}
-                      </td>
-                      <td>MYR {o.totalPrice.toFixed(2)}</td>
-                      <td>
-                        <Select
-                          value={o.status}
-                          disabled={
-                            o.status === "Pending" || !isAdmin ? true : false
-                          }
-                          data={[
-                            {
-                              value: "Pending",
-                              label: "Pending",
-                              disabled: true,
-                            },
-                            { value: "Paid", label: "Paid" },
-                            { value: "Failed", label: "Failed" },
-                            { value: "Shipped", label: "Shipped" },
-                            { value: "Delivered", label: "Delivered" },
-                          ]}
-                          onChange={(newValue) => {
-                            updateMutation.mutate({
-                              id: o._id,
-                              data: JSON.stringify({
-                                status: newValue,
-                              }),
-                              token: currentUser ? currentUser.token : "",
-                            });
-                          }}
-                        />
-                      </td>
-                      <td>{formattedDate}</td>
-                      <td> {user && user.name}</td>
-                      <td>
-                        <HoverCard shadow="md">
-                          <HoverCard.Target>
-                            <Button
-                              variant="subtle"
-                              color="gray"
-                              radius="xl"
-                              size="sm"
-                              onClick={() => handleDownloadPDF(o)}
-                            >
-                              <MdDownloadForOffline
-                                style={{
-                                  height: 24,
-                                  width: 24,
-                                }}
-                              />
-                            </Button>
-                          </HoverCard.Target>
-                          <HoverCard.Dropdown>
-                            <Text size="sm">INVOICE</Text>
-                          </HoverCard.Dropdown>
-                        </HoverCard>
-                        {o.status === "Pending" && isAdmin && (
+                                )}
+                                <p>{product.name}</p>
+                              </Group>
+                            </div>
+                          ))}
+                        </td>
+                        <td>MYR {o.totalPrice.toFixed(2)}</td>
+                        <td>
+                          <Select
+                            value={o.status}
+                            disabled={
+                              o.status === "Delivered" || !isAdmin
+                                ? true
+                                : false
+                            }
+                            data={[
+                              {
+                                value: "Pending",
+                                label: "Pending",
+                              },
+                              { value: "Paid", label: "Paid" },
+                              { value: "Failed", label: "Failed" },
+                              { value: "Shipped", label: "Shipped" },
+                              {
+                                value: "Delivered",
+                                label: "Delivered",
+                              },
+                            ]}
+                            onChange={(newValue) => {
+                              updateMutation.mutate({
+                                id: o._id,
+                                data: JSON.stringify({
+                                  status: newValue,
+                                }),
+                                token: currentUser ? currentUser.token : "",
+                              });
+                            }}
+                          />
+                        </td>
+                        <td>{formattedDate}</td>
+                        <td> {user && user.name}</td>
+                        <td>
                           <HoverCard shadow="md">
                             <HoverCard.Target>
                               <Button
                                 variant="subtle"
-                                color="red"
+                                color="gray"
                                 radius="xl"
                                 size="sm"
-                                onClick={() => {
-                                  deleteMutation.mutate({
-                                    id: o._id,
-                                    token: currentUser ? currentUser.token : "",
-                                  });
-                                }}
+                                onClick={() => handleDownloadPDF(o)}
                               >
-                                <MdDelete
+                                <MdDownloadForOffline
                                   style={{
                                     height: 24,
                                     width: 24,
@@ -410,17 +401,40 @@ export default function Orders() {
                               </Button>
                             </HoverCard.Target>
                             <HoverCard.Dropdown>
-                              <Text size="sm">Delete Order</Text>
+                              <Text size="sm">INVOICE</Text>
                             </HoverCard.Dropdown>
                           </HoverCard>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })
-              : null}
-          </tbody>
-        </Table>
+                          {o.status === "Pending" && isAdmin && (
+                            <HoverCard shadow="md">
+                              <HoverCard.Target>
+                                <Button
+                                  variant="subtle"
+                                  color="red"
+                                  radius="xl"
+                                  size="sm"
+                                  onClick={() => handleDeleteClick(o._id)}
+                                >
+                                  <MdDelete
+                                    style={{
+                                      height: 24,
+                                      width: 24,
+                                    }}
+                                  />
+                                </Button>
+                              </HoverCard.Target>
+                              <HoverCard.Dropdown>
+                                <Text size="sm">Delete Order</Text>
+                              </HoverCard.Dropdown>
+                            </HoverCard>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
+                : null}
+            </tbody>
+          </Table>
+        </ScrollArea>
         <Space h="20px" />
       </Container>
     </>

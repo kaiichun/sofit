@@ -497,9 +497,10 @@ const StaffAdd = () => {
               <Grid.Col span={3}>
                 <NativeSelect
                   data={[
-                    "Junior Trainee",
-                    "Senior Trainee",
-                    "Advanced Senior Trainee",
+                    "Junior Coach",
+                    "Senior Coach",
+                    "Advanced Senior Coach",
+                    "Master Coach",
                     "Sales",
                     "Marketing",
                     "Management",

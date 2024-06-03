@@ -21,6 +21,7 @@ import {
   Title,
   Avatar,
 } from "@mantine/core";
+import { TimeInput, DatePickerInput } from "@mantine/dates";
 import { Dropzone, IMAGE_MIME_TYPE } from "@mantine/dropzone";
 import { getClients, updateClient } from "../api/client";
 import sofitLogo from "../Logo/sofit-black.png";
@@ -77,8 +78,9 @@ const ClientEdit = () => {
   const [medQ4, setMedQ4] = useState();
   const [medQ5, setMedQ5] = useState();
   const [addNote, setAddNote] = useState();
-  const [packageValidityPeriod, setPackageValidityPeriod] = useState();
-  const [clientPackage, setClientPackage] = useState("");
+  const [packageValidityPeriod, setPackageValidityPeriod] = useState(null);
+  const [clientPackage, setClientPackage] = useState();
+  const [sessions, setSessions] = useState();
 
   const [visible, { toggle }] = useDisclosure(false);
   const { isLoading } = useQuery({
@@ -127,8 +129,9 @@ const ClientEdit = () => {
       setMedQ3(data.medQ3);
       setMedQ4(data.medQ4);
       setMedQ5(data.medQ5);
-      setAddNote(data.addNote);
       setcoachId(data.coachId);
+      setSessions(data.sessions);
+      setPackageValidityPeriod(new Date(data.packageValidityPeriod));
     },
   });
 
@@ -215,6 +218,8 @@ const ClientEdit = () => {
         clientPackage: clientPackage,
         coachId: coachId,
         coachName: selectedUserName,
+        sessions: sessions,
+        packageValidityPeriod: packageValidityPeriod,
       }),
       token: currentUser ? currentUser.token : "",
     });
@@ -765,7 +770,7 @@ const ClientEdit = () => {
               Coach
             </Text>
           </Grid.Col>
-          <Grid.Col span={4}>
+          <Grid.Col span={2}>
             <Select
               data={users
                 .filter((user) =>
@@ -783,6 +788,28 @@ const ClientEdit = () => {
               onChange={(value) => setcoachId(value)}
               label="Staff"
               placeholder="Select a Staff"
+            />
+          </Grid.Col>
+          <Grid.Col span={3}>
+            <TextInput
+              value={sessions}
+              placeholder=""
+              label="Sessions"
+              onChange={(event) => setSessions(event.target.value)}
+            />
+          </Grid.Col>
+          <Grid.Col span={6}>
+            <DatePickerInput
+              value={packageValidityPeriod}
+              onChange={(newStart) => {
+                setPackageValidityPeriod(newStart);
+              }}
+              label="Validity Period"
+              placeholder="Validity Period"
+              maw={400}
+              mx="end"
+              w={115}
+              minDate={new Date()} // Ensuring that only today or future dates can be picked
             />
           </Grid.Col>
         </Grid>

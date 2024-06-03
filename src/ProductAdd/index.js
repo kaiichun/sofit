@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import {
   Container,
+  Title,
   Text,
   Space,
   Card,
   Grid,
   TextInput,
   NumberInput,
+  Divider,
   Button,
   Group,
   Image,

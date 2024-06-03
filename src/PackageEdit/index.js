@@ -10,6 +10,7 @@ import {
   NumberInput,
   Button,
   Group,
+  Select,
 } from "@mantine/core";
 
 import { Link, useNavigate, useParams } from "react-router-dom";
@@ -29,6 +30,7 @@ function PackageAdd() {
   const [price, setPrice] = useState("");
   const [category, setCategory] = useState("");
   const [sessions, setSessions] = useState();
+  const [valiMonth, setValiMonth] = useState();
 
   const updateMutation = useMutation({
     mutationFn: updatePackage,
@@ -61,6 +63,7 @@ function PackageAdd() {
         sessions: sessions,
         price: price,
         category: category,
+        valiMonth: valiMonth,
       }),
       token: currentUser ? currentUser.token : "",
     });
@@ -74,6 +77,7 @@ function PackageAdd() {
       setSessions(data.sessions);
       setPrice(data.price);
       setCategory(data.category);
+      setValiMonth(data.valiMonth);
     },
   });
 
@@ -116,6 +120,62 @@ function PackageAdd() {
                 onChange={setSessions}
               />
             </Grid.Col>
+            <Select
+              label="Vali Month"
+              data={[
+                {
+                  value: "1",
+                  label: "1",
+                },
+                {
+                  value: "2",
+                  label: "2",
+                },
+                {
+                  value: "3",
+                  label: "3",
+                },
+                {
+                  value: "4",
+                  label: "4",
+                },
+                {
+                  value: "5",
+                  label: "5",
+                },
+                {
+                  value: "6",
+                  label: "6",
+                },
+                {
+                  value: "7",
+                  label: "7",
+                },
+                {
+                  value: "8",
+                  label: "8",
+                },
+                {
+                  value: "9",
+                  label: "9",
+                },
+                {
+                  value: "10",
+                  label: "10",
+                },
+                {
+                  value: "11",
+                  label: "11",
+                },
+                {
+                  value: "12",
+                  label: "12",
+                },
+              ]}
+              value={valiMonth}
+              placeholder="Select Valid Month"
+              onChange={(value) => setValiMonth(value)}
+            />
           </Grid.Col>
         </Grid>
         <Space h="20px" />

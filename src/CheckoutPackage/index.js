@@ -16,6 +16,8 @@ import {
   Text,
   Card,
   LoadingOverlay,
+  NumberInput,
+  NativeSelect,
 } from "@mantine/core";
 import { useNavigate } from "react-router-dom";
 import { notifications } from "@mantine/notifications";
@@ -28,6 +30,7 @@ import "./checkout.css";
 import { fetchPackage } from "../api/package";
 import { createOrderPackage } from "../api/orderspackage";
 import HeaderClient from "../HeaderClient";
+import { fetchUsers } from "../api/auth";
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -37,12 +40,21 @@ export default function Checkout() {
   const [loading, setLoading] = useState(false);
   const [selectedClient, setSelectedClient] = useState("");
   const [selectedPackage, setSelectedPackage] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState();
+  const [payby, setPayby] = useState("");
   const [installmentMonth, setInstallmentMonth] = useState("");
+  const [discount, setDiscount] = useState(0);
+  const [discountRate, setDiscountRate] = useState(0);
+  const [selectedUser, setSelectedUser] = useState("");
 
   const { data: clients = [] } = useQuery({
     queryKey: ["clients"],
     queryFn: () => fetchClients(id),
+  });
+
+  const { data: users = [] } = useQuery({
+    queryKey: ["users"],
+    queryFn: () => fetchUsers(),
   });
 
   const { isLoading, data: packages } = useQuery({
@@ -65,22 +77,10 @@ export default function Checkout() {
     },
   });
 
-  const calculateTax = () => {
-    if (packages && selectedPackage) {
-      const selectedPackageObject = packages.find(
-        (p) => p._id === selectedPackage
-      );
-      if (selectedPackageObject) {
-        const totalPrice = parseFloat(selectedPackageObject.price);
-        const taxAmount = totalPrice * 0.08; // Calculate 8% of the total price
-        return taxAmount.toFixed(2); // Ensure taxAmount has two decimal places
-      } else {
-        return "0.00"; // Or any default value if the package is not found
-      }
-    } else {
-      return "0.00"; // Handle the case when packages or selectedPackage is undefined
-    }
-  };
+  const selectedUserName =
+    selectedUser && users
+      ? users.find((c) => c._id === selectedUser)?.name || ""
+      : "-";
 
   const calculateTotal = () => {
     if (packages && selectedPackage) {
@@ -99,36 +99,73 @@ export default function Checkout() {
     }
   };
 
+  const calculateTotalWithOutTax = () => {
+    if (packages && selectedPackage) {
+      const selectedPackageObject = packages.find(
+        (p) => p._id === selectedPackage
+      );
+      if (selectedPackageObject) {
+        return parseFloat(selectedPackageObject.price).toFixed(2);
+      } else {
+        return "0.00";
+      }
+    } else {
+      return "0.00";
+    }
+  };
+
+  const calculateTotalWithDiscount = () => {
+    let total = parseFloat(calculateTotalWithOutTax());
+
+    // Apply discount rate if provided
+    if (discountRate > 0) {
+      total -= (total * discountRate) / 100;
+    }
+
+    // Apply direct discount value if provided
+    if (discount > 0) {
+      total -= discount;
+    }
+
+    return total.toFixed(2);
+  };
+
+  const calculateTax = () => {
+    const totalWithDiscount = parseFloat(calculateTotalWithDiscount());
+    const taxAmount = totalWithDiscount * 0.08; // Calculate 8% of the discounted total
+    return taxAmount.toFixed(2); // Ensure taxAmount has two decimal places
+  };
+
+  const calculateFinalTotal = () => {
+    const totalWithDiscount = parseFloat(calculateTotalWithDiscount());
+    const taxAmount = parseFloat(calculateTax());
+    const finalTotal = totalWithDiscount + taxAmount;
+    return finalTotal.toFixed(2);
+  };
+
   const calculateOutstanding = () => {
-    const price = calculateTotal();
-    return price;
+    const finalTotal = calculateFinalTotal();
+    return finalTotal;
   };
 
   const outstandingAmount = calculateOutstanding();
-  let installmentAmount1Percentage = 0;
-  let installmentAmount2Percentage = 0;
-  let installmentAmount3Percentage = 0;
 
-  if (installmentMonth === 1) {
-    installmentAmount1Percentage = 1; // 100%
-  } else if (installmentMonth === 2) {
-    installmentAmount1Percentage = 0.6; // 60%
-    installmentAmount2Percentage = 0.4; // 40%
-  } else if (installmentMonth === 3) {
-    installmentAmount1Percentage = 0.4; // 40%
-    installmentAmount2Percentage = 0.3; // 30%
-    installmentAmount3Percentage = 0.3; // 30%
-  }
+  const installmentAmount = useMemo(() => {
+    if (installmentMonth && outstandingAmount) {
+      return (outstandingAmount / installmentMonth).toFixed(2);
+    }
+    return "0.00";
+  }, [installmentMonth, outstandingAmount]);
 
-  const installmentAmount1 = (
-    outstandingAmount * installmentAmount1Percentage
-  ).toFixed(2);
-  const installmentAmount2 = (
-    outstandingAmount * installmentAmount2Percentage
-  ).toFixed(2);
-  const installmentAmount3 = (
-    outstandingAmount * installmentAmount3Percentage
-  ).toFixed(2);
+  useEffect(() => {
+    if (discountRate > 0) {
+      const total = parseFloat(calculateTotalWithOutTax());
+      const discountValue = (total * discountRate) / 100;
+      setDiscount(discountValue);
+    } else {
+      setDiscount(0);
+    }
+  }, [discountRate]);
 
   const doCheckout = () => {
     let error = false;
@@ -151,16 +188,19 @@ export default function Checkout() {
         data: JSON.stringify({
           paid_at: new Date(),
           packages: selectedPackage,
-          totalPrice: calculateTotal(),
+          totalPrice: calculateTotalWithDiscount(),
           clientId: selectedClient,
           paymentMethod: paymentMethod,
+          payby: payby,
           installmentMonth: installmentMonth,
-          installmentAmount1: installmentAmount1,
-          installmentAmount2: installmentAmount2,
-          installmentAmount3: installmentAmount3,
-          outstanding: calculatedOutstanding,
+          installmentAmount: installmentAmount,
+          outstanding: calculateOutstanding(),
           tax: calculateTax(),
           user: currentUser._id,
+          staffId: selectedUser,
+          staffName: selectedUserName,
+          discountRate: discountRate,
+          discount: discount,
           year: new Date().getFullYear(), // Get the current year
           month: new Date().getMonth() + 1, // Get the current month (adding 1 because months are zero-based)
           day: new Date().getDate(), // Get the current day of the month
@@ -211,29 +251,52 @@ export default function Checkout() {
           <Select
             data={[
               {
-                value: "Full payment",
-                label: "Full payment",
+                value: "Bank Transfer",
+                label: "Bank Transfer",
               },
               {
-                value: "Installment",
-                label: "Installment",
+                value: "Cash",
+                label: "Cash",
+              },
+              {
+                value: "Credit Card",
+                label: "Credit Card",
+              },
+              {
+                value: "Debit Card",
+                label: "Debit Card",
+              },
+              {
+                value: "E-Wallet",
+                label: "E-Wallet",
+              },
+
+              {
+                value: "Merchant Services",
+                label: "Merchant Services",
               },
             ]}
-            value={paymentMethod}
+            value={payby}
             label="Select a Payment Method"
-            onChange={(value) => setPaymentMethod(value)}
-            placeholder="Select a Package"
+            onChange={(value) => setPayby(value)}
+            placeholder="Payment Method"
+          />
+          <Space h="20px" />
+          <NativeSelect
+            data={["Full payment", "Installment"]}
+            label="Gender"
+            value={paymentMethod}
+            onChange={(event) => setPaymentMethod(event.target.value)}
           />
           {paymentMethod === "Installment" && (
             <Grid.Col span={12}>
-              {/* Installment month selection and installment amounts */}
-              <Group position="apart">
-                <Grid.Col span={5}>
+              <Group>
+                <Grid.Col span={4}>
                   <Select
                     data={[
-                      { value: 1, label: 1 },
-                      { value: 2, label: 2 },
                       { value: 3, label: 3 },
+                      { value: 6, label: 6 },
+                      { value: 12, label: 12 },
                     ]}
                     value={installmentMonth}
                     label="Select a Installment Month"
@@ -241,43 +304,58 @@ export default function Checkout() {
                     placeholder="Select a Package"
                   />
                 </Grid.Col>
-                <Grid.Col span={5}>
+                <Grid.Col span={3}>
                   <TextInput
                     label="Outstanding  "
                     value={outstandingAmount}
                     readOnly
                   />
+                </Grid.Col>{" "}
+                <Grid.Col span={4}>
+                  <TextInput
+                    label="Month Installment Amount"
+                    value={installmentAmount}
+                    readOnly
+                  />
                 </Grid.Col>
-              </Group>
-              <Space h="5px" />
-              <Grid.Col span={12}>
-                <Group position="apart">
-                  {" "}
-                  <Grid.Col span={3}>
-                    <TextInput
-                      label="First Month"
-                      value={installmentAmount1}
-                      readOnly
-                    />
-                  </Grid.Col>
-                  <Grid.Col span={3}>
-                    <TextInput
-                      label="Second Month"
-                      value={installmentAmount2}
-                      readOnly
-                    />
-                  </Grid.Col>
-                  <Grid.Col span={3}>
-                    <TextInput
-                      label="Thrid Month"
-                      value={installmentAmount3}
-                      readOnly
-                    />
-                  </Grid.Col>
-                </Group>
-              </Grid.Col>
+              </Group>{" "}
+              <Space h="15px" />
+              <Divider />
             </Grid.Col>
           )}
+          <Grid.Col span={12}>
+            <Group position="apart">
+              <Grid.Col span={5}>
+                <NumberInput
+                  value={discountRate}
+                  precision={0}
+                  label="Discount Rate"
+                  max={100}
+                  onChange={setDiscountRate}
+                />
+              </Grid.Col>
+              <Grid.Col span={5}>
+                <NumberInput
+                  value={discount}
+                  label="Discount"
+                  precision={2}
+                  onChange={(value) => setDiscount(value)}
+                />
+              </Grid.Col>
+              <Grid.Col span={12}>
+                <Select
+                  label="Select Staff"
+                  data={users.map((user) => ({
+                    value: user._id,
+                    label: `${user.name} (${user.ic})`,
+                  }))}
+                  value={selectedUser}
+                  onChange={(value) => setSelectedUser(value)}
+                  placeholder="Select a Staff"
+                />
+              </Grid.Col>
+            </Group>
+          </Grid.Col>
           <Space h="20px" />
           <Text fz={12} fw={500}>
             *Pls Check member package correct or not, only press Confirm
@@ -334,6 +412,14 @@ export default function Checkout() {
             </Group>
             <Group position="apart">
               <Text fw={500} px="1px" precision={2}>
+                Discount :
+              </Text>
+              <Text weight="bolder" px="1px" precision={2}>
+                {discount.toFixed(2)}
+              </Text>
+            </Group>
+            <Group position="apart">
+              <Text fw={500} px="1px" precision={2}>
                 Service Tax (8%):
               </Text>
               <Text weight="bolder" px="1px" precision={2}>
@@ -345,7 +431,7 @@ export default function Checkout() {
                 Total Amount (MYR):
               </Text>
               <Text fw={900} px="1px" precision={2}>
-                {calculateTotal()}
+                {calculateFinalTotal()}
               </Text>
             </Group>
           </Card>

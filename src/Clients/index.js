@@ -217,6 +217,7 @@ export default function Clients() {
                 <th>PRICE</th>
                 <th>Sessions</th>
                 <th>category</th>
+                <th>Package Validity Period</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -252,6 +253,13 @@ export default function Clients() {
                           }}
                         >
                           {p.category}
+                        </td>
+                        <td
+                          style={{
+                            borderTop: "none",
+                          }}
+                        >
+                          {p.valiMonth}
                         </td>
                         <td
                           style={{

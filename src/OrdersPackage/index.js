@@ -12,7 +12,7 @@ import {
   Checkbox,
   Modal,
   NumberInput,
-  TextInput,
+  ScrollArea,
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useParams } from "react-router-dom";
@@ -29,6 +29,7 @@ import {
   updateOrderPackage,
 } from "../api/orderspackage";
 import HeaderClient from "../HeaderClient";
+import { openConfirmModal } from "@mantine/modals";
 
 export default function OrdersPackage() {
   const [cookies] = useCookies(["currentUser"]);
@@ -78,6 +79,21 @@ export default function OrdersPackage() {
     },
   });
 
+  const handleDeleteClick = (orderId) => {
+    openConfirmModal({
+      title: "Confirm Deletion",
+      children: <Text>Are you sure you want to delete this order?</Text>,
+      labels: { confirm: "Confirm", cancel: "Cancel" },
+      confirmProps: { color: "red" },
+      onConfirm: () => {
+        deleteMutation.mutate({
+          id: orderId,
+          token: currentUser ? currentUser.token : "",
+        });
+      },
+    });
+  };
+
   const openModal = (orderId) => {
     setOpenedOrderId(orderId);
   };
@@ -93,7 +109,7 @@ export default function OrdersPackage() {
         queryKey: ["orderspackage"],
       });
       notifications.show({
-        title: "Status Edited",
+        title: "Outstanding Updated",
         color: "green",
       });
     },
@@ -155,9 +171,10 @@ export default function OrdersPackage() {
     const day = String(paidDate.getDate()).padStart(2, "0");
     const formattedDate = `${year}-${month}-${day}`;
     doc.text(`Date: ${formattedDate}`, 160, groupYPos + 5);
-    if (user && user.name) {
-      doc.text(`Staff: ${user.name}`, 160, groupYPos + 10);
-    }
+    doc.text(`Staff: ${order.staffName}`, 160, groupYPos + 10);
+    // if (user && user.name) {
+    //   doc.text(`Staff: ${user.name}`, 160, groupYPos + 10);
+    // }
     doc.setLineWidth(0.3);
     doc.line(10, 75, 200, 75);
     const group2YPos = 45;
@@ -234,10 +251,14 @@ export default function OrdersPackage() {
     doc.setLineWidth(0.2);
     doc.line(12, 203, 198, 203);
     doc.setFontSize(10);
-    doc.text(`Service Tax (8%) :`, 140, 208);
-    doc.text(`${order.tax.toFixed(2)}`, 184.2, 208);
+    doc.text(`Discount:`, 140, 208);
+    doc.text(`${order.discount ? order.discount.toFixed(2) : 0.0}`, 182.3, 208);
     doc.text(`Total Price:`, 140, 213);
     doc.text(`${order.totalPrice.toFixed(2)}`, 182.3, 213);
+    // doc.text(`Service Tax (8%) :`, 140, 208);
+    // doc.text(`${order.tax.toFixed(2)}`, 184.2, 208);
+    // doc.text(`Total Price:`, 140, 213);
+    // doc.text(`${order.totalPrice.toFixed(2)}`, 182.3, 213);
 
     doc.setFontSize(10);
     const tableY2Pos = 235;
@@ -321,27 +342,28 @@ export default function OrdersPackage() {
         <HeaderClient title="My Orders" page="orders" />
         <Space h="35px" />
         <LoadingOverlay visible={isLoading} />
-        <Table>
-          <thead>
-            <tr>
-              <th>Invoice No</th>
-              <th>Member Details</th>
-              <th>Package</th>
-              <th>Amount</th>
-              <th>Payment Method</th>
-              <th>First Payment</th>
-              <th>Second Payment</th>
-              <th>Third Payment</th>
-              <th>Outstanding</th>
-              <th>Update</th>
-              <th>Sales Date</th>
-              <th>Sales By</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {orderspackage
-              ? orderspackage.map((o) => {
+        <ScrollArea h={800} width="100%" offsetScrollbars scrollHideDelay={300}>
+          <Table>
+            <thead>
+              <tr>
+                <th>Invoice No</th>
+                <th>Member Details</th>
+                <th>Package</th>
+                <th>Amount</th>
+                <th>Pay By</th>
+                <th>Payment Method</th>
+                <th>Installment Month</th>
+                <th>Monthly Payment</th>
+                <th>Outstanding</th>
+                <th>Update</th>
+                <th>Sales Date</th>
+                <th>Sales By</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {orderspackage ? (
+                orderspackage.map((o) => {
                   const client = clients.find(
                     (client) => client._id === o.clientId
                   );
@@ -367,7 +389,6 @@ export default function OrdersPackage() {
                         <br />
                         HP: {client ? client.clientPhonenumber : ""}
                       </td>
-
                       <td>
                         {o.packages.map((p, index) => (
                           <div key={index}>
@@ -376,12 +397,17 @@ export default function OrdersPackage() {
                         ))}
                       </td>
                       <td>MYR {o.totalPrice.toFixed(2)}</td>
+                      <td>{o.payby}</td>
                       <td>{o.paymentMethod}</td>
-                      <td>{o.installmentAmount1}</td>
-                      <td>{o.installmentAmount2}</td>
-                      <td>{o.installmentAmount3}</td>
-                      <td>{o.outstanding ? o.outstanding.toFixed(2) : 0.0}</td>
-
+                      <td>{o.installmentMonth ? o.installmentMonth : "-"}</td>
+                      <td>
+                        {o.installmentAmount
+                          ? o.installmentAmount.toFixed(2)
+                          : "0.00"}
+                      </td>
+                      <td>
+                        {o.outstanding ? o.outstanding.toFixed(2) : "0.00"}
+                      </td>
                       <td>
                         {o.outstanding ? (
                           <>
@@ -470,7 +496,6 @@ export default function OrdersPackage() {
                           }}
                         />{" "} */}
                       </td>
-
                       <td>{formattedDate}</td>
                       <td> {user && user.name}</td>
                       <td>
@@ -503,12 +528,7 @@ export default function OrdersPackage() {
                                 color="red"
                                 radius="xl"
                                 size="sm"
-                                onClick={() => {
-                                  deleteMutation.mutate({
-                                    id: o._id,
-                                    token: currentUser ? currentUser.token : "",
-                                  });
-                                }}
+                                onClick={() => handleDeleteClick(o._id)}
                               >
                                 <MdDelete
                                   style={{
@@ -527,9 +547,14 @@ export default function OrdersPackage() {
                     </tr>
                   );
                 })
-              : null}
-          </tbody>
-        </Table>
+              ) : (
+                <>
+                  <Text>No Order Yet</Text>
+                </>
+              )}
+            </tbody>
+          </Table>
+        </ScrollArea>
         <Space h="20px" />
       </Container>
     </>

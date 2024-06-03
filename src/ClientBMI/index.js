@@ -92,12 +92,7 @@ export default function Video({ videoSource }) {
       !clientKg ||
       !clientBodyAge ||
       !clientVFat ||
-      !clientBodyFat ||
-      !clientImageFront ||
-      !clientImageBack ||
-      !clientImageLeft ||
-      !clientImageRight ||
-      !clientVideo
+      !clientBodyFat
     ) {
       notifications.show({
         title: "Please fill in all fields",
@@ -245,8 +240,12 @@ export default function Video({ videoSource }) {
     setViewImage(src);
   };
 
+  const handleVideoClick = (src) => {
+    setViewVideo(src);
+  };
+
   return (
-    <Container>
+    <Container fluid>
       <LoadingOverlay visible={isLoading} />
       <Space h={20} />
       <div>
@@ -659,7 +658,7 @@ export default function Video({ videoSource }) {
         </Container>
       </Modal>
       <Space h={50} />
-      <ScrollArea h={400} width="100%" offsetScrollbars scrollHideDelay={300}>
+      <ScrollArea h={800} width="100%" offsetScrollbars scrollHideDelay={300}>
         {clientBmis && clientBmis.length > 0 ? (
           <Table
             highlightOnHover
@@ -676,6 +675,11 @@ export default function Video({ videoSource }) {
                 <th>Body Age</th>
                 <th>V Fat</th>
                 <th>Body Fat</th>
+                <th>Front</th>
+                <th>Back</th>
+                <th>Left</th>
+                <th>Right</th>
+                <th>Video</th>
                 <th>Add By</th>
               </tr>
             </thead>
@@ -691,7 +695,112 @@ export default function Video({ videoSource }) {
                   <td>{cBMI.clientKg}</td>
                   <td>{cBMI.clientBodyAge}</td>
                   <td>{cBMI.clientVFat}</td>
-                  <td>{cBMI.clientBodyFat}</td>
+                  <td>{cBMI.clientBodyFat}</td>{" "}
+                  <td>
+                    {cBMI.clientImageFront ? (
+                      <Image
+                        src={API_URL + "/" + cBMI.clientImageFront}
+                        alt="Client Front Image"
+                        height={120}
+                        width={100}
+                        onClick={() =>
+                          handleImageClick(
+                            API_URL + "/" + cBMI.clientImageFront
+                          )
+                        }
+                      />
+                    ) : (
+                      <Image
+                        src={noDataIcon}
+                        alt="Client Front Image"
+                        height={120}
+                        width={100}
+                      />
+                    )}
+                  </td>
+                  <td>
+                    {cBMI.clientImageBack ? (
+                      <Image
+                        src={API_URL + "/" + cBMI.clientImageBack}
+                        alt="Client Back Image"
+                        height={120}
+                        width={100}
+                        onClick={() =>
+                          handleImageClick(API_URL + "/" + cBMI.clientImageBack)
+                        }
+                      />
+                    ) : (
+                      <Image
+                        src={noDataIcon}
+                        alt="Client Back Image"
+                        height={120}
+                        width={100}
+                      />
+                    )}
+                  </td>
+                  <td>
+                    {cBMI.clientImageLeft ? (
+                      <Image
+                        src={API_URL + "/" + cBMI.clientImageLeft}
+                        alt="Client Left Image"
+                        height={120}
+                        width={100}
+                        onClick={() =>
+                          handleImageClick(API_URL + "/" + cBMI.clientImageLeft)
+                        }
+                      />
+                    ) : (
+                      <Image
+                        src={noDataIcon}
+                        alt="Client Left Image"
+                        height={120}
+                        width={100}
+                      />
+                    )}
+                  </td>
+                  <td>
+                    {cBMI.clientImageRight ? (
+                      <Image
+                        src={API_URL + "/" + cBMI.clientImageRight}
+                        alt="Client Right Image"
+                        height={120}
+                        width={100}
+                        onClick={() =>
+                          handleImageClick(
+                            API_URL + "/" + cBMI.clientImageRight
+                          )
+                        }
+                      />
+                    ) : (
+                      <Image
+                        src={noDataIcon}
+                        alt="Client Right Image"
+                        height={120}
+                        width={100}
+                      />
+                    )}
+                  </td>
+                  <td>
+                    {cBMI.clientVideo ? (
+                      <video
+                        src={API_URL + "/" + cBMI.clientVideo}
+                        height={120}
+                        width={200}
+                        controls
+                        onClick={() =>
+                          handleVideoClick(API_URL + "/" + cBMI.clientVideo)
+                        }
+                        style={{ cursor: "pointer" }}
+                      />
+                    ) : (
+                      <Image
+                        src={noDataIcon}
+                        alt="Client Right Image"
+                        height={120}
+                        width={200}
+                      />
+                    )}
+                  </td>
                   <td>{cBMI.user.name}</td>
                 </tr>
               ))}
@@ -699,11 +808,11 @@ export default function Video({ videoSource }) {
           </Table>
         ) : (
           <>
-            <Image height={380} src={noDataIcon} width="100%" />
+            <Image height={450} src={noDataIcon} width="100%" />
           </>
         )}
       </ScrollArea>
-      <Space h={50} />
+      {/* <Space h={50} />
 
       <Title>Front Image</Title>
       <Grid columns={12}>
@@ -929,11 +1038,14 @@ export default function Video({ videoSource }) {
             </Grid.Col>
           </>
         )}
-      </Grid>
+      </Grid> */}
 
       <Modal opened={!!viewImage} onClose={() => setViewImage("")}>
         <Image src={viewImage} alt="Enlarged" />
       </Modal>
+      {/* <Modal opened={!!viewVideo} onClose={() => setViewVideo("")}>
+        <video src={viewVideo} height={100} width={1200} controls />
+      </Modal> */}
     </Container>
   );
 }

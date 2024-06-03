@@ -14,6 +14,7 @@ import {
   Divider,
   Grid,
   Text,
+  NumberInput,
 } from "@mantine/core";
 import { useNavigate } from "react-router-dom";
 import { notifications } from "@mantine/notifications";
@@ -24,6 +25,7 @@ import { useCookies } from "react-cookie";
 import { useParams } from "react-router-dom";
 import { fetchClients } from "../api/client";
 import "./checkout.css";
+import { fetchUsers } from "../api/auth";
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -40,10 +42,18 @@ export default function Checkout() {
   const [status, setStatus] = useState("Pending");
   const [invoiceNo, setInvoiceNo] = useState("");
   const [orderNumber, setOrderNumber] = useState(1);
+  const [discount, setDiscount] = useState(0);
+  const [discountRate, setDiscountRate] = useState(0);
   const [paid_at, setPaid_At] = useState("");
+  const [selectedUser, setSelectedUser] = useState("");
   const { data: cart = [] } = useQuery({
     queryKey: ["cart"],
     queryFn: getCartItems,
+  });
+
+  const { data: users = [] } = useQuery({
+    queryKey: ["users"],
+    queryFn: () => fetchUsers(),
   });
 
   const { data: clients = [] } = useQuery({
@@ -57,16 +67,20 @@ export default function Checkout() {
     return total;
   };
 
-  const calculateTax = () => {
-    const taxRate = 0.08; // 8%
-    const total = calculateTotal();
-    return total * taxRate;
-  };
+  const calculateTotalWithDiscount = () => {
+    let total = calculateTotal();
 
-  const calculateTotalWithTax = () => {
-    const total = calculateTotal();
-    const taxAmount = calculateTax();
-    return total + taxAmount;
+    // Apply discount rate if provided
+    if (discountRate > 0) {
+      total = total - (total * discountRate) / 100;
+    }
+
+    // Apply direct discount value if provided
+    if (discount > 0) {
+      total = total - discount;
+    }
+
+    return total;
   };
 
   const createOrderMutation = useMutation({
@@ -85,12 +99,27 @@ export default function Checkout() {
     },
   });
 
+  const selectedUserName =
+    selectedUser && users
+      ? users.find((c) => c._id === selectedUser)?.name || ""
+      : "-";
+
+  useEffect(() => {
+    if (discountRate > 0) {
+      const total = calculateTotal();
+      const discountValue = (total * discountRate) / 100;
+      setDiscount(discountValue);
+    } else {
+      setDiscount(0);
+    }
+  }, [discountRate]);
+
   const doCheckout = () => {
     let error = false;
 
-    if (error) {
+    if (!selectedUser) {
       notifications.show({
-        title: error,
+        title: "Please fill in all fields",
         color: "red",
       });
     } else {
@@ -105,10 +134,13 @@ export default function Checkout() {
           paid_at: new Date(),
           products: cart.map((i) => i._id),
           description: cart.map((i) => i.name).join(", "),
-          tax: calculateTax().toFixed(2),
-          totalPrice: calculateTotalWithTax().toFixed(2),
+          discountRate: discountRate,
+          discount: discount,
+          totalPrice: calculateTotalWithDiscount().toFixed(2),
           clientId: selectedClient,
           user: currentUser._id,
+          staffId: selectedUser,
+          staffName: selectedUserName,
         }),
         token: currentUser ? currentUser.token : "",
       });
@@ -221,46 +253,23 @@ export default function Checkout() {
                   <td colSpan={6}>No Product Add Yet!</td>
                 </tr>
               )}
+              <Space h={50} />
               <tr>
-                <td
-                  style={{
-                    borderTop: "none",
-                  }}
-                >
-                  Price:
+                <td>Discount:</td>
+                <td>
+                  <NumberInput
+                    value={discountRate}
+                    precision={0}
+                    max={100}
+                    onChange={setDiscountRate}
+                  />
                 </td>
-                <td
-                  style={{
-                    borderTop: "none",
-                  }}
-                ></td>
-                <td
-                  style={{
-                    borderTop: "none",
-                  }}
-                >
-                  {calculateTotal().toFixed(2)}
-                </td>
-              </tr>{" "}
-              <tr>
-                <td
-                  style={{
-                    borderTop: "none",
-                  }}
-                >
-                  Service Tax (8%):
-                </td>
-                <td
-                  style={{
-                    borderTop: "none",
-                  }}
-                ></td>
-                <td
-                  style={{
-                    borderTop: "none",
-                  }}
-                >
-                  {calculateTax().toFixed(2)}
+                <td>
+                  <NumberInput
+                    value={discount}
+                    precision={2}
+                    onChange={(value) => setDiscount(value)}
+                  />
                 </td>
               </tr>
               <tr>
@@ -269,20 +278,33 @@ export default function Checkout() {
                     borderTop: "none",
                   }}
                 >
-                  Total Amount:
-                </td>
-                <td
-                  style={{
-                    borderTop: "none",
-                  }}
-                ></td>
+                  Select a Staff:
+                </td>{" "}
                 <td
                   style={{
                     borderTop: "none",
                   }}
                 >
-                  {calculateTotalWithTax().toFixed(2)}
-                </td>
+                  <Select
+                    data={users.map((user) => ({
+                      value: user._id,
+                      label: `${user.name} (${user.ic})`,
+                    }))}
+                    value={selectedUser}
+                    onChange={(value) => setSelectedUser(value)}
+                    placeholder="Select a Staff"
+                  />
+                </td>{" "}
+                <td
+                  style={{
+                    borderTop: "none",
+                  }}
+                ></td>
+              </tr>
+              <tr>
+                <td>Total Amount:</td>
+                <td></td>
+                <td>{calculateTotalWithDiscount().toFixed(2)}</td>
               </tr>{" "}
             </tbody>
           </Table>
@@ -300,7 +322,7 @@ export default function Checkout() {
           >
             Pay
             <Text weight="bolder" px="5px" precision={2}>
-              ${calculateTotalWithTax().toFixed(2)}
+              ${calculateTotalWithDiscount().toFixed(2)}
             </Text>{" "}
             Now
           </Button>

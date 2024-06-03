@@ -10,6 +10,7 @@ import {
   NumberInput,
   Button,
   Group,
+  Select,
 } from "@mantine/core";
 
 import { Link, useNavigate, useParams } from "react-router-dom";
@@ -29,6 +30,7 @@ function PackageAdd() {
   const [price, setPrice] = useState("");
   const [category, setCategory] = useState("");
   const [sessions, setSessions] = useState();
+  const [valiMonth, setValiMonth] = useState();
 
   // create mutation
   const createMutation = useMutation({
@@ -57,6 +59,7 @@ function PackageAdd() {
         sessions: sessions,
         price: price,
         category: category,
+        valiMonth: valiMonth,
       }),
       token: currentUser ? currentUser.token : "",
     });
@@ -85,20 +88,96 @@ function PackageAdd() {
                 onChange={setPrice}
               />
             </Grid.Col>
-            <Grid.Col span={4}>
-              <TextInput
-                value={category}
-                placeholder="Enter the category here"
-                label="Category"
-                onChange={(event) => setCategory(event.target.value)}
-              />
-            </Grid.Col>{" "}
-            <Grid.Col span={4}>
-              <NumberInput
-                value={sessions}
-                label="sessions"
-                precision={0}
-                onChange={setSessions}
+            <Grid.Col span={12}>
+              <Grid.Col span={3}>
+                <Select
+                  label="Categroy"
+                  data={[
+                    {
+                      value: "Junior Coach",
+                      label: "Junior Coach",
+                    },
+                    {
+                      value: "Senior Coach",
+                      label: "Senior Coach",
+                    },
+                    {
+                      value: "Advanced Senior Coach",
+                      label: "Advanced Senior Coach",
+                    },
+                    {
+                      value: "Master Coach",
+                      label: "Master Coach",
+                    },
+                  ]}
+                  value={category}
+                  placeholder="Enter the category here"
+                  onChange={(value) => setCategory(value)}
+                />
+              </Grid.Col>{" "}
+              <Grid.Col span={4}>
+                <NumberInput
+                  value={sessions}
+                  label="sessions"
+                  precision={0}
+                  onChange={setSessions}
+                />
+              </Grid.Col>
+              <Select
+                label="Vali Month"
+                data={[
+                  {
+                    value: "1",
+                    label: "1",
+                  },
+                  {
+                    value: "2",
+                    label: "2",
+                  },
+                  {
+                    value: "3",
+                    label: "3",
+                  },
+                  {
+                    value: "4",
+                    label: "4",
+                  },
+                  {
+                    value: "5",
+                    label: "5",
+                  },
+                  {
+                    value: "6",
+                    label: "6",
+                  },
+                  {
+                    value: "7",
+                    label: "7",
+                  },
+                  {
+                    value: "8",
+                    label: "8",
+                  },
+                  {
+                    value: "9",
+                    label: "9",
+                  },
+                  {
+                    value: "10",
+                    label: "10",
+                  },
+                  {
+                    value: "11",
+                    label: "11",
+                  },
+                  {
+                    value: "12",
+                    label: "12",
+                  },
+                ]}
+                value={valiMonth}
+                placeholder="Select Valid Month"
+                onChange={(value) => setValiMonth(value)}
               />
             </Grid.Col>
           </Grid.Col>
