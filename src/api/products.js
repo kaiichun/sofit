@@ -29,7 +29,7 @@ export const addProductImage = async (file) => {
   formData.append("productImage", file);
   const response = await axios({
     method: "POST",
-    url: API_URL + "/products",
+    url: API_URL + "/productImage",
     headers: {
       "Content-Type": "multipart/form-data",
     },

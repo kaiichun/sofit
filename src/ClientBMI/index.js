@@ -327,11 +327,7 @@ export default function Video({ videoSource }) {
               <Text>Front</Text>
               {clientImageFront && clientImageFront !== "" ? (
                 <>
-                  <Image
-                    src={API_URL + "/" + clientImageFront}
-                    width="100%"
-                    height="300px"
-                  />
+                  <Image src={API_URL + "/" + clientImageFront} h={280} />
                   <Button
                     color="dark"
                     mt="15px"
@@ -345,7 +341,7 @@ export default function Video({ videoSource }) {
                 <Dropzone
                   multiple={false}
                   accept={IMAGE_MIME_TYPE}
-                  h={300}
+                  h={280}
                   onDrop={(files) => {
                     handleClientFrontImageUpload(files);
                   }}
@@ -390,11 +386,7 @@ export default function Video({ videoSource }) {
               <Text>Back</Text>
               {clientImageBack && clientImageBack !== "" ? (
                 <>
-                  <Image
-                    src={API_URL + "/" + clientImageBack}
-                    width="100%"
-                    height="300px"
-                  />
+                  <Image src={API_URL + "/" + clientImageBack} h={280} />
                   <Button
                     color="dark"
                     mt="15px"
@@ -408,7 +400,7 @@ export default function Video({ videoSource }) {
                 <Dropzone
                   multiple={false}
                   accept={IMAGE_MIME_TYPE}
-                  h={300}
+                  h={280}
                   onDrop={(files) => {
                     handleClientBackImageUpload(files);
                   }}
@@ -452,11 +444,7 @@ export default function Video({ videoSource }) {
               <Text>Left</Text>
               {clientImageLeft && clientImageLeft !== "" ? (
                 <>
-                  <Image
-                    src={API_URL + "/" + clientImageLeft}
-                    width="100%"
-                    height="300px"
-                  />
+                  <Image src={API_URL + "/" + clientImageLeft} h={280} />
                   <Button
                     color="dark"
                     mt="15px"
@@ -470,7 +458,7 @@ export default function Video({ videoSource }) {
                 <Dropzone
                   multiple={false}
                   accept={IMAGE_MIME_TYPE}
-                  h={300}
+                  h={280}
                   onDrop={(files) => {
                     handleClientLeftImageUpload(files);
                   }}
@@ -515,11 +503,7 @@ export default function Video({ videoSource }) {
               <Text>Right</Text>
               {clientImageRight && clientImageRight !== "" ? (
                 <>
-                  <Image
-                    src={API_URL + "/" + clientImageRight}
-                    width="100%"
-                    height="300px"
-                  />
+                  <Image src={API_URL + "/" + clientImageRight} h={280} />
                   <Button
                     color="dark"
                     mt="15px"
@@ -533,7 +517,7 @@ export default function Video({ videoSource }) {
                 <Dropzone
                   multiple={false}
                   accept={IMAGE_MIME_TYPE}
-                  h={300}
+                  h={280}
                   onDrop={(files) => {
                     handleClientRightImageUpload(files);
                   }}
@@ -581,7 +565,7 @@ export default function Video({ videoSource }) {
                   <Card radius="md">
                     <Title order={6}>Video Preview</Title>
                     <Group>
-                      <video ref={videoRef} controls height="300" width="100%">
+                      <video ref={videoRef} controls height="280" width="100%">
                         <source
                           src={API_URL + "/" + clientVideo}
                           type="video/mp4"
@@ -608,7 +592,7 @@ export default function Video({ videoSource }) {
                     multiple={false}
                     accept={[MIME_TYPES.mp4]}
                     border="none"
-                    h={300}
+                    h={280}
                     onDrop={(files) => {
                       handleClientVideoUpload(files);
                     }}

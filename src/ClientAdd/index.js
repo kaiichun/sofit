@@ -139,8 +139,7 @@ const ClientAdd = () => {
       !clientEmergencycontact ||
       !clientAddress1 ||
       !clientZip ||
-      !clientState ||
-      !clientImage
+      !clientState
     ) {
       notifications.show({
         title: "Please fill in all fields",
@@ -227,11 +226,7 @@ const ClientAdd = () => {
             <Grid.Col span={4}>
               {clientImage && clientImage !== "" ? (
                 <>
-                  <Image
-                    src={API_URL + "/" + clientImage}
-                    width="100%"
-                    height="180px"
-                  />
+                  <Image src={API_URL + "/" + clientImage} w={180} h={180} />
                   <Group position="center">
                     <Button
                       color="dark"
@@ -279,7 +274,7 @@ const ClientAdd = () => {
 
                   <Group position="center">
                     <Text size="xs" c="dimmed">
-                      upload Product Image
+                      upload Client Image
                     </Text>
                   </Group>
                   <Space h="50px" />

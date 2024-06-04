@@ -95,7 +95,7 @@ export default function PostAdd() {
   const uploadPostImageMutation = useMutation({
     mutationFn: uploadPostImage,
     onSuccess: (data) => {
-      setPostimage(data.postimage_url);
+      setPostimage(data.postImage_url);
     },
     onError: (error) => {
       notifications.show({

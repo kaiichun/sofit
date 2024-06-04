@@ -283,11 +283,7 @@ const ClientEdit = () => {
           <Grid.Col span={4}>
             {clientImage && clientImage !== "" ? (
               <>
-                <Image
-                  src={API_URL + "/" + clientImage}
-                  width="100%"
-                  height="180px"
-                />
+                <Image src={API_URL + "/" + clientImage} w={180} h={180} />
                 <Group position="center">
                   <Button
                     color="dark"

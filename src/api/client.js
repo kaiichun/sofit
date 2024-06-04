@@ -34,7 +34,7 @@ export const addClientImage = async (file) => {
   formData.append("clientImage", file);
   const response = await axios({
     method: "POST",
-    url: API_URL + "/clients",
+    url: API_URL + "/clientImage",
     headers: {
       "Content-Type": "multipart/form-data",
     },
