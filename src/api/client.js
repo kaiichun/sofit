@@ -34,7 +34,7 @@ export const addClientImage = async (file) => {
   formData.append("clientImage", file);
   const response = await axios({
     method: "POST",
-    url: API_URL + "/clientImage",
+    url: API_URL + "/clientimage",
     headers: {
       "Content-Type": "multipart/form-data",
     },
@@ -44,17 +44,25 @@ export const addClientImage = async (file) => {
 };
 
 export const uploadClientImage = async (file) => {
-  const formData = new FormData();
-  formData.append("clientImage", file);
-  const response = await axios({
-    method: "POST",
-    url: API_URL + "/uploadClientImage",
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-    data: formData,
-  });
-  return response.data;
+  try {
+    const formData = new FormData();
+    formData.append("clientImage", file);
+    const response = await axios({
+      method: "POST",
+      url: API_URL + "/uploadClientImage",
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+      data: formData,
+    });
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Error uploading image:",
+      error.response?.data?.message || error.message
+    );
+    throw error;
+  }
 };
 
 export const addClientDetails = async ({ data, token = "" }) => {

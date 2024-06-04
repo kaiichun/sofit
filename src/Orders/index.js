@@ -26,6 +26,7 @@ import { fetchOrders, deleteOrder, updateOrder } from "../api/order";
 import { fetchClients } from "../api/client";
 import logo from "../Logo/sofit-black.png";
 import { fetchUsers } from "../api/auth";
+import noImageIcon from "../Logo/no_image.png";
 
 export default function Orders() {
   const [cookies] = useCookies(["currentUser"]);
@@ -327,20 +328,15 @@ export default function Orders() {
                                   <>
                                     <Image
                                       src={API_URL + "/" + product.productImage}
-                                      width={40}
-                                      height={40}
+                                      width={50}
+                                      height={50}
                                       styles={{
                                         borderRadius: "20px",
                                       }}
                                     />
                                   </>
                                 ) : (
-                                  <Image
-                                    src={
-                                      "https://www.aachifoods.com/templates/default-new/images/no-prd.jpg"
-                                    }
-                                    width="50px"
-                                  />
+                                  <Image src={noImageIcon} width="50px" />
                                 )}
                                 <p>{product.name}</p>
                               </Group>

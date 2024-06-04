@@ -26,6 +26,7 @@ import { useParams } from "react-router-dom";
 import { fetchClients } from "../api/client";
 import "./checkout.css";
 import { fetchUsers } from "../api/auth";
+import noImageIcon from "../Logo/no_image.png";
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -222,12 +223,7 @@ export default function Checkout() {
                             />
                           </>
                         ) : (
-                          <Image
-                            src={
-                              "https://static.vecteezy.com/system/resources/previews/005/337/799/original/icon-image-not-found-free-vector.jpg"
-                            }
-                            width="100px"
-                          />
+                          <Image src={noImageIcon} width="100px" />
                         )}
                       </td>
                       <td

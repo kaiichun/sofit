@@ -175,7 +175,7 @@ const ClientEdit = () => {
     mutationFn: uploadClientImage,
     onSuccess: (data) => {
       setUploading(false);
-      setClientImage(data.clientImage_url);
+      setClientImage(data.clientImage_url); // Ensure this is the correct response key
     },
     onError: (error) => {
       setUploading(false);
@@ -186,7 +186,8 @@ const ClientEdit = () => {
     },
   });
 
-  const handleProductImageUpload = (files) => {
+  const handleImageUpload = (files) => {
+    setUploading(true);
     uploadClientImageMutation.mutate(files[0]);
   };
 
@@ -281,7 +282,7 @@ const ClientEdit = () => {
         <Grid grow gutter="xs">
           <Grid.Col span={4}></Grid.Col>
           <Grid.Col span={4}>
-            {clientImage && clientImage !== "" ? (
+            {clientImage ? (
               <>
                 <Image src={API_URL + "/" + clientImage} w={180} h={180} />
                 <Group position="center">
@@ -298,10 +299,8 @@ const ClientEdit = () => {
               <Dropzone
                 multiple={false}
                 accept={IMAGE_MIME_TYPE}
-                h={180}
-                onDrop={(files) => {
-                  handleProductImageUpload(files);
-                }}
+                height={180}
+                onDrop={(files) => handleImageUpload(files)}
               >
                 <Space h="25px" />
                 <Group position="center">

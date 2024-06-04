@@ -123,7 +123,28 @@ const ClientAdd = () => {
   });
 
   const handleImageUpload = (files) => {
-    uploadMutation.mutate(files[0]);
+    if (files.length === 0) {
+      notifications.show({
+        title: "No file selected",
+        color: "red",
+      });
+      return;
+    }
+    uploadMutation.mutate(files[0], {
+      onSuccess: (data) => {
+        setClientImage(data.clientImage_url);
+        notifications.show({
+          title: "Image uploaded successfully",
+          color: "green",
+        });
+      },
+      onError: (error) => {
+        notifications.show({
+          title: error.response?.data?.message || "Image upload failed",
+          color: "red",
+        });
+      },
+    });
   };
 
   const handleSubmit = () => {
@@ -242,6 +263,7 @@ const ClientAdd = () => {
                   multiple={false}
                   accept={IMAGE_MIME_TYPE}
                   h={180}
+                  w={180}
                   onDrop={(files) => {
                     handleImageUpload(files);
                   }}
@@ -271,7 +293,6 @@ const ClientAdd = () => {
                       Drag or drop image files to upload
                     </Text>
                   </Group>
-
                   <Group position="center">
                     <Text size="xs" c="dimmed">
                       upload Client Image

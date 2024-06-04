@@ -20,6 +20,7 @@ import { Checkbox } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { Link } from "react-router-dom";
 import Header from "../Header";
+import noImageIcon from "../Logo/no_image.png";
 
 export default function Cart() {
   const queryClient = useQueryClient();
@@ -152,12 +153,7 @@ export default function Cart() {
                         />
                       </>
                     ) : (
-                      <Image
-                        src={
-                          "https://www.aachifoods.com/templates/default-new/images/no-prd.jpg"
-                        }
-                        width="100px"
-                      />
+                      <Image src={noImageIcon} width="100px" />
                     )}
                   </td>
                   <td> {c.name}</td>

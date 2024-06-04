@@ -74,118 +74,117 @@ function Staffs() {
 
   return (
     <>
-      {(isAdminBranch || isAdminHQ) && (
-        <Container>
-          <Group position="apart" mb="lg">
-            <select
-              value={perPage}
-              onChange={(event) => {
-                setPerPage(parseInt(event.target.value));
-                setCurrentPage(1);
-              }}
-            >
-              <option value="100">100 Per Page</option>
-              <option value="50">50 Per Page</option>
-              <option value="20">20 Per Page</option>
-              <option value="9">9 Per Page</option>
-              <option value="6">6 Per Page</option>
-            </select>
-            <TextInput
-              w="200px"
-              value={searchTerm}
-              placeholder="Search"
-              onChange={(event) => setSearchTerm(event.target.value)}
-            />
-          </Group>
-
-          <SimpleGrid
-            cols={3}
-            spacing="lg"
-            breakpoints={[
-              { maxWidth: 980, cols: 4, spacing: "md" },
-              { maxWidth: 755, cols: 3, spacing: "sm" },
-              { maxWidth: 600, cols: 2, spacing: "sm" },
-            ]}
+      <Container>
+        <Group position="apart" mb="lg">
+          <select
+            value={perPage}
+            onChange={(event) => {
+              setPerPage(parseInt(event.target.value));
+              setCurrentPage(1);
+            }}
           >
-            {currentStaff ? (
-              currentStaff.map((u) => {
-                return (
-                  <Card shadow="sm" p="lg" radius="md" withBorder key={u.id}>
-                    <Card.Section>
-                      <Image
-                        src={API_URL + "/" + u.image}
-                        height={220}
-                        alt="Norway"
-                      />
-                    </Card.Section>
+            <option value="100">100 Per Page</option>
+            <option value="50">50 Per Page</option>
+            <option value="20">20 Per Page</option>
+            <option value="9">9 Per Page</option>
+            <option value="6">6 Per Page</option>
+          </select>
+          <TextInput
+            w="200px"
+            value={searchTerm}
+            placeholder="Search"
+            onChange={(event) => setSearchTerm(event.target.value)}
+          />
+        </Group>
 
-                    <Group position="apart" mt="md" mb="xs">
-                      <Text fw={700}>{u.name}</Text>
-
-                      <Button
-                        variant="outline"
-                        color="red"
-                        radius="md"
-                        size="xs"
-                        compact
-                        component={Link}
-                        to={`/edit-info/${u._id}`}
-                      >
-                        EDIT
-                      </Button>
-                    </Group>
-                    <Text size="sm" color="dimmed">
-                      Phone Number: {u.phonenumber}
-                    </Text>
-                    <Text size="sm" color="dimmed">
-                      Department: {u.department}
-                    </Text>
-                    {isAdminHQ && (
-                      <Text size="sm" color="dimmed">
-                        Role: {u.role}
-                      </Text>
-                    )}
-                    {isAdminHQ && (
-                      <Text size="sm" color="dimmed">
-                        Branch:{" "}
-                        {
-                          branchs.find((branch) => branch._id === u.branch)
-                            ?.branch
-                        }
-                      </Text>
-                    )}
-                  </Card>
-                );
-              })
-            ) : (
-              <Text>User Not Found</Text>
-            )}
-          </SimpleGrid>
-          <Space h={20} />
-          <div>
-            <span
-              style={{
-                marginRight: "10px",
-              }}
-            >
-              Page {currentPage} of {totalPages.length}
-            </span>
-            {totalPages.map((page) => {
+        <SimpleGrid
+          cols={3}
+          spacing="lg"
+          breakpoints={[
+            { maxWidth: 980, cols: 4, spacing: "md" },
+            { maxWidth: 755, cols: 3, spacing: "sm" },
+            { maxWidth: 600, cols: 2, spacing: "sm" },
+          ]}
+        >
+          {currentStaff ? (
+            currentStaff.map((u) => {
               return (
-                <Button
-                  key={page}
-                  variant="default"
-                  onClick={() => {
-                    setCurrentPage(page);
-                  }}
-                >
-                  {page}
-                </Button>
+                <Card shadow="sm" p="lg" radius="md" withBorder key={u.id}>
+                  <Card.Section>
+                    <Image
+                      src={API_URL + "/" + u.image}
+                      height={220}
+                      alt="Norway"
+                    />
+                  </Card.Section>
+
+                  <Group position="apart" mt="md" mb="xs">
+                    <Text fw={700}>{u.name}</Text>
+
+                    <Button
+                      variant="outline"
+                      color="red"
+                      radius="md"
+                      size="xs"
+                      compact
+                      component={Link}
+                      to={`/edit-info/${u._id}`}
+                    >
+                      EDIT
+                    </Button>
+                  </Group>
+                  <Text size="sm" color="dimmed">
+                    Phone Number: {u.phonenumber}
+                  </Text>
+                  <Text size="sm" color="dimmed">
+                    Department: {u.department}
+                  </Text>
+                  {isAdminHQ && (
+                    <Text size="sm" color="dimmed">
+                      Role: {u.role}
+                    </Text>
+                  )}
+                  {isAdminHQ && (
+                    <Text size="sm" color="dimmed">
+                      Branch:{" "}
+                      {
+                        branchs.find((branch) => branch._id === u.branch)
+                          ?.branch
+                      }
+                    </Text>
+                  )}
+                </Card>
               );
-            })}
-          </div>
-        </Container>
-      )}
+            })
+          ) : (
+            <Text>User Not Found</Text>
+          )}
+        </SimpleGrid>
+        <Space h={20} />
+        <div>
+          <span
+            style={{
+              marginRight: "10px",
+            }}
+          >
+            Page {currentPage} of {totalPages.length}
+          </span>
+          {totalPages.map((page) => {
+            return (
+              <Button
+                key={page}
+                variant="default"
+                onClick={() => {
+                  setCurrentPage(page);
+                }}
+              >
+                {page}
+              </Button>
+            );
+          })}
+        </div>
+      </Container>
+
       <Group position="apart" mt={300}>
         <div></div>
         <div>

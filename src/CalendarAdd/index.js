@@ -12,6 +12,7 @@ import {
   Divider,
   Button,
   Group,
+  NativeSelect,
   Select,
 } from "@mantine/core";
 import { TimeInput, DatePickerInput } from "@mantine/dates";
@@ -71,7 +72,7 @@ export default function CalendarAdd() {
   });
 
   const handleSubmit = () => {
-    if (!title || !startDate || !startTime || !endTime) {
+    if (!startDate || !startTime || !endTime) {
       notifications.show({
         title: "Please fill in all fields",
         color: "red",
@@ -134,11 +135,21 @@ export default function CalendarAdd() {
       </Title>
       <Space h="50px" />
       <Card withBorder shadow="md" p="20px">
-        <TextInput
+        <Select
+          label="Select a content"
+          data={[
+            {
+              value: "Coaching",
+              label: "Coaching",
+            },
+            {
+              value: "Meeting",
+              label: "Meeting",
+            },
+          ]}
           value={title}
-          placeholder="Enter the title here"
-          label="Title"
-          onChange={(event) => setTitle(event.target.value)}
+          placeholder="Select a content"
+          onChange={(value) => setTitle(value)}
         />
         <Space h="20px" />
         <Divider />

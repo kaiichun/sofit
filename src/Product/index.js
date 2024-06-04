@@ -27,6 +27,7 @@ import { useCookies } from "react-cookie";
 import { API_URL } from "../api/data";
 import Header from "../Header";
 import noProductLogo from "../Logo/no-product.png";
+import noImage from "../Logo/no_image.png";
 
 function Products() {
   const [cookies] = useCookies(["currentUser"]);
@@ -222,11 +223,15 @@ function Products() {
               <Grid.Col key={product._id} lg={4} md={6} sm={6} xs={6}>
                 <Card withBorder shadow="sm" p="20px">
                   <Card.Section>
-                    <Image
-                      src={API_URL + "/" + product.productImage}
-                      height={220}
-                      alt="Product"
-                    />
+                    {product.productImage ? (
+                      <Image
+                        src={API_URL + "/" + product.productImage}
+                        alt="Product Image"
+                        height={300}
+                      />
+                    ) : (
+                      <Image src={noImage} alt="Product Image" height={300} />
+                    )}
                   </Card.Section>
                   <Title order={5}>{product.name}</Title>
                   <Space h="20px" />
