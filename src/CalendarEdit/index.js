@@ -50,7 +50,7 @@ export default function CalendarEdit() {
       setTitle(data.title);
       setStartTime(data.startTime);
       setStartDate(new Date(data.appointmentDate));
-      setEndTime(data.endTime);
+      // setEndTime(data.endTime);
       setSelectedUser(data.user.id);
       setSelectedMember(data.clientId);
     },
@@ -106,7 +106,7 @@ export default function CalendarEdit() {
         user: selectedUser,
         appointmentDate: startDate,
         startTime: startTime,
-        endTime: endTime,
+        // endTime: endTime,
       }),
       token: currentUser ? currentUser.token : "",
     });
@@ -155,11 +155,21 @@ export default function CalendarEdit() {
       </Title>
       <Space h="50px" />
       <Card withBorder shadow="md" p="20px">
-        <TextInput
+        <Select
+          label="Select a content"
+          data={[
+            {
+              value: "Coaching",
+              label: "Coaching",
+            },
+            {
+              value: "Meeting",
+              label: "Meeting",
+            },
+          ]}
           value={title}
-          placeholder="Enter the title here"
-          label="Title"
-          onChange={(event) => setTitle(event.target.value)}
+          placeholder="Select a content"
+          onChange={(value) => setTitle(value)}
         />
         <Space h="20px" />
         <Divider />
@@ -216,14 +226,14 @@ export default function CalendarEdit() {
             label="Start time"
             placeholder="Select a time"
           />
-          <Space w="xl" />
+          {/* <Space w="xl" />
           <Select
             data={appTime}
             value={endTime}
             onChange={(value) => setEndTime(value)}
             label="End time"
             placeholder="Select a time"
-          />
+          /> */}
           <Space w="xl" />
         </Group>
         <Space h="50px" />

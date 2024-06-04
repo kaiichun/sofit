@@ -101,32 +101,51 @@ export default function CalendarAll() {
   useEffect(() => {
     let newList = calendar ? [...calendar] : [];
 
+    // Function to get date part as a string
+    const getDateString = (date) => {
+      return date.toLocaleDateString("en-CA"); // Use ISO format YYYY-MM-DD
+    };
+
+    // Get today's date without time component
+    const today = getDateString(new Date());
+
     // Filter events to include only those with startDate on or after today
-    const today = new Date();
-    newList = newList.filter(
-      (event) => new Date(event.appointmentDate) >= today
-    );
+    newList = newList.filter((event) => {
+      const eventDate = getDateString(new Date(event.appointmentDate));
+      return eventDate >= today;
+    });
 
     if (searchTerm) {
+      const lowerSearchTerm = searchTerm.toLowerCase();
       newList = newList.filter((i) => {
         const clientName = i.clientId?.clientName?.toLowerCase() || "";
         const userName = i.user?.name?.toLowerCase() || "";
-        const startDate = i.appointmentDate?.toLowerCase() || "";
+
+        let startDate = "";
+        if (i.appointmentDate) {
+          const date = new Date(i.appointmentDate);
+          if (!isNaN(date.getTime())) {
+            startDate = getDateString(date);
+          }
+        }
+
         const startTime = i.startTime?.toLowerCase() || "";
+        const title = i.title?.toLowerCase() || "";
 
         return (
-          clientName.indexOf(searchTerm.toLowerCase()) >= 0 ||
-          userName.indexOf(searchTerm.toLowerCase()) >= 0 ||
-          startDate.indexOf(searchTerm.toLowerCase()) >= 0 ||
-          startTime.indexOf(searchTerm.toLowerCase()) >= 0
+          clientName.indexOf(lowerSearchTerm) >= 0 ||
+          userName.indexOf(lowerSearchTerm) >= 0 ||
+          startDate.indexOf(lowerSearchTerm) >= 0 ||
+          startTime.indexOf(lowerSearchTerm) >= 0 ||
+          title.indexOf(lowerSearchTerm) >= 0
         );
       });
     }
 
     // Sort events by startDate and startTime in ascending order
     newList.sort((a, b) => {
-      const dateA = new Date(a.appointmentDate);
-      const dateB = new Date(b.appointmentDate);
+      const dateA = getDateString(new Date(a.appointmentDate));
+      const dateB = getDateString(new Date(b.appointmentDate));
 
       if (dateA < dateB) return -1;
       if (dateA > dateB) return 1;
@@ -201,9 +220,7 @@ export default function CalendarAll() {
                 return (
                   <tr key={o._id}>
                     <td>{startFormattedDate}</td>
-                    <td>
-                      {o.startTime} - to - {o.endTime}
-                    </td>
+                    <td>{o.startTime}</td>
 
                     <td>{user ? user.name : "Trainee not found"}</td>
                     <td>{client ? client.clientName : "Client not found"}</td>
@@ -216,12 +233,12 @@ export default function CalendarAll() {
                           radius="md"
                           component={Link}
                           to={"/calendar-edit/" + o._id}
-                          disabled={
-                            new Date(o.appointmentDate) <
-                            new Date(
-                              new Date().setDate(new Date().getDate() + 1)
-                            )
-                          }
+                          //   disabled={
+                          //     new Date(o.appointmentDate) <
+                          //     new Date(
+                          //       new Date().setDate(new Date().getDate() + 1)
+                          //     )
+                          //   }
                         >
                           Change
                         </Button>

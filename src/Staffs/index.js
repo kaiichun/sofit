@@ -15,6 +15,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useCookies } from "react-cookie";
 import { fetchBranch, fetchUsers } from "../api/auth";
 import { API_URL } from "../api/data";
+
 function Staffs() {
   const [currentPage, setCurrentPage] = useState(1);
   const [perPage, setPerPage] = useState(100);
@@ -23,31 +24,23 @@ function Staffs() {
   const [currentStaff, setCurrentStaff] = useState([]);
   const [cookies] = useCookies(["currentUser"]);
   const { currentUser } = cookies;
-  // const queryClient = useQueryClient();
+
   const { data: users = [] } = useQuery({
     queryKey: ["users"],
     queryFn: () => fetchUsers(currentUser ? currentUser.token : ""),
   });
 
-  const { data: branchs } = useQuery({
+  const { data: branchs = [] } = useQuery({
     queryKey: ["fetchB"],
     queryFn: () => fetchBranch(),
   });
 
   const isAdminBranch = useMemo(() => {
-    return cookies &&
-      cookies.currentUser &&
-      cookies.currentUser.role === "Admin Branch"
-      ? true
-      : false;
+    return cookies?.currentUser?.role === "Admin Branch";
   }, [cookies]);
 
   const isAdminHQ = useMemo(() => {
-    return cookies &&
-      cookies.currentUser &&
-      cookies.currentUser.role === "Admin HQ"
-      ? true
-      : false;
+    return cookies?.currentUser?.role === "Admin HQ";
   }, [cookies]);
 
   useEffect(() => {
@@ -106,8 +99,11 @@ function Staffs() {
             { maxWidth: 600, cols: 2, spacing: "sm" },
           ]}
         >
-          {currentStaff ? (
+          {currentStaff.length > 0 ? (
             currentStaff.map((u) => {
+              const branchName = branchs?.find(
+                (branch) => branch._id === u.branch
+              )?.branch;
               return (
                 <Card shadow="sm" p="lg" radius="md" withBorder key={u.id}>
                   <Card.Section>
@@ -144,13 +140,9 @@ function Staffs() {
                       Role: {u.role}
                     </Text>
                   )}
-                  {isAdminHQ && (
+                  {isAdminHQ && branchName && (
                     <Text size="sm" color="dimmed">
-                      Branch:{" "}
-                      {
-                        branchs.find((branch) => branch._id === u.branch)
-                          ?.branch
-                      }
+                      Branch: {branchName}
                     </Text>
                   )}
                 </Card>

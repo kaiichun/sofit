@@ -105,11 +105,29 @@ function PackageAdd() {
               />
             </Grid.Col>
             <Grid.Col span={4}>
-              <TextInput
+              <Select
+                label="Categroy"
+                data={[
+                  {
+                    value: "Junior Coach",
+                    label: "Junior Coach",
+                  },
+                  {
+                    value: "Senior Coach",
+                    label: "Senior Coach",
+                  },
+                  {
+                    value: "Advanced Senior Coach",
+                    label: "Advanced Senior Coach",
+                  },
+                  {
+                    value: "Master Coach",
+                    label: "Master Coach",
+                  },
+                ]}
                 value={category}
                 placeholder="Enter the category here"
-                label="Category"
-                onChange={(event) => setCategory(event.target.value)}
+                onChange={(value) => setCategory(value)}
               />
             </Grid.Col>{" "}
             <Grid.Col span={4}>

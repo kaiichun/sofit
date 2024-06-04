@@ -188,7 +188,7 @@ export default function Checkout() {
         data: JSON.stringify({
           paid_at: new Date(),
           packages: selectedPackage,
-          totalPrice: calculateTotalWithDiscount(),
+          totalPrice: calculateFinalTotal(),
           clientId: selectedClient,
           paymentMethod: paymentMethod,
           payby: payby,

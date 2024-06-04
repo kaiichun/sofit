@@ -69,20 +69,31 @@ export default function Checkout() {
   };
 
   const calculateTotalWithDiscount = () => {
-    let total = calculateTotal();
+    let total = parseFloat(calculateTotal());
 
-    // Apply discount rate if provided
+    // Calculate discount based on either discount rate or direct discount value
+    let discountAmount;
     if (discountRate > 0) {
-      total = total - (total * discountRate) / 100;
+      discountAmount = (total * discountRate) / 100;
+    } else {
+      discountAmount = parseFloat(discount);
     }
 
-    // Apply direct discount value if provided
-    if (discount > 0) {
-      total = total - discount;
-    }
+    // Apply discount
+    total -= discountAmount;
 
     return total;
   };
+
+  useEffect(() => {
+    if (discountRate > 0) {
+      const total = parseFloat(calculateTotal());
+      const discountValue = (total * discountRate) / 100;
+      setDiscount(discountValue);
+    } else {
+      setDiscount(0);
+    }
+  }, [discountRate]);
 
   const createOrderMutation = useMutation({
     mutationFn: createOrder,
@@ -104,16 +115,6 @@ export default function Checkout() {
     selectedUser && users
       ? users.find((c) => c._id === selectedUser)?.name || ""
       : "-";
-
-  useEffect(() => {
-    if (discountRate > 0) {
-      const total = calculateTotal();
-      const discountValue = (total * discountRate) / 100;
-      setDiscount(discountValue);
-    } else {
-      setDiscount(0);
-    }
-  }, [discountRate]);
 
   const doCheckout = () => {
     let error = false;

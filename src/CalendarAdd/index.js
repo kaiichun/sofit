@@ -72,7 +72,7 @@ export default function CalendarAdd() {
   });
 
   const handleSubmit = () => {
-    if (!startDate || !startTime || !endTime) {
+    if (!startDate || !startTime) {
       notifications.show({
         title: "Please fill in all fields",
         color: "red",
@@ -85,7 +85,7 @@ export default function CalendarAdd() {
           user: selectedUser,
           appointmentDate: startDate,
           startTime: startTime,
-          endTime: endTime,
+          //   endTime: endTime,
         }),
         token: currentUser ? currentUser.token : "",
       });
@@ -206,14 +206,14 @@ export default function CalendarAdd() {
             placeholder="Select a time"
           />
           <Space w="xl" />
-          <Select
+          {/* <Select
             data={appTime}
             value={endTime} // <-- Problematic line
             onChange={(value) => setEndTime(value)}
             label="End time"
             placeholder="Select a time"
           />
-          <Space w="xl" />
+          <Space w="xl" /> */}
         </Group>
         <Space h="50px" />
         <Button color="green" fullWidth onClick={handleSubmit}>
