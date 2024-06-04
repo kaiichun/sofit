@@ -20,9 +20,16 @@ import {
   Text,
   Title,
 } from "@mantine/core";
-import { fetchClients, addClientDetails } from "../api/client";
+import {
+  fetchClients,
+  addClientDetails,
+  uploadClientImage,
+} from "../api/client";
+import { IoImages } from "react-icons/io5";
 import HeaderClient from "../HeaderClient";
 import { fetchUsers } from "../api/auth";
+import { API_URL } from "../api/data";
+import { Dropzone, IMAGE_MIME_TYPE } from "@mantine/dropzone";
 
 const ClientAdd = () => {
   const [cookies, setCookie] = useCookies(["currentUser"]);
@@ -75,6 +82,7 @@ const ClientAdd = () => {
   const [packageValidityPeriod, setPackageValidityPeriod] = useState();
   const [clientPackage, setClientPackage] = useState("");
   const [sessions, setSessions] = useState("");
+  const [clientImage, setClientImage] = useState("");
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [visible, { toggle }] = useDisclosure(false);
@@ -101,6 +109,23 @@ const ClientAdd = () => {
     },
   });
 
+  const uploadMutation = useMutation({
+    mutationFn: uploadClientImage,
+    onSuccess: (data) => {
+      setClientImage(data.clientImage_url);
+    },
+    onError: (error) => {
+      notifications.show({
+        title: error.response.data.message,
+        color: "red",
+      });
+    },
+  });
+
+  const handleImageUpload = (files) => {
+    uploadMutation.mutate(files[0]);
+  };
+
   const handleSubmit = () => {
     if (
       !clientName ||
@@ -114,7 +139,8 @@ const ClientAdd = () => {
       !clientEmergencycontact ||
       !clientAddress1 ||
       !clientZip ||
-      !clientState
+      !clientState ||
+      !clientImage
     ) {
       notifications.show({
         title: "Please fill in all fields",
@@ -167,6 +193,7 @@ const ClientAdd = () => {
           medQ5: medQ5,
           addNote: addNote,
           coachId: selectedUser,
+          clientImage: clientImage,
         }),
         token: currentUser ? currentUser.token : "",
       });
@@ -196,6 +223,70 @@ const ClientAdd = () => {
           <Space h="20px" />
 
           <Grid grow gutter="xs">
+            <Grid.Col span={4}></Grid.Col>
+            <Grid.Col span={4}>
+              {clientImage && clientImage !== "" ? (
+                <>
+                  <Image
+                    src={API_URL + "/" + clientImage}
+                    width="100%"
+                    height="180px"
+                  />
+                  <Group position="center">
+                    <Button
+                      color="dark"
+                      mt="-50px"
+                      onClick={() => setClientImage("")}
+                    >
+                      Remove
+                    </Button>
+                  </Group>
+                </>
+              ) : (
+                <Dropzone
+                  multiple={false}
+                  accept={IMAGE_MIME_TYPE}
+                  h={180}
+                  onDrop={(files) => {
+                    handleImageUpload(files);
+                  }}
+                >
+                  <Space h="25px" />
+                  <Group position="center">
+                    <Group
+                      style={{
+                        width: "50px",
+                        height: "50px",
+                        background: "#C1C2C5",
+                        borderRadius: "50%",
+                      }}
+                    >
+                      <IoImages
+                        style={{
+                          margin: "auto",
+                          width: "30px",
+                          height: "30px",
+                        }}
+                      />
+                    </Group>
+                  </Group>
+                  <Space h="20px" />
+                  <Group position="center">
+                    <Text size="xs" fw={500}>
+                      Drag or drop image files to upload
+                    </Text>
+                  </Group>
+
+                  <Group position="center">
+                    <Text size="xs" c="dimmed">
+                      upload Product Image
+                    </Text>
+                  </Group>
+                  <Space h="50px" />
+                </Dropzone>
+              )}
+            </Grid.Col>
+            <Grid.Col span={4}></Grid.Col>
             <Grid.Col span={4}>
               <TextInput
                 value={clientName}

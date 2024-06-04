@@ -21,11 +21,11 @@ import {
   Title,
   Avatar,
 } from "@mantine/core";
+import { API_URL } from "../api/data";
 import { Dropzone, IMAGE_MIME_TYPE } from "@mantine/dropzone";
 import { fetchBranch, registerUser, uploadProfileImage } from "../api/auth";
 import sofitLogo from "../Logo/sofit-black.png";
 import { MdUpload } from "react-icons/md";
-import { API_URL } from "../api/data";
 
 const StaffAdd = () => {
   const [cookies, setCookie] = useCookies(["currentUser"]);

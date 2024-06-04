@@ -29,6 +29,34 @@ export const getClients = async (id) => {
   return response.data;
 };
 
+export const addClientImage = async (file) => {
+  const formData = new FormData();
+  formData.append("clientImage", file);
+  const response = await axios({
+    method: "POST",
+    url: API_URL + "/clients",
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+    data: formData,
+  });
+  return response.data;
+};
+
+export const uploadClientImage = async (file) => {
+  const formData = new FormData();
+  formData.append("clientImage", file);
+  const response = await axios({
+    method: "POST",
+    url: API_URL + "/uploadClientImage",
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+    data: formData,
+  });
+  return response.data;
+};
+
 export const addClientDetails = async ({ data, token = "" }) => {
   const response = await axios({
     method: "POST",

@@ -23,6 +23,8 @@ import { useState, useEffect, useMemo } from "react";
 import { deletePackage, fetchPackage } from "../api/package";
 import { notifications } from "@mantine/notifications";
 import { fetchUsers } from "../api/auth";
+import { API_URL } from "../api/data";
+import noImageIcon from "../Logo/no_image.png";
 
 export default function Clients() {
   const [cookies] = useCookies(["currentUser"]);
@@ -414,6 +416,22 @@ export default function Clients() {
                           : "initial",
                     }}
                   >
+                    <Card.Section>
+                      {c.clientImage ? (
+                        <Image
+                          src={API_URL + "/" + c.clientImage}
+                          alt="Client Image"
+                          height={300}
+                        />
+                      ) : (
+                        <Image
+                          src={noImageIcon}
+                          alt="Client = Image"
+                          height={300}
+                        />
+                      )}
+                    </Card.Section>
+
                     <Group position="apart" mb="xs">
                       <Text fw={700}>{c.clientName}</Text>
                     </Group>
@@ -519,6 +537,21 @@ export default function Clients() {
                             : "initial",
                       }}
                     >
+                      <Card.Section>
+                        {c.clientImage ? (
+                          <Image
+                            src={API_URL + "/" + c.clientImage}
+                            alt="Client Image"
+                            height={300}
+                          />
+                        ) : (
+                          <Image
+                            src={noImageIcon}
+                            alt="Client Image"
+                            height={300}
+                          />
+                        )}
+                      </Card.Section>
                       <Group position="apart" mb="xs">
                         <Text fw={700}>{c.clientName}</Text>
                       </Group>

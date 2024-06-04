@@ -33,7 +33,7 @@ export const addPostDetails = async ({ data, token = "" }) => {
 
 export const addPostImage = async (file) => {
   const formData = new FormData();
-  formData.append("postimage", file);
+  formData.append("postImage", file);
   const response = await axios({
     method: "POST",
     url: API_URL + "/posts",
@@ -47,10 +47,10 @@ export const addPostImage = async (file) => {
 
 export const uploadPostImage = async (file) => {
   const formData = new FormData();
-  formData.append("postimage", file);
+  formData.append("postImage", file);
   const response = await axios({
     method: "POST",
-    url: API_URL + "/uploadpostimage",
+    url: API_URL + "/uploadPostImage",
     headers: {
       "Content-Type": "multipart/form-data",
     },

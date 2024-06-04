@@ -20,13 +20,18 @@ import {
   Text,
   Title,
   Avatar,
+  Image,
 } from "@mantine/core";
 import { TimeInput, DatePickerInput } from "@mantine/dates";
+import { IoImages } from "react-icons/io5";
+import HeaderClient from "../HeaderClient";
+import { API_URL } from "../api/data";
 import { Dropzone, IMAGE_MIME_TYPE } from "@mantine/dropzone";
-import { getClients, updateClient } from "../api/client";
+import { getClients, updateClient, uploadClientImage } from "../api/client";
 import sofitLogo from "../Logo/sofit-black.png";
 import { MdUpload } from "react-icons/md";
 import { fetchUsers } from "../api/auth";
+import { uploadProductImage } from "../api/products";
 
 const ClientEdit = () => {
   const [cookies] = useCookies(["currentUser"]);
@@ -81,7 +86,8 @@ const ClientEdit = () => {
   const [packageValidityPeriod, setPackageValidityPeriod] = useState(null);
   const [clientPackage, setClientPackage] = useState();
   const [sessions, setSessions] = useState();
-
+  const [clientImage, setClientImage] = useState("");
+  const [uploading, setUploading] = useState(false);
   const [visible, { toggle }] = useDisclosure(false);
   const { isLoading } = useQuery({
     queryKey: ["videos", id],
@@ -132,6 +138,7 @@ const ClientEdit = () => {
       setcoachId(data.coachId);
       setSessions(data.sessions);
       setPackageValidityPeriod(new Date(data.packageValidityPeriod));
+      setClientImage(data.clientImage);
     },
   });
 
@@ -164,10 +171,28 @@ const ClientEdit = () => {
     },
   });
 
+  const uploadClientImageMutation = useMutation({
+    mutationFn: uploadClientImage,
+    onSuccess: (data) => {
+      setUploading(false);
+      setClientImage(data.clientImage_url);
+    },
+    onError: (error) => {
+      setUploading(false);
+      notifications.show({
+        title: error.response.data.message,
+        color: "red",
+      });
+    },
+  });
+
+  const handleProductImageUpload = (files) => {
+    uploadClientImageMutation.mutate(files[0]);
+  };
+
   const handleUpdateClient = async (event) => {
     // 阻止表单默认提交行为
     event.preventDefault();
-    // 使用updateMutation mutation来更新商品信息
     updateMutation.mutate({
       id: id,
       data: JSON.stringify({
@@ -220,6 +245,7 @@ const ClientEdit = () => {
         coachName: selectedUserName,
         sessions: sessions,
         packageValidityPeriod: packageValidityPeriod,
+        clientImage: clientImage,
       }),
       token: currentUser ? currentUser.token : "",
     });
@@ -253,6 +279,70 @@ const ClientEdit = () => {
         </Text>
         <Space h="20px" />
         <Grid grow gutter="xs">
+          <Grid.Col span={4}></Grid.Col>
+          <Grid.Col span={4}>
+            {clientImage && clientImage !== "" ? (
+              <>
+                <Image
+                  src={API_URL + "/" + clientImage}
+                  width="100%"
+                  height="180px"
+                />
+                <Group position="center">
+                  <Button
+                    color="dark"
+                    mt="-50px"
+                    onClick={() => setClientImage("")}
+                  >
+                    Remove
+                  </Button>
+                </Group>
+              </>
+            ) : (
+              <Dropzone
+                multiple={false}
+                accept={IMAGE_MIME_TYPE}
+                h={180}
+                onDrop={(files) => {
+                  handleProductImageUpload(files);
+                }}
+              >
+                <Space h="25px" />
+                <Group position="center">
+                  <Group
+                    style={{
+                      width: "50px",
+                      height: "50px",
+                      background: "#C1C2C5",
+                      borderRadius: "50%",
+                    }}
+                  >
+                    <IoImages
+                      style={{
+                        margin: "auto",
+                        width: "30px",
+                        height: "30px",
+                      }}
+                    />
+                  </Group>
+                </Group>
+                <Space h="20px" />
+                <Group position="center">
+                  <Text size="xs" fw={500}>
+                    Drag or drop image files to upload
+                  </Text>
+                </Group>
+
+                <Group position="center">
+                  <Text size="xs" c="dimmed">
+                    upload Product Image
+                  </Text>
+                </Group>
+                <Space h="50px" />
+              </Dropzone>
+            )}
+          </Grid.Col>
+          <Grid.Col span={4}></Grid.Col>
           <Grid.Col span={4}>
             <TextInput
               value={clientName}

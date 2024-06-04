@@ -26,10 +26,10 @@ export const addProduct = async ({ data, token = "" }) => {
 };
 export const addProductImage = async (file) => {
   const formData = new FormData();
-  formData.append("image", file);
+  formData.append("productImage", file);
   const response = await axios({
     method: "POST",
-    url: API_URL + "/images",
+    url: API_URL + "/products",
     headers: {
       "Content-Type": "multipart/form-data",
     },
@@ -40,10 +40,10 @@ export const addProductImage = async (file) => {
 
 export const uploadProductImage = async (file) => {
   const formData = new FormData();
-  formData.append("image", file);
+  formData.append("productImage", file);
   const response = await axios({
     method: "POST",
-    url: API_URL + "/images",
+    url: API_URL + "/uploadProductImage",
     headers: {
       "Content-Type": "multipart/form-data",
     },

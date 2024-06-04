@@ -30,7 +30,7 @@ export default function PostAdd() {
   const navigate = useNavigate();
   const { id } = useParams();
   const [content, setContent] = useState("");
-  const [postimage, setPostimage] = useState("");
+  const [postImage, setPostimage] = useState("");
   const [status, setStatus] = useState("Draft");
   const [cookies, setCookies, removeCookies] = useCookies(["currentUser"]);
   const { currentUser } = cookies;
@@ -67,7 +67,7 @@ export default function PostAdd() {
       data: JSON.stringify({
         content: content,
         status: status,
-        postimage: postimage,
+        postImage: postImage,
       }),
       token: currentUser ? currentUser.token : "",
     });
@@ -197,11 +197,11 @@ export default function PostAdd() {
               </div>
 
               <Space h="40px" />
-              {postimage && postimage !== "" ? (
+              {postImage && postImage !== "" ? (
                 <Group>
                   <div>
                     <Image
-                      src={API_URL + "/" + postimage}
+                      src={API_URL + "/" + postImage}
                       width="100%"
                       height="180px"
                     />
