@@ -112,7 +112,6 @@ const StaffAdd = () => {
       !socso ||
       !bankacc ||
       !bankname ||
-      !image ||
       !staffemergencycontact ||
       !staffemergencycontactname ||
       !phonenumber ||
