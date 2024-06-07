@@ -148,72 +148,76 @@ const ClientAdd = () => {
   };
 
   const handleSubmit = () => {
-    if (
-      !clientName ||
-      !clientGender ||
-      !clientIc ||
-      !clientHeight ||
-      !clientWeight ||
-      !clientEmail ||
-      !clientPhonenumber ||
-      !clientEmergencycontactname ||
-      !clientEmergencycontact ||
-      !clientAddress1 ||
-      !clientZip ||
-      !clientState
-    ) {
+    const missingFields = [];
+
+    if (!clientName) missingFields.push("Client Name");
+    if (!clientGender) missingFields.push("Gender");
+    if (!clientIc) missingFields.push("IC");
+    if (!clientHeight) missingFields.push("Height");
+    if (!clientWeight) missingFields.push("Weight");
+    if (!clientEmail) missingFields.push("Email");
+    if (!clientPhonenumber) missingFields.push("Phone Number");
+    if (!clientEmergencycontactname)
+      missingFields.push("Emergency Contact Name");
+    if (!clientEmergencycontact) missingFields.push("Emergency Contact");
+    if (!clientAddress1) missingFields.push("Address");
+    if (!clientZip) missingFields.push("Zip Code");
+    if (!clientState) missingFields.push("State");
+
+    if (missingFields.length > 0) {
       notifications.show({
-        title: "Please fill in all fields",
+        title: "Please fill in the following fields",
+        message: missingFields.join(", "),
         color: "red",
       });
     } else {
       createMutation.mutate({
         data: JSON.stringify({
-          clientName: clientName,
-          clientGender: clientGender,
-          clientIc: clientIc,
-          clientHeight: clientHeight,
-          clientWeight: clientWeight,
-          clientEmail: clientEmail,
-          clientPhonenumber: clientPhonenumber,
-          clientEmergencycontactname: clientEmergencycontactname,
-          clientEmergencycontact: clientEmergencycontact,
-          clientAddress1: clientAddress1,
-          clientAddress2: clientAddress2,
-          clientZip: clientZip,
-          clientState: clientState,
-          exeQ1: exeQ1,
-          exeQ2: exeQ2,
-          exeQ3a: exeQ3a,
-          exeQ3b: exeQ3b,
-          exeQ3c: exeQ3c,
-          exeQ3d: exeQ3d,
-          dietQ1: dietQ1,
-          dietQ2: dietQ2,
-          dietQ3: dietQ3,
-          dietQ4: dietQ4,
-          dietQ5: dietQ5,
-          dietQ6: dietQ6,
-          dietQ7: dietQ7,
-          dietQ8: dietQ8,
-          lifeQ1: lifeQ1,
-          lifeQ2: lifeQ2,
-          lifeQ3: lifeQ3,
-          lifeQ4: lifeQ4,
-          occupationQ1: occupationQ1,
-          occupationQ2: occupationQ2,
-          occupationQ3: occupationQ3,
-          occupationQ4: occupationQ4,
-          rQ1: rQ1,
-          rQ2: rQ2,
-          medQ1: medQ1,
-          medQ2: medQ2,
-          medQ3: medQ3,
-          medQ4: medQ4,
-          medQ5: medQ5,
-          addNote: addNote,
+          clientName,
+          clientGender,
+          clientIc,
+          clientHeight,
+          clientWeight,
+          clientEmail,
+          clientPhonenumber,
+          clientEmergencycontactname,
+          clientEmergencycontact,
+          clientAddress1,
+          clientAddress2,
+          clientZip,
+          clientState,
+          exeQ1,
+          exeQ2,
+          exeQ3a,
+          exeQ3b,
+          exeQ3c,
+          exeQ3d,
+          dietQ1,
+          dietQ2,
+          dietQ3,
+          dietQ4,
+          dietQ5,
+          dietQ6,
+          dietQ7,
+          dietQ8,
+          lifeQ1,
+          lifeQ2,
+          lifeQ3,
+          lifeQ4,
+          occupationQ1,
+          occupationQ2,
+          occupationQ3,
+          occupationQ4,
+          rQ1,
+          rQ2,
+          medQ1,
+          medQ2,
+          medQ3,
+          medQ4,
+          medQ5,
+          addNote,
           coachId: selectedUser,
-          clientImage: clientImage,
+          clientImage,
         }),
         token: currentUser ? currentUser.token : "",
       });
