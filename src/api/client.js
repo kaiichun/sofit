@@ -42,11 +42,10 @@ export const addClientImage = async (file) => {
   });
   return response.data;
 };
-
 export const uploadClientImage = async (file) => {
+  const formData = new FormData();
+  formData.append("clientImage", file);
   try {
-    const formData = new FormData();
-    formData.append("clientImage", file);
     const response = await axios({
       method: "POST",
       url: API_URL + "/uploadClientImage",
@@ -57,11 +56,11 @@ export const uploadClientImage = async (file) => {
     });
     return response.data;
   } catch (error) {
-    console.error(
-      "Error uploading image:",
-      error.response?.data?.message || error.message
-    );
-    throw error;
+    if (error.response) {
+      throw new Error(error.response.data.message);
+    } else {
+      throw new Error("Image upload failed. Please try again.");
+    }
   }
 };
 

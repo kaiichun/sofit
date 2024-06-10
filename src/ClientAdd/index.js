@@ -130,6 +130,7 @@ const ClientAdd = () => {
       });
       return;
     }
+
     uploadMutation.mutate(files[0], {
       onSuccess: (data) => {
         setClientImage(data.clientImage_url);
@@ -140,7 +141,7 @@ const ClientAdd = () => {
       },
       onError: (error) => {
         notifications.show({
-          title: error.response?.data?.message || "Image upload failed",
+          title: error.message || "Image upload failed",
           color: "red",
         });
       },
