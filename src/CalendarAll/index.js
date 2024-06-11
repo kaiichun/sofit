@@ -201,6 +201,7 @@ export default function CalendarAll() {
                   (client) => client._id === o.clientId
                 );
                 const user = users.find((user) => user._id === o.user);
+                const staffId = users.find((user) => user._id === o.staffId);
 
                 const startDate = new Date(o.appointmentDate);
 
@@ -222,7 +223,7 @@ export default function CalendarAll() {
                     <td>{startFormattedDate}</td>
                     <td>{o.startTime}</td>
 
-                    <td>{user ? user.name : "Trainee not found"}</td>
+                    <td>{staffId ? staffId.name : "Trainee not found"}</td>
                     <td>{client ? client.clientName : "Client not found"}</td>
                     <td>{o.title}</td>
                     <td>

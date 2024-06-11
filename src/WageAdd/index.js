@@ -20,6 +20,7 @@ import { fetchUsers } from "../api/auth";
 import { fetchPMS, fetchUserPMS } from "../api/pms";
 import { fetchOrders } from "../api/order";
 import { addWage } from "../api/wage";
+import { fetchCoaching } from "../api/calendar2";
 
 function WageAdd() {
   const [cookies] = useCookies(["currentUser"]);
@@ -53,10 +54,18 @@ function WageAdd() {
   const [sessions, setSessions] = useState("");
   const [sessionsS, setSessionsS] = useState("");
   const [sessionsAvd, setSessionsAvd] = useState("");
+  const [juniorRate, setJuniorRate] = useState(0);
+  const [seniorRate, setSeniorRate] = useState(0);
+  const [advancedSeniorRate, setAdvancedSeniorRate] = useState(0);
 
   const { data: users = [] } = useQuery({
     queryKey: ["users"],
     queryFn: () => fetchUsers(),
+  });
+
+  const { isLoading, data: coaching = [] } = useQuery({
+    queryKey: ["calendar"],
+    queryFn: () => fetchCoaching(),
   });
 
   const { data: pms3 = [] } = useQuery({
@@ -76,6 +85,26 @@ function WageAdd() {
       setBasic(selectedUserSalary);
     }
   }, [selectedUser, users]);
+
+  const findStaffCoaching =
+    selectedUser && coaching
+      ? coaching
+          .filter((s) => {
+            const sessionDate = new Date(s.date);
+            const sessionMonth = sessionDate.getMonth() + 1; // getMonth() is zero-based, so add 1
+            const sessionYear = sessionDate.getFullYear();
+            return (
+              s.staffId === selectedUser &&
+              sessionMonth === parseInt(selectedMonth) &&
+              sessionYear === year
+            );
+          })
+          .map((s) => s)
+      : [];
+
+  const totalSessions = findStaffCoaching.reduce((total, session) => {
+    return total + (session.sessions || 0); // assuming each session has a 'sessions' property
+  }, 0);
 
   const findStaffOrderC =
     selectedUser && orders
@@ -209,18 +238,8 @@ function WageAdd() {
     }
     const currentUser = users.find((u) => u._id === selectedUser);
 
-    let rate;
-
-    if (sessions <= 50) {
-      rate = 30;
-    } else if (sessions <= 80) {
-      rate = 35;
-    } else {
-      rate = 40;
-    }
-
     // Return the calculated fee
-    return rate * sessions;
+    return juniorRate * sessions;
   };
 
   const calculateSCoachingFee = () => {
@@ -232,19 +251,8 @@ function WageAdd() {
     // Find the selected user
     const currentUser = users.find((u) => u._id === selectedUser);
 
-    let rate;
-
-    // Define rates based on the number of sessions
-    if (sessionsS <= 50) {
-      rate = 40;
-    } else if (sessionsS <= 80) {
-      rate = 45;
-    } else {
-      rate = 50;
-    }
-
     // Return the calculated fee
-    return rate * sessionsS;
+    return seniorRate * sessionsS;
   };
 
   const calculateAvdCoachingFee = () => {
@@ -256,19 +264,8 @@ function WageAdd() {
     // Find the selected user
     const currentUser = users.find((u) => u._id === selectedUser);
 
-    let rate;
-
-    // Define rates based on the number of sessions
-    if (sessionsAvd <= 50) {
-      rate = 50;
-    } else if (sessionsAvd <= 80) {
-      rate = 55;
-    } else {
-      rate = 60;
-    }
-
     // Return the calculated fee
-    return rate * sessionsAvd;
+    return advancedSeniorRate * sessionsAvd;
   };
 
   // const calculateCoachingFee = () => {
@@ -891,11 +888,9 @@ function WageAdd() {
           {/* <Grid.Col span={3}>
             <TextInput label="EIS Account" value={eisno} readOnly />
           </Grid.Col> */}
-          <Grid.Col span={6}></Grid.Col>
-          <Space h={100} />
           <Grid.Col span={3}>
             <TextInput
-              label="Salary"
+              label="Bacis Salary"
               value={
                 selectedUser && users
                   ? users
@@ -907,6 +902,15 @@ function WageAdd() {
               readOnly
             />
           </Grid.Col>
+          <Grid.Col span={3}></Grid.Col>
+          <Space h={100} />
+          <Grid.Col span={3}>
+            <NumberInput
+              value={totalSessions}
+              label="Total Sessions"
+              readOnly
+            />
+          </Grid.Col>
           <Grid.Col span={9}></Grid.Col>
           <Grid.Col span={1}>
             <NumberInput
@@ -915,6 +919,14 @@ function WageAdd() {
               precision={0}
               onChange={(value) => setSessions(value)}
               readOnly={!selectedMonth || !selectedUser}
+            />
+          </Grid.Col>
+          <Grid.Col span={1}>
+            <NumberInput
+              value={juniorRate}
+              label="Rate"
+              precision={0}
+              onChange={(value) => setJuniorRate(value)}
             />
           </Grid.Col>
           <Grid.Col span={2}>
@@ -933,6 +945,14 @@ function WageAdd() {
               readOnly={!selectedMonth || !selectedUser}
             />
           </Grid.Col>
+          <Grid.Col span={1}>
+            <NumberInput
+              value={seniorRate}
+              label="Rate"
+              precision={0}
+              onChange={(value) => setSeniorRate(value)}
+            />
+          </Grid.Col>
           <Grid.Col span={2}>
             <TextInput
               value={calculateSCoachingFee().toFixed(2)}
@@ -949,6 +969,14 @@ function WageAdd() {
               readOnly={!selectedMonth || !selectedUser}
             />
           </Grid.Col>
+          <Grid.Col span={1}>
+            <NumberInput
+              value={advancedSeniorRate}
+              label="Rate"
+              precision={0}
+              onChange={(value) => setAdvancedSeniorRate(value)}
+            />
+          </Grid.Col>
           <Grid.Col span={2}>
             <TextInput
               value={calculateAvdCoachingFee().toFixed(2)}
@@ -963,6 +991,7 @@ function WageAdd() {
               readOnly
             />
           </Grid.Col>
+          <Grid.Col span={9}></Grid.Col>
           <Grid.Col span={3}>
             {" "}
             <TextInput

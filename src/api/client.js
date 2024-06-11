@@ -31,7 +31,7 @@ export const getClients = async (id) => {
 
 export const addClientImage = async (file) => {
   const formData = new FormData();
-  formData.append("clientImage", file);
+  formData.append("clientimage", file);
   const response = await axios({
     method: "POST",
     url: API_URL + "/clientimage",
@@ -44,11 +44,11 @@ export const addClientImage = async (file) => {
 };
 export const uploadClientImage = async (file) => {
   const formData = new FormData();
-  formData.append("clientImage", file);
+  formData.append("clientimage", file);
   try {
     const response = await axios({
       method: "POST",
-      url: API_URL + "/uploadClientImage",
+      url: API_URL + "/uploadclientimage",
       headers: {
         "Content-Type": "multipart/form-data",
       },

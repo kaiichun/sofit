@@ -24,6 +24,16 @@ export const fetchCalendars = async (token = "") => {
   return response.data;
 };
 
+export const fetchCoaching = async (token = "") => {
+  const response = await axios({
+    method: "GET",
+    url: API_URL + "/calendars/coaching",
+    headers: {
+      Authorization: "Bearer " + token,
+    },
+  });
+  return response.data;
+};
 export const fetchUserAppointments = async (userId, date) => {
   const response = await axios.get(`/calendars?user=${userId}&date=${date}`);
   return response.data;

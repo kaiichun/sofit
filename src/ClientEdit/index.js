@@ -90,7 +90,7 @@ const ClientEdit = () => {
   const [uploading, setUploading] = useState(false);
   const [visible, { toggle }] = useDisclosure(false);
   const { isLoading } = useQuery({
-    queryKey: ["videos", id],
+    queryKey: ["clients", id],
     queryFn: () => getClients(id),
     onSuccess: (data) => {
       setClientName(data.clientName);
@@ -174,11 +174,9 @@ const ClientEdit = () => {
   const uploadClientImageMutation = useMutation({
     mutationFn: uploadClientImage,
     onSuccess: (data) => {
-      setUploading(false);
-      setClientImage(data.clientImage_url); // Ensure this is the correct response key
+      setClientImage(data.clientImage_url);
     },
     onError: (error) => {
-      setUploading(false);
       notifications.show({
         title: error.response.data.message,
         color: "red",
@@ -273,7 +271,7 @@ const ClientEdit = () => {
           </Link>
         </Group>
         <Title order={4} align="center">
-          Add a new Client
+          Edit Client Information
         </Title>
         <Text align="center" order={6}>
           Enter all details

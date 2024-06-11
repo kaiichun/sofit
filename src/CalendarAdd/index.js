@@ -82,7 +82,8 @@ export default function CalendarAdd() {
         data: JSON.stringify({
           title: title,
           clientId: selectedMember,
-          user: selectedUser,
+          staffId: selectedUser,
+          user: currentUser._id,
           appointmentDate: startDate,
           startTime: startTime,
           //   endTime: endTime,
