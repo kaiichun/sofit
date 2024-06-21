@@ -9,12 +9,16 @@ import {
   HoverCard,
   Text,
   LoadingOverlay,
-  Checkbox,
-  Modal,
   NumberInput,
+  Grid,
+  Title,
+  Group,
   ScrollArea,
   Select,
+  Modal,
 } from "@mantine/core";
+import { Pagination } from "@mantine/core";
+
 import { notifications } from "@mantine/notifications";
 import { useParams } from "react-router-dom";
 import { MdDownloadForOffline, MdDelete } from "react-icons/md";
@@ -30,16 +34,17 @@ import {
   updateOrderPackage,
 } from "../api/orderspackage";
 import HeaderClient from "../HeaderClient";
+import { Line, Bar, Pie } from "react-chartjs-2";
+import "chart.js/auto";
 import { openConfirmModal } from "@mantine/modals";
+import HeaderData from "../HeaderData";
 
-export default function OrdersPackage() {
+export default function DataAnalysisPackages() {
   const [cookies] = useCookies(["currentUser"]);
   const { currentUser } = cookies;
   const { id } = useParams();
   const queryClient = useQueryClient();
-  const [opened, { open, close }] = useDisclosure(false);
   const [openedOrderId, setOpenedOrderId] = useState(null);
-
   const [currentProducts, setCurrentProducts] = useState([]);
   const [category, setCategory] = useState("");
   const [sort, setSort] = useState("");
@@ -63,12 +68,10 @@ export default function OrdersPackage() {
     queryFn: () => fetchUsers(currentUser ? currentUser.token : ""),
   });
 
-  const { data: branches = [] } = useQuery({
+  const { data: branchs = [] } = useQuery({
     queryKey: ["branches"],
     queryFn: () => fetchBranch(),
   });
-
-  const [selectedBranch, setSelectedBranch] = useState(null);
 
   const currentUserBranch = useMemo(() => {
     return cookies?.currentUser?.branch;
@@ -81,6 +84,14 @@ export default function OrdersPackage() {
   const isAdminBranch = useMemo(() => {
     return cookies?.currentUser?.role === "Admin Branch";
   }, [cookies]);
+
+  const currentMonth = new Date().getMonth() + 1; // Current month (1-based)
+  const currentYear = new Date().getFullYear(); // Current year
+  const [selectedBranch, setSelectedBranch] = useState(currentUserBranch);
+  const [selectedDay, setSelectedDay] = useState("");
+  const [selectedMonth, setSelectedMonth] = useState(currentMonth.toString());
+  const [selectedYear, setSelectedYear] = useState(currentYear.toString());
+  const [selectedChartType, setSelectedChartType] = useState("bar");
 
   const isAdmin = useMemo(() => {
     return cookies &&
@@ -157,81 +168,205 @@ export default function OrdersPackage() {
     closeModal(); // Close the modal after updating
   };
 
-  useEffect(() => {
-    let newList = orderspackage ? [...orderspackage] : [];
-    // filter by category
-    if (category !== "") {
-      newList = newList.filter((p) => p.paid_at === category);
-    }
-    const total = Math.ceil(newList.length / perPage);
-    // convert the total number into array
-    const pages = [];
-    for (let i = 1; i <= total; i++) {
-      pages.push(i);
-    }
-    setTotalPages(pages);
-
-    switch (sort) {
-      case "name":
-        newList = newList.sort((a, b) => {
-          return a.name.localeCompare(b.name);
-        });
-        break;
-      case "price":
-        newList = newList.sort((a, b) => {
-          return a.price - b.price;
-        });
-        break;
-      default:
-        break;
-    }
-    // do pagination
-    const start = (currentPage - 1) * perPage;
-    const end = start + perPage;
-
-    newList = newList.slice(start, end);
-
-    setCurrentPage(newList);
-  }, [orderspackage, category, sort, perPage, currentPage]);
-
-  const categoryOptions = useMemo(() => {
-    let options = [];
-    if (orderspackage && orderspackage.length > 0) {
-      orderspackage.forEach((product) => {
-        if (!options.includes(product.category)) {
-          options.push(product.category);
-        }
-      });
-    }
+  const getDayOptions = (month, year) => {
+    const daysInMonth = new Date(year, month, 0).getDate(); // Get number of days in selected month
+    const options = Array.from({ length: daysInMonth }, (_, i) => ({
+      value: (i + 1).toString(),
+      label: (i + 1).toString(),
+    }));
     return options;
-  }, [orderspackage]);
+  };
 
   const filteredOrders = useMemo(() => {
-    if (isAdminHQ) {
-      if (selectedBranch) {
-        return orderspackage.filter((order) => {
-          const user = users.find((user) => user._id === order.user);
-          return user && user.branch === selectedBranch;
-        });
-      }
-      return orderspackage;
+    let filtered = orderspackage || [];
+
+    if (isAdminHQ && selectedBranch) {
+      filtered = filtered.filter((order) => {
+        const user = users.find((user) => user._id === order.user);
+        return user && user.branch === selectedBranch;
+      });
     } else if (isAdminBranch) {
-      return orderspackage.filter((order) => {
+      filtered = filtered.filter((order) => {
         const user = users.find((user) => user._id === order.user);
         return user && user.branch === currentUserBranch;
       });
     } else {
-      return orderspackage.filter((order) => order.staffId === currentUser._id);
+      filtered = filtered.filter((order) => order.user === currentUser._id);
     }
+
+    if (selectedMonth) {
+      filtered = filtered.filter(
+        (order) =>
+          new Date(order.paid_at).getMonth() + 1 === parseInt(selectedMonth)
+      );
+    }
+
+    if (selectedYear) {
+      filtered = filtered.filter(
+        (order) =>
+          new Date(order.paid_at).getFullYear() === parseInt(selectedYear)
+      );
+    }
+
+    if (selectedDay) {
+      filtered = filtered.filter(
+        (order) => new Date(order.paid_at).getDate() === parseInt(selectedDay)
+      );
+    }
+
+    return filtered;
   }, [
     orderspackage,
     users,
     currentUser,
     currentUserBranch,
     selectedBranch,
+    selectedDay,
+    selectedMonth,
+    selectedYear,
     isAdminHQ,
     isAdminBranch,
   ]);
+
+  const productOrderData = useMemo(() => {
+    const productOrderCount = {};
+
+    filteredOrders.forEach((order) => {
+      order.packages.forEach((pack) => {
+        if (productOrderCount[pack.sofitpackage]) {
+          productOrderCount[pack.sofitpackage] += 1;
+        } else {
+          productOrderCount[pack.sofitpackage] = 1;
+        }
+      });
+    });
+
+    const sortedProducts = Object.entries(productOrderCount).sort(
+      ([, countA], [, countB]) => countB - countA
+    );
+
+    const labels = sortedProducts.map(([packageName]) => packageName);
+    const data = sortedProducts.map(([, count]) => count);
+
+    return {
+      labels,
+      datasets: [
+        {
+          label: "Product Orders",
+          data,
+          backgroundColor: [
+            "rgba(75, 192, 192, 0.6)",
+            "rgba(54, 162, 235, 0.6)",
+            "rgba(255, 206, 86, 0.6)",
+            "rgba(255, 99, 132, 0.6)",
+            "rgba(153, 102, 255, 0.6)",
+            "rgba(255, 159, 64, 0.6)",
+            "rgba(199, 199, 199, 0.6)",
+          ],
+          borderColor: [
+            "rgba(75, 192, 192, 1)",
+            "rgba(54, 162, 235, 1)",
+            "rgba(255, 206, 86, 1)",
+            "rgba(255, 99, 132, 1)",
+            "rgba(153, 102, 255, 1)",
+            "rgba(255, 159, 64, 1)",
+            "rgba(199, 199, 199, 1)",
+          ],
+          borderWidth: 1,
+        },
+      ],
+    };
+  }, [filteredOrders]);
+
+  const chartData = useMemo(() => {
+    if (selectedYear && selectedMonth && selectedDay) {
+      const dailyOrders = filteredOrders.filter(
+        (order) => new Date(order.paid_at).getDate() === parseInt(selectedDay)
+      );
+
+      if (dailyOrders.length === 0) {
+        return {
+          labels: [],
+          datasets: [],
+        };
+      }
+
+      const labels = dailyOrders.map((order, index) => {
+        const client = clients.find((client) => client._id === order.clientId);
+        const clientName = client ? client.clientName : "Unknown Client";
+        return `${clientName} (Order ${index + 1})`;
+      });
+      const totalPrices = dailyOrders.map((order) => order.totalPrice);
+      const outstandingPrices = dailyOrders.map((order) => order.outstanding);
+
+      return {
+        labels,
+        datasets: [
+          {
+            label: `Total Price for ${selectedDay}/${selectedMonth}/${selectedYear}`,
+            data: totalPrices,
+            backgroundColor: "rgba(54, 162, 235, 0.6)",
+            borderColor: "rgba(54, 162, 235, 1)",
+            borderWidth: 1,
+          },
+          {
+            label: `Outstanding Price for ${selectedDay}/${selectedMonth}/${selectedYear}`,
+            data: outstandingPrices,
+            backgroundColor: "rgba(255, 99, 132, 0.6)", // Different color for outstanding
+            borderColor: "rgba(255, 99, 132, 1)",
+            borderWidth: 1,
+          },
+        ],
+      };
+    }
+
+    if (selectedYear && selectedMonth) {
+      const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate(); // Get number of days in selected month
+      const dailyTotals = Array(daysInMonth).fill(0); // Initialize array to hold daily totals
+      const dailyOutstandingTotals = Array(daysInMonth).fill(0); // Initialize array to hold daily outstanding totals
+
+      filteredOrders.forEach((order) => {
+        const orderDate = new Date(order.paid_at);
+        const orderDay = orderDate.getDate() - 1; // Get day of the month (0-indexed)
+        dailyTotals[orderDay] += order.totalPrice; // Accumulate total amount for each day
+        dailyOutstandingTotals[orderDay] += order.outstanding; // Accumulate outstanding amount for each day
+      });
+
+      const labels = Array.from({ length: daysInMonth }, (_, i) => i + 1); // Create labels for each day (1-indexed)
+      const backgroundColors = Array.from(
+        { length: daysInMonth },
+        () =>
+          `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(
+            Math.random() * 256
+          )}, ${Math.floor(Math.random() * 256)}, 0.6)`
+      );
+
+      return {
+        labels,
+        datasets: [
+          {
+            label: `Total Sales in ${selectedMonth}/${selectedYear}`,
+            data: dailyTotals,
+            backgroundColor: backgroundColors,
+            borderColor: "rgba(54, 162, 235, 1)",
+            borderWidth: 1,
+          },
+          {
+            label: `Total Outstanding in ${selectedMonth}/${selectedYear}`,
+            data: dailyOutstandingTotals,
+            backgroundColor: "rgba(255, 99, 132, 0.6)", // Different color for outstanding
+            borderColor: "rgba(255, 99, 132, 1)",
+            borderWidth: 1,
+          },
+        ],
+      };
+    } else {
+      return {
+        labels: [],
+        datasets: [],
+      };
+    }
+  }, [filteredOrders, selectedDay, selectedMonth, selectedYear]);
 
   const handleDownloadPDF = (order) => {
     const doc = new jsPDF();
@@ -348,9 +483,17 @@ export default function OrdersPackage() {
     doc.line(12, 203, 198, 203);
     doc.setFontSize(10);
     doc.text(`Discount:`, 140, 208);
-    doc.text(`${order.discount ? order.discount.toFixed(2) : 0.0}`, 182.3, 208);
+    doc.text(
+      `${order.discount ? order.discount.toFixed(2) : "0.00"}`,
+      182.3,
+      208
+    );
     doc.text(`Total Price:`, 140, 213);
-    doc.text(`${order.totalPrice.toFixed(2)}`, 182.3, 213);
+    doc.text(
+      `${order.totalPrice ? order.totalPrice.toFixed(2) : "0.00"}`,
+      182.3,
+      213
+    );
     // doc.text(`Service Tax (8%) :`, 140, 208);
     // doc.text(`${order.tax.toFixed(2)}`, 184.2, 208);
     // doc.text(`Total Price:`, 140, 213);
@@ -383,55 +526,159 @@ export default function OrdersPackage() {
     doc.save(`invoice_${order.invoiceNo}.pdf`);
   };
 
+  const chartTypeOptions = [
+    { value: "line", label: "Line" },
+    { value: "bar", label: "Bar" },
+    { value: "pie", label: "Pie" },
+  ];
+
   return (
-    <>
-      <Container size="100%">
-        <HeaderClient title="My Orders" page="orders" />
-        <Space h="35px" />
-        {isAdminHQ && (
+    <Container size="100%">
+      <LoadingOverlay visible={isLoading} overlayBlur={2} />
+      <HeaderData title="Packages" page="Packages" />
+      <Space h="xl" />
+      <Title align="center">Packages Sales Data</Title>
+      <Space h="xl" />
+      <Grid>
+        <Grid.Col span={9}></Grid.Col>
+        <Grid.Col span={3}>
           <Select
-            placeholder="Select Branch"
-            value={selectedBranch}
-            onChange={setSelectedBranch}
-            data={[
-              { value: null, label: "All Branches" },
-              ...branches.map((branch) => ({
+            label="Chart Type"
+            placeholder="Select chart type"
+            value={selectedChartType}
+            onChange={setSelectedChartType}
+            data={chartTypeOptions}
+          />
+        </Grid.Col>
+        {isAdmin && (
+          <Grid.Col span={3}>
+            <Select
+              label="Branch"
+              placeholder="Select branch"
+              value={selectedBranch}
+              onChange={setSelectedBranch}
+              data={branchs.map((branch) => ({
                 value: branch._id,
                 label: branch.branch,
-              })),
+              }))}
+            />
+          </Grid.Col>
+        )}
+        <Grid.Col span={3} md={3}>
+          <Select
+            label="Month"
+            placeholder="Select month"
+            value={selectedMonth}
+            onChange={setSelectedMonth}
+            data={[
+              { value: "1", label: "January" },
+              { value: "2", label: "February" },
+              { value: "3", label: "March" },
+              { value: "4", label: "April" },
+              { value: "5", label: "May" },
+              { value: "6", label: "June" },
+              { value: "7", label: "July" },
+              { value: "8", label: "August" },
+              { value: "9", label: "September" },
+              { value: "10", label: "October" },
+              { value: "11", label: "November" },
+              { value: "12", label: "December" },
             ]}
           />
-        )}
-        <Space h="20px" />
-        <LoadingOverlay visible={isLoading} />
-        <ScrollArea h={800} width="100%" offsetScrollbars scrollHideDelay={300}>
-          <Table>
-            <thead>
-              <tr>
-                <th>Invoice No</th>
-                <th>Member Details</th>
-                <th>Package</th>
-                <th>Amount</th>
-                <th>Pay By</th>
-                <th>Payment Method</th>
-                <th>Installment Month</th>
-                <th>Monthly Payment</th>
-                <th>Outstanding</th>
-                <th>Update</th>
-                <th>Sales Date</th>
-                <th>Sales By</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredOrders ? (
-                filteredOrders.map((o) => {
+        </Grid.Col>
+        <Grid.Col span={3} md={3}>
+          <Select
+            label="Year"
+            placeholder="Select year"
+            value={selectedYear}
+            onChange={setSelectedYear}
+            data={Array.from(
+              { length: new Date().getFullYear() - 2020 + 1 },
+              (_, index) => {
+                const year = 2020 + index;
+                return { value: year.toString(), label: year.toString() };
+              }
+            )}
+          />
+        </Grid.Col>
+        <Grid.Col span={3} md={3}>
+          <Select
+            label="Day"
+            placeholder="Select day"
+            value={selectedDay}
+            onChange={setSelectedDay}
+            data={getDayOptions(selectedMonth, selectedYear)}
+            clearable
+          />
+        </Grid.Col>
+      </Grid>
+
+      <Space h="lg" />
+      <Title order={2}>Package SalesChart</Title>
+      <Space h="md" />
+      {chartData.labels.length === 0 ? (
+        <Group position="center">
+          <Title order={5} mt="lg">
+            - No data found -
+          </Title>
+        </Group>
+      ) : (
+        <>
+          {selectedChartType === "line" && <Line data={chartData} />}
+          {selectedChartType === "bar" && <Bar data={chartData} />}
+          {selectedChartType === "pie" && <Pie data={chartData} />}
+        </>
+      )}
+      <Space h="md" />
+      <Title order={2}>Product OrdersChart</Title>
+      <Space h="md" />
+      {chartData.labels.length === 0 ? (
+        <Group position="center">
+          <Title order={5} mt="lg">
+            - No data found -
+          </Title>
+        </Group>
+      ) : (
+        <>
+          {" "}
+          {selectedChartType === "line" && <Line data={productOrderData} />}
+          {selectedChartType === "bar" && <Bar data={productOrderData} />}
+          {selectedChartType === "pie" && <Pie data={productOrderData} />}
+        </>
+      )}
+      <Space h="xl" />
+      <Space h="xl" />
+      <ScrollArea>
+        <Table striped highlightOnHover>
+          <thead>
+            <tr>
+              <th>Invoice No</th>
+              <th>Member Details</th>
+              <th>Package</th>
+              <th>Amount</th>
+              <th>Pay By</th>
+              <th>Payment Method</th>
+              <th>Installment Month</th>
+              <th>Monthly Payment</th>
+              <th>Outstanding</th>
+              <th>Update</th>
+              <th>Sales Date</th>
+              <th>Sales By</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredOrders.length > 0 ? (
+              filteredOrders
+                .slice((currentPage - 1) * perPage, currentPage * perPage)
+                .map((order) => {
                   const client = clients.find(
-                    (client) => client._id === o.clientId
+                    (client) => client._id === order.clientId
                   );
-                  const user = users.find((user) => user._id === o.staffId);
-                  // Assuming o.paid_at is in ISO 8601 format (e.g., "2024-04-08T12:00:00.000Z")
-                  const paidDate = new Date(o.paid_at);
+                  const orderUser = users.find(
+                    (user) => user._id === order.staffId
+                  );
+                  const paidDate = new Date(order.paid_at);
 
                   // Get day, month, and year
                   const day = paidDate.getDate().toString().padStart(2, "0"); // Add leading zero if needed
@@ -442,46 +689,46 @@ export default function OrdersPackage() {
 
                   // Format as DD MM YYYY
                   const formattedDate = `${day}-${month}-${year}`;
-
                   return (
-                    <tr key={o._id}>
-                      <td>{o.invoiceNo}</td>
+                    <tr key={order._id}>
+                      <td>{order.invoiceNo}</td>
+                      <td>{client ? client.clientName : "Unknown Client"}</td>
+
                       <td>
-                        {client ? client.clientName : ""}
-                        <br />
-                        HP: {client ? client.clientPhonenumber : ""}
-                      </td>
-                      <td>
-                        {o.packages.map((p, index) => (
+                        {order.packages.map((p, index) => (
                           <div key={index}>
                             <p>{p.sofitpackage}</p>
                           </div>
                         ))}
                       </td>
-                      <td>MYR {o.totalPrice.toFixed(2)}</td>
-                      <td>{o.payby}</td>
-                      <td>{o.paymentMethod}</td>
-                      <td>{o.installmentMonth ? o.installmentMonth : "-"}</td>
+                      <td>MYR {order.totalPrice.toFixed(2)}</td>
+                      <td>{order.payby}</td>
+                      <td>{order.paymentMethod}</td>
                       <td>
-                        {o.installmentAmount
-                          ? o.installmentAmount.toFixed(2)
+                        {order.installmentMonth ? order.installmentMonth : "-"}
+                      </td>
+                      <td>
+                        {order.installmentAmount
+                          ? order.installmentAmount.toFixed(2)
                           : "0.00"}
                       </td>
                       <td>
-                        {o.outstanding ? o.outstanding.toFixed(2) : "0.00"}
+                        {order.outstanding
+                          ? order.outstanding.toFixed(2)
+                          : "0.00"}
                       </td>
                       <td>
-                        {o.outstanding ? (
+                        {order.outstanding ? (
                           <>
                             <Modal
-                              opened={openedOrderId === o._id}
+                              opened={openedOrderId === order._id}
                               onClose={closeModal}
                               title="Outstanding Update"
                             >
                               <NumberInput
                                 label="Balance"
-                                value={o.outstanding}
-                                placeholder={o.outstanding}
+                                value={order.outstanding}
+                                placeholder={order.outstanding}
                                 precision={2}
                                 onChange={(value) => setOutStanding(value)}
                                 readOnly
@@ -493,7 +740,7 @@ export default function OrdersPackage() {
                                 precision={2}
                                 onChange={(value) => {
                                   const newOutstanding =
-                                    parseFloat(o.outstanding) -
+                                    parseFloat(order.outstanding) -
                                     parseFloat(value);
                                   setCurrentOutStanding(value);
                                   setOutStanding(newOutstanding);
@@ -510,7 +757,7 @@ export default function OrdersPackage() {
                                 onClick={() => {
                                   // Handle submission
                                   // After submission, clear the currentOutstanding value
-                                  handleUpdateOutstanding(o._id);
+                                  handleUpdateOutstanding(order._id);
                                   setCurrentOutStanding("");
                                   setOutStanding("");
                                 }}
@@ -520,23 +767,23 @@ export default function OrdersPackage() {
                             </Modal>
 
                             <Button
-                              disabled={o.outstanding === 0} // Disable the button if outstanding is 0
-                              onClick={() => openModal(o._id)}
+                              disabled={order.outstanding === 0} // Disable the button if outstanding is 0
+                              onClick={() => openModal(order._id)}
                             >
                               Update
                             </Button>
                           </>
                         ) : (
                           <Button
-                            disabled={o.outstanding === 0} // Disable the button if outstanding is 0
-                            onClick={() => openModal(o._id)}
+                            disabled={order.outstanding === 0} // Disable the button if outstanding is 0
+                            onClick={() => openModal(order._id)}
                           >
                             Update
                           </Button>
                         )}
                       </td>
                       <td>{formattedDate}</td>
-                      <td> {user && user.name}</td>
+                      <td> {orderUser && orderUser.name}</td>
                       <td>
                         <HoverCard shadow="md">
                           <HoverCard.Target>
@@ -545,7 +792,7 @@ export default function OrdersPackage() {
                               color="gray"
                               radius="xl"
                               size="sm"
-                              onClick={() => handleDownloadPDF(o)}
+                              onClick={() => handleDownloadPDF(order)}
                             >
                               <MdDownloadForOffline
                                 style={{
@@ -567,7 +814,7 @@ export default function OrdersPackage() {
                                 color="red"
                                 radius="xl"
                                 size="sm"
-                                onClick={() => handleDeleteClick(o._id)}
+                                onClick={() => handleDeleteClick(order._id)}
                               >
                                 <MdDelete
                                   style={{
@@ -586,18 +833,23 @@ export default function OrdersPackage() {
                     </tr>
                   );
                 })
-              ) : (
-                <tr>
-                  <td colSpan="8">
-                    <Text align="center">No orders found</Text>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </Table>
-        </ScrollArea>
-        <Space h="20px" />
-      </Container>
-    </>
+            ) : (
+              <tr>
+                <td colSpan="12">
+                  <Space h={100} />
+                  <Text align="center">No orders found</Text>
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </Table>
+      </ScrollArea>
+      <Space h="md" />
+      <Pagination
+        page={currentPage}
+        onChange={setCurrentPage}
+        total={Math.ceil(filteredOrders.length / perPage)}
+      />
+    </Container>
   );
 }

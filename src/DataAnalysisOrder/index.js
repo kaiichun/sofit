@@ -1,5 +1,5 @@
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Container,
   Table,
@@ -12,6 +12,9 @@ import {
   Select,
   LoadingOverlay,
   ScrollArea,
+  Title,
+  Grid,
+  TextInput,
 } from "@mantine/core";
 import { openConfirmModal } from "@mantine/modals";
 import { API_URL } from "../api/data";
@@ -27,8 +30,12 @@ import { fetchClients } from "../api/client";
 import logo from "../Logo/sofit-black.png";
 import { fetchBranch, fetchUsers } from "../api/auth";
 import noImageIcon from "../Logo/no_image.png";
+import { Line, Bar, Pie } from "react-chartjs-2";
+import "chart.js/auto";
+import NoDataLogo from "../Logo/no_results.gif";
+import HeaderData from "../HeaderData";
 
-export default function Orders() {
+export default function DataAnalysisOrder() {
   const [cookies] = useCookies(["currentUser"]);
   const { currentUser } = cookies;
   const { id } = useParams();
@@ -53,11 +60,15 @@ export default function Orders() {
     queryFn: () => fetchClients(id),
   });
 
-  const [selectedBranch, setSelectedBranch] = useState(null);
-
   const currentUserBranch = useMemo(() => {
     return cookies?.currentUser?.branch;
   }, [cookies]);
+  const currentMonth = new Date().getMonth() + 1; // Current month (1-based)
+  const currentYear = new Date().getFullYear(); // Current year
+  const [selectedBranch, setSelectedBranch] = useState(currentUserBranch);
+  const [selectedMonth, setSelectedMonth] = useState(currentMonth.toString());
+  const [selectedYear, setSelectedYear] = useState(currentYear.toString());
+  const [selectedChartType, setSelectedChartType] = useState("bar");
 
   const isAdminHQ = useMemo(() => {
     return cookies?.currentUser?.role === "Admin HQ";
@@ -122,33 +133,6 @@ export default function Orders() {
       },
     });
   };
-
-  const filteredOrders = useMemo(() => {
-    if (isAdminHQ) {
-      if (selectedBranch) {
-        return orders.filter((order) => {
-          const user = users.find((user) => user._id === order.user);
-          return user && user.branch === selectedBranch;
-        });
-      }
-      return orders;
-    } else if (isAdminBranch) {
-      return orders.filter((order) => {
-        const user = users.find((user) => user._id === order.user);
-        return user && user.branch === currentUserBranch;
-      });
-    } else {
-      return orders.filter((order) => order.user === currentUser._id);
-    }
-  }, [
-    orders,
-    users,
-    currentUser,
-    currentUserBranch,
-    selectedBranch,
-    isAdminHQ,
-    isAdminBranch,
-  ]);
 
   const handleDownloadPDF = (order) => {
     const doc = new jsPDF();
@@ -322,25 +306,262 @@ export default function Orders() {
     doc.save(`invoice_${order.invoiceNo}.pdf`);
   };
 
+  const filteredOrders = useMemo(() => {
+    let filtered = orders || [];
+
+    if (isAdminHQ && selectedBranch) {
+      filtered = filtered.filter((order) => {
+        const user = users.find((user) => user._id === order.user);
+        return user && user.branch === selectedBranch;
+      });
+    } else if (isAdminBranch) {
+      filtered = filtered.filter((order) => {
+        const user = users.find((user) => user._id === order.user);
+        return user && user.branch === currentUserBranch;
+      });
+    } else {
+      filtered = filtered.filter((order) => order.user === currentUser._id);
+    }
+
+    if (selectedMonth) {
+      filtered = filtered.filter(
+        (order) =>
+          new Date(order.paid_at).getMonth() + 1 === parseInt(selectedMonth)
+      );
+    }
+
+    if (selectedYear) {
+      filtered = filtered.filter(
+        (order) =>
+          new Date(order.paid_at).getFullYear() === parseInt(selectedYear)
+      );
+    }
+
+    return filtered;
+  }, [
+    orders,
+    users,
+    currentUser,
+    currentUserBranch,
+    selectedBranch,
+    selectedMonth,
+    selectedYear,
+    isAdminHQ,
+    isAdminBranch,
+  ]);
+
+  const productOrderData = useMemo(() => {
+    const productOrderCount = {};
+
+    filteredOrders?.forEach((order) => {
+      order.products?.forEach((product) => {
+        if (productOrderCount[product.name]) {
+          productOrderCount[product.name] += 1;
+        } else {
+          productOrderCount[product.name] = 1;
+        }
+      });
+    });
+
+    const labels = Object.keys(productOrderCount);
+    const data = Object.values(productOrderCount);
+
+    return {
+      labels,
+      datasets: [
+        {
+          label: "Total Orders",
+          data,
+          backgroundColor: [
+            "rgba(255, 99, 132, 0.6)",
+            "rgba(54, 162, 235, 0.6)",
+            "rgba(255, 206, 86, 0.6)",
+            "rgba(75, 192, 192, 0.6)",
+            "rgba(153, 102, 255, 0.6)",
+            "rgba(255, 159, 64, 0.6)",
+          ],
+          borderColor: "rgba(255, 99, 132, 1)",
+          borderWidth: 1,
+        },
+      ],
+    };
+  }, [filteredOrders]);
+
+  const chartData = useMemo(() => {
+    if (selectedYear && selectedMonth) {
+      const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate(); // Get number of days in selected month
+      const dailyTotals = Array(daysInMonth).fill(0); // Initialize array to hold daily totals
+
+      filteredOrders?.forEach((order) => {
+        const orderDate = new Date(order.paid_at);
+        const orderDay = orderDate.getDate() - 1; // Get day of the month (0-indexed)
+        dailyTotals[orderDay] += order.totalPrice; // Accumulate total amount for each day
+      });
+
+      const labels = Array.from({ length: daysInMonth }, (_, i) => i + 1); // Create labels for each day (1-indexed)
+      const backgroundColors = Array.from(
+        { length: daysInMonth },
+        () =>
+          `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(
+            Math.random() * 256
+          )}, ${Math.floor(Math.random() * 256)}, 0.6)`
+      );
+
+      return {
+        labels,
+        datasets: [
+          {
+            label: `Total Sales in ${selectedMonth}/${selectedYear}`,
+            data: dailyTotals,
+            backgroundColor: backgroundColors,
+            borderColor: "rgba(54, 162, 235, 1)",
+            borderWidth: 1,
+          },
+        ],
+      };
+    } else {
+      return null; // Handle the case when month or year is not selected
+    }
+  }, [filteredOrders, selectedMonth, selectedYear]);
+
+  const chartOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: "top",
+      },
+    },
+  };
+
+  const renderChart = () => {
+    if (filteredOrders.length === 0) {
+      return (
+        <Container size="100%" style={{ textAlign: "center" }}>
+          <Space h={100} />
+          <Title order={3} align="center" mt="md" mb="md">
+            {selectedMonth || selectedYear
+              ? "No data available for selected filters"
+              : "No data available"}
+          </Title>
+          <Space h={100} />
+        </Container>
+      );
+    }
+
+    switch (selectedChartType) {
+      case "line":
+        return <Line data={chartData} options={chartOptions} />;
+      case "bar":
+        return <Bar data={chartData} options={chartOptions} />;
+      case "pie":
+        return <Pie data={chartData} options={chartOptions} />;
+      default:
+        return <Line data={chartData} options={chartOptions} />;
+    }
+  };
+
+  const renderProductOrderChart = () => {
+    if (filteredOrders.length === 0) {
+      return (
+        <Container size="100%" style={{ textAlign: "center" }}>
+          <Space h={100} />
+          <Title order={3} align="center" mt="md" mb="md">
+            {selectedMonth || selectedYear
+              ? "No data available for selected filters"
+              : "No data available"}
+          </Title>
+          <Space h={100} />
+        </Container>
+      );
+    }
+
+    return <Bar data={productOrderData} options={chartOptions} />;
+  };
+
   return (
     <>
       <Container size="100%">
-        <Header title="My Orders" page="orders" />
+        <HeaderData title="Products" page="Products" />
+        <Space h="xl" />
+        <Title align="center">Products Sales Data</Title>
+        <Space h="xl" />
         <Space h="35px" />
-        {isAdminHQ && (
-          <Select
-            placeholder="Select Branch"
-            value={selectedBranch}
-            onChange={setSelectedBranch}
-            data={[
-              { value: null, label: "All Branches" },
-              ...branchs.map((branch) => ({
+        <Group grow>
+          {isAdminHQ && (
+            <Select
+              placeholder="Select Branch"
+              value={selectedBranch}
+              onChange={setSelectedBranch}
+              data={branchs.map((branch) => ({
                 value: branch._id,
                 label: branch.branch,
-              })),
+              }))}
+            />
+          )}
+          <Select
+            placeholder="Select Month"
+            value={selectedMonth}
+            onChange={setSelectedMonth}
+            data={[
+              { value: "1", label: "January" },
+              { value: "2", label: "February" },
+              { value: "3", label: "March" },
+              { value: "4", label: "April" },
+              { value: "5", label: "May" },
+              { value: "6", label: "June" },
+              { value: "7", label: "July" },
+              { value: "8", label: "August" },
+              { value: "9", label: "September" },
+              { value: "10", label: "October" },
+              { value: "11", label: "November" },
+              { value: "12", label: "December" },
             ]}
           />
-        )}
+          <Select
+            placeholder="Select Year"
+            value={selectedYear}
+            onChange={setSelectedYear}
+            data={[...Array(20)].map((_, index) => {
+              const year = new Date().getFullYear() - index;
+              return { value: year.toString(), label: year.toString() };
+            })}
+          />
+          <Select
+            placeholder="Select Chart Type"
+            value={selectedChartType}
+            onChange={setSelectedChartType}
+            data={[
+              { value: "line", label: "Line" },
+              { value: "bar", label: "Bar" },
+              { value: "pie", label: "Pie" },
+            ]}
+          />
+        </Group>
+        <Space h="20px" />
+        <Grid>
+          <Grid.Col span={2}></Grid.Col>
+          <Grid.Col span={8}>
+            <Space h="15px" />
+            <Text order={3} fw={700}>
+              SalesChart
+            </Text>
+            <Space h="5px" />
+            {renderChart()}
+          </Grid.Col>
+          <Grid.Col span={2}></Grid.Col>
+          <Grid.Col span={2}></Grid.Col>
+
+          <Grid.Col span={8}>
+            {" "}
+            <Text order={3} fw={700}>
+              ProductChart
+            </Text>
+            {renderProductOrderChart()}
+          </Grid.Col>
+          <Grid.Col span={2}></Grid.Col>
+        </Grid>
+
+        <Space h="20px" />
         <Space h="20px" />
         <LoadingOverlay visible={isLoading} />
         <ScrollArea h={800} width="100%" offsetScrollbars scrollHideDelay={300}>
@@ -380,14 +601,13 @@ export default function Orders() {
                         <br />
                         HP: {client ? client.clientPhonenumber : o.phone}
                       </td>
-
                       <td>
-                        {o.products.map((product, index) => (
-                          <div key={index}>
-                            <Group>
-                              {product.productImage &&
-                              product.productImage !== "" ? (
-                                <>
+                        {o.products && o.products.length > 0 ? (
+                          o.products.map((product, index) => (
+                            <div key={index}>
+                              <Group>
+                                {product.productImage &&
+                                product.productImage !== "" ? (
                                   <Image
                                     src={API_URL + "/" + product.productImage}
                                     width={50}
@@ -396,48 +616,23 @@ export default function Orders() {
                                       borderRadius: "20px",
                                     }}
                                   />
-                                </>
-                              ) : (
-                                <Image src={noImageIcon} width="50px" />
-                              )}
-                              <p>{product.name}</p>
-                            </Group>
-                          </div>
-                        ))}
+                                ) : (
+                                  <Image src={noImageIcon} width="50px" />
+                                )}
+                                <p>{product.name}</p>
+                              </Group>
+                            </div>
+                          ))
+                        ) : (
+                          <p>No products</p>
+                        )}
                       </td>
                       <td>MYR {o.totalPrice.toFixed(2)}</td>
                       <td>
-                        <Select
-                          value={o.status}
-                          disabled={
-                            o.status === "Delivered" || !isAdmin ? true : false
-                          }
-                          data={[
-                            {
-                              value: "Pending",
-                              label: "Pending",
-                            },
-                            { value: "Paid", label: "Paid" },
-                            { value: "Failed", label: "Failed" },
-                            { value: "Shipped", label: "Shipped" },
-                            {
-                              value: "Delivered",
-                              label: "Delivered",
-                            },
-                          ]}
-                          onChange={(newValue) => {
-                            updateMutation.mutate({
-                              id: o._id,
-                              data: JSON.stringify({
-                                status: newValue,
-                              }),
-                              token: currentUser ? currentUser.token : "",
-                            });
-                          }}
-                        />
+                        <TextInput value={o.status} disabled />
                       </td>
                       <td>{formattedDate}</td>
-                      <td> {user && user.name}</td>
+                      <td>{user && user.name}</td>
                       <td>
                         <HoverCard shadow="md">
                           <HoverCard.Target>
@@ -490,6 +685,7 @@ export default function Orders() {
               ) : (
                 <tr>
                   <td colSpan="8">
+                    <Space h={100} />
                     <Text align="center">No orders found</Text>
                   </td>
                 </tr>

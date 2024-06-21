@@ -255,20 +255,34 @@ export default function Wages() {
     doc.save(`payslip_${order.payslipNo}.pdf`);
   };
 
+  const currentUserBranch = useMemo(() => {
+    return cookies?.currentUser?.branch;
+  }, [cookies]);
+
+  const isAdminBranch = useMemo(() => {
+    return cookies?.currentUser?.role === "Admin Branch";
+  }, [cookies]);
+
+  const isAdminHQ = useMemo(() => {
+    return cookies?.currentUser?.role === "Admin HQ";
+  }, [cookies]);
+
   return (
     <>
       <Container size="100%">
         <LoadingOverlay visible={isLoading} />
         <Group position="right" mb="lg">
-          <Button
-            color="bule"
-            radius="md"
-            size="xs"
-            component={Link}
-            to={`/wage-all`}
-          >
-            See All
-          </Button>
+          {(isAdminBranch || isAdminHQ) && (
+            <Button
+              color="bule"
+              radius="md"
+              size="xs"
+              component={Link}
+              to={`/wage-all`}
+            >
+              See All
+            </Button>
+          )}
           <TextInput
             w="200px"
             value={searchTerm}

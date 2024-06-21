@@ -25,7 +25,7 @@ import { useCookies } from "react-cookie";
 import { useParams } from "react-router-dom";
 import { fetchClients } from "../api/client";
 import "./checkout.css";
-import { fetchUsers } from "../api/auth";
+import { fetchBranch, fetchUsers } from "../api/auth";
 import noImageIcon from "../Logo/no_image.png";
 
 export default function Checkout() {
@@ -61,6 +61,22 @@ export default function Checkout() {
     queryKey: ["clients"],
     queryFn: () => fetchClients(id),
   });
+
+  const { data: branches = [] } = useQuery({
+    queryKey: ["branches"],
+    queryFn: () => fetchBranch(),
+  });
+
+  const currentUserBranch = useMemo(() => {
+    return cookies?.currentUser?.branch;
+  }, [cookies]);
+
+  // Filter users by currentUser's branch
+  const filteredUsers = users.filter(
+    (user) => user.branch === currentUserBranch
+  );
+
+  const filteredClients = clients.filter((c) => c.branch === currentUserBranch);
 
   const calculateTotal = () => {
     let total = 0;
@@ -102,7 +118,7 @@ export default function Checkout() {
       navigate("/orders");
     },
     onError: (error) => {
-      // when this is an error in API call
+      // when there is an error in API call
       notifications.show({
         title: error.response.data.message,
         color: "red",
@@ -157,23 +173,25 @@ export default function Checkout() {
       <Header title="Checkout" page="checkout" />
       <Space h="35px" />
       <Grid span={12}>
-        <Grid.Col span={7}>
-          <Title order={3} align="center">
+        <Grid.Col span={3}></Grid.Col>
+        <Grid.Col span={6}>
+          <Title order={6} align="center">
             Contact Information
           </Title>
           <Space h="20px" />
           <Select
-            data={clients.map((client) => ({
+            data={filteredClients.map((client) => ({
               value: client._id,
-              label: `${client.clientName}  (${client.clientPhonenumber})`,
+              label: `Name: ${client.clientName}, IC: ${client.clientIc}`,
             }))}
             value={selectedClient}
             onChange={(value) => setSelectedClient(value)}
             placeholder="Select a client"
+            label="Select a client"
           />
-          <Group position="center">
+          {/* <Group position="center">
             <Space h="50px" />
-            <Text fw={700}>---- IF NO A MEMBER ----</Text>
+            <Text fw={700}>---- IF NOT A MEMBER ----</Text>
             <Space h="50px" />
           </Group>
           <TextInput
@@ -198,12 +216,7 @@ export default function Checkout() {
             disabled={!!selectedClient} // Disable if selectedClient has a value
             onChange={(event) => setAddress(event.target.value)}
           />
-          <Space h="20px" />
-
-          <Space h="20px" />
-        </Grid.Col>
-
-        <Grid.Col span={5}>
+          <Space h="20px" /> */}
           <p>Your order summary</p>
           <Table>
             <tbody>
@@ -247,7 +260,7 @@ export default function Checkout() {
                 })
               ) : (
                 <tr>
-                  <td colSpan={6}>No Product Add Yet!</td>
+                  <td colSpan={6}>No Product Added Yet!</td>
                 </tr>
               )}
               <Space h={50} />
@@ -283,7 +296,7 @@ export default function Checkout() {
                   }}
                 >
                   <Select
-                    data={users.map((user) => ({
+                    data={filteredUsers.map((user) => ({
                       value: user._id,
                       label: `${user.name} (${user.ic})`,
                     }))}
@@ -305,10 +318,8 @@ export default function Checkout() {
               </tr>{" "}
             </tbody>
           </Table>
-        </Grid.Col>
-        <Space h="20px" />
-        <Grid.Col span={3}></Grid.Col>
-        <Grid.Col span={6}>
+
+          <Space h="20px" />
           <Space h="20px" />
           <Button
             loading={loading}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useCookies } from "react-cookie";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
@@ -30,7 +30,7 @@ import { Dropzone, IMAGE_MIME_TYPE } from "@mantine/dropzone";
 import { getClients, updateClient, uploadClientImage } from "../api/client";
 import sofitLogo from "../Logo/sofit-black.png";
 import { MdUpload } from "react-icons/md";
-import { fetchUsers } from "../api/auth";
+import { fetchBranch, fetchUsers } from "../api/auth";
 import { uploadProductImage } from "../api/products";
 
 const ClientEdit = () => {
@@ -87,6 +87,7 @@ const ClientEdit = () => {
   const [clientPackage, setClientPackage] = useState();
   const [sessions, setSessions] = useState();
   const [clientImage, setClientImage] = useState("");
+  const [branch, setBranch] = useState();
   const [uploading, setUploading] = useState(false);
   const [visible, { toggle }] = useDisclosure(false);
   const { isLoading } = useQuery({
@@ -139,6 +140,7 @@ const ClientEdit = () => {
       setSessions(data.sessions);
       setPackageValidityPeriod(new Date(data.packageValidityPeriod));
       setClientImage(data.clientImage);
+      setBranch(data.branch);
     },
   });
 
@@ -183,6 +185,27 @@ const ClientEdit = () => {
       });
     },
   });
+
+  const { data: branchs } = useQuery({
+    queryKey: ["fetchB"],
+    queryFn: () => fetchBranch(),
+  });
+
+  const isAdminB = useMemo(() => {
+    return cookies &&
+      cookies.currentUser &&
+      cookies.currentUser.role === "Admin Branch"
+      ? true
+      : false;
+  }, [cookies]);
+
+  const isAdminHQ = useMemo(() => {
+    return cookies &&
+      cookies.currentUser &&
+      cookies.currentUser.role === "Admin HQ"
+      ? true
+      : false;
+  }, [cookies]);
 
   const handleImageUpload = (files) => {
     setUploading(true);
@@ -245,6 +268,7 @@ const ClientEdit = () => {
         sessions: sessions,
         packageValidityPeriod: packageValidityPeriod,
         clientImage: clientImage,
+        branch: branch,
       }),
       token: currentUser ? currentUser.token : "",
     });
@@ -871,6 +895,23 @@ const ClientEdit = () => {
               onChange={(value) => setcoachId(value)}
               label="Staff"
               placeholder="Select a Staff"
+            />
+          </Grid.Col>
+          <Grid.Col span={3}>
+            <NativeSelect
+              data={
+                branchs
+                  ? branchs.map((b) => ({
+                      value: b._id,
+                      label: b.branch,
+                    }))
+                  : []
+              }
+              label="Branch"
+              value={branch}
+              placeholder=""
+              disabled={isAdminB || isAdminHQ ? false : true}
+              onChange={(event) => setBranch(event.currentTarget.value)}
             />
           </Grid.Col>
           <Grid.Col span={3}>

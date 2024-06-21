@@ -22,7 +22,7 @@ import {
   updateCalendar,
 } from "../api/calendar2";
 import { fetchClients } from "../api/client";
-import { fetchUsers } from "../api/auth";
+import { fetchBranch, fetchUsers } from "../api/auth";
 
 export default function CalendarEdit() {
   const [cookies] = useCookies(["currentUser"]);
@@ -36,7 +36,7 @@ export default function CalendarEdit() {
   const [endTime, setEndTime] = useState();
   const [selectedUser, setSelectedUser] = useState("");
   const [coachId, setcoachId] = useState("");
-  const [selectedMember, setSelectedMember] = useState("");
+  const [selectedClient, setSelectedClient] = useState("");
 
   const { data: users = [] } = useQuery({
     queryKey: ["users"],
@@ -51,8 +51,8 @@ export default function CalendarEdit() {
       setStartTime(data.startTime);
       setStartDate(new Date(data.appointmentDate));
       // setEndTime(data.endTime);
-      setSelectedUser(data.user.id);
-      setSelectedMember(data.clientId);
+      setSelectedUser(data.staffId);
+      setSelectedClient(data.clientId);
     },
   });
 
@@ -74,6 +74,21 @@ export default function CalendarEdit() {
     queryKey: ["clients"],
     queryFn: () => fetchClients(),
   });
+
+  const { data: branchs } = useQuery({
+    queryKey: ["branch"],
+    queryFn: () => fetchBranch(),
+  });
+
+  const currentUserBranch = useMemo(() => {
+    return cookies?.currentUser?.branch;
+  }, [cookies]);
+
+  const filteredUsers = users.filter(
+    (user) => user.branch === currentUserBranch
+  );
+
+  const filteredClients = clients.filter((c) => c.branch === currentUserBranch);
 
   const updateMutation = useMutation({
     mutationFn: updateCalendar,
@@ -103,10 +118,12 @@ export default function CalendarEdit() {
       id: id,
       data: JSON.stringify({
         title: title,
-        user: selectedUser,
+        clientId: selectedClient,
+        staffId: selectedUser,
+        user: currentUser._id,
         appointmentDate: startDate,
         startTime: startTime,
-        // endTime: endTime,
+        branch: currentUserBranch,
       }),
       token: currentUser ? currentUser.token : "",
     });
@@ -174,20 +191,20 @@ export default function CalendarEdit() {
         <Space h="20px" />
         <Divider />
         <Select
-          data={clients.map((client) => ({
+          data={filteredClients.map((client) => ({
             value: client._id,
-            label: `${client.clientName}  (${client.clientPhonenumber})`,
+            label: `Name: ${client.clientName} | IC: ${client.clientIc} | Sessions(${client.sessions})`,
           }))}
-          value={selectedMember}
-          onChange={setSelectedMember}
-          label="Member"
-          placeholder="Select a Member"
+          value={selectedClient}
+          onChange={(value) => setSelectedClient(value)}
+          placeholder="Select a client"
+          label="Select a client"
           disabled
         />
         <Space h="20px" />
         <Divider />
         <Select
-          data={users
+          data={filteredUsers
             .filter((user) =>
               [
                 "Junior Trainee",
@@ -195,12 +212,12 @@ export default function CalendarEdit() {
                 "Advanced Senior Trainee",
               ].includes(user.department)
             )
-            .map((u) => ({
-              value: u._id,
-              label: `${u.name} (${u.department})`,
+            .map((user) => ({
+              value: user._id,
+              label: `${user.name} (${user.department})`,
             }))}
           value={selectedUser}
-          onChange={(value) => setSelectedUser(value)}
+          onChange={setSelectedUser} // Corrected function call
           label="Staff"
           placeholder="Select a Staff"
         />

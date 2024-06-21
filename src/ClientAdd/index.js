@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useCookies } from "react-cookie";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
@@ -27,7 +27,7 @@ import {
 } from "../api/client";
 import { IoImages } from "react-icons/io5";
 import HeaderClient from "../HeaderClient";
-import { fetchUsers } from "../api/auth";
+import { fetchBranch, fetchUsers } from "../api/auth";
 import { API_URL } from "../api/data";
 import { Dropzone, IMAGE_MIME_TYPE } from "@mantine/dropzone";
 
@@ -121,6 +121,15 @@ const ClientAdd = () => {
       });
     },
   });
+
+  const { data: branchs } = useQuery({
+    queryKey: ["branch"],
+    queryFn: () => fetchBranch(),
+  });
+
+  const currentUserBranch = useMemo(() => {
+    return cookies?.currentUser?.branch;
+  }, [cookies]);
 
   const handleImageUpload = (files) => {
     if (files.length === 0) {
@@ -217,6 +226,7 @@ const ClientAdd = () => {
           medQ4,
           medQ5,
           addNote,
+          branch: currentUserBranch,
           coachId: selectedUser,
           clientImage,
         }),

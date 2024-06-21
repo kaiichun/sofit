@@ -25,7 +25,7 @@ import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { useCookies } from "react-cookie";
 import logo from "../Logo/sofit-black.png";
-import { fetchBranch, fetchUsers } from "../api/auth";
+import { fetchUsers } from "../api/auth";
 import { fetchWages2 } from "../api/wage";
 import { MdOutlineMoneyOffCsred } from "react-icons/md";
 

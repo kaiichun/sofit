@@ -13,6 +13,7 @@ import {
   Divider,
   Space,
   Container,
+  Select,
 } from "@mantine/core";
 import React, { useState, useMemo, useEffect } from "react";
 import { useDisclosure } from "@mantine/hooks";
@@ -29,7 +30,7 @@ import {
   updateCalendar,
 } from "../api/calendar2";
 import { fetchClients } from "../api/client";
-import { fetchUsers } from "../api/auth";
+import { fetchBranch, fetchUsers } from "../api/auth";
 import { useParams } from "react-router-dom";
 
 export default function CalendarAll() {
@@ -40,18 +41,7 @@ export default function CalendarAll() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [currentStaff, setCurrentStaff] = useState([]);
-  const [branch, setBranch] = useState("");
-  const [hp, setHp] = useState("");
-  const [address, setAddress] = useState("");
-  const [ssm, setSsm] = useState("");
-  const [opened, { open, close }] = useDisclosure(false);
-  const [openedOrderId, setOpenedOrderId] = useState(null);
-  const [title, setTitle] = useState("");
-  const [startDate, setStartDate] = useState(null);
-  const [startTime, setStartTime] = useState();
-  const [endTime, setEndTime] = useState();
-  const [selectedUser, setSelectedUser] = useState("");
-  const [selectedMember, setSelectedMember] = useState("");
+  const [selectedBranch, setSelectedBranch] = useState(""); // Default to an empty string for "All Branches"
   const [showClientDeleteModal, setShowClientDeleteModal] = useState(false);
   const [packageIdToDelete, setPackageIdToDelete] = useState(null);
   const [clientIdToDelete, setClientIdToDelete] = useState(null);
@@ -79,6 +69,23 @@ export default function CalendarAll() {
       : false;
   }, [cookies]);
 
+  const { data: branchs = [] } = useQuery({
+    queryKey: ["fetchB"],
+    queryFn: () => fetchBranch(),
+  });
+
+  const currentUserBranch = useMemo(() => {
+    return cookies?.currentUser?.branch;
+  }, [cookies]);
+
+  const isAdminBranch = useMemo(() => {
+    return cookies?.currentUser?.role === "Admin Branch";
+  }, [cookies]);
+
+  const isAdminHQ = useMemo(() => {
+    return cookies?.currentUser?.role === "Admin HQ";
+  }, [cookies]);
+
   const deleteClientMutation = useMutation({
     mutationFn: deleteAppointment,
     onSuccess: () => {
@@ -86,17 +93,11 @@ export default function CalendarAll() {
         queryKey: ["calendar"],
       });
       notifications.show({
-        title: " Deleted",
+        title: "Deleted",
         color: "green",
       });
     },
   });
-
-  const isAdminHQ = useMemo(() => {
-    return (
-      cookies && cookies.currentUser && cookies.currentUser.role === "Admin HQ"
-    );
-  }, [cookies]);
 
   useEffect(() => {
     let newList = calendar ? [...calendar] : [];
@@ -142,6 +143,11 @@ export default function CalendarAll() {
       });
     }
 
+    // Apply branch filtering
+    if (selectedBranch && selectedBranch !== "") {
+      newList = newList.filter((event) => event.branch === selectedBranch);
+    }
+
     // Sort events by startDate and startTime in ascending order
     newList.sort((a, b) => {
       const dateA = getDateString(new Date(a.appointmentDate));
@@ -162,8 +168,14 @@ export default function CalendarAll() {
     });
 
     setCurrentStaff(newList);
-  }, [calendar, searchTerm]);
-
+  }, [
+    calendar,
+    searchTerm,
+    selectedBranch,
+    currentUserBranch,
+    isAdminBranch,
+    isAdminHQ,
+  ]);
   return (
     <>
       <Container size="100%">
@@ -176,6 +188,21 @@ export default function CalendarAll() {
             placeholder="Search"
             onChange={(event) => setSearchTerm(event.target.value)}
           />
+          {isAdminHQ && (
+            <Select
+              placeholder="All Branches"
+              value={selectedBranch}
+              onChange={(value) => setSelectedBranch(value)}
+              data={[
+                { value: "", label: "All Branches" },
+                ...branchs.map((branch) => ({
+                  value: branch._id,
+                  label: branch.branch,
+                })),
+              ]}
+              clearable
+            />
+          )}
         </Group>
         <Space h="35px" />
         {currentStaff.length > 0 ? (

@@ -18,7 +18,7 @@ import {
 import { TimeInput, DatePickerInput } from "@mantine/dates";
 import { addCalendar, fetchCalendars } from "../api/calendar2";
 import { fetchClients } from "../api/client";
-import { fetchUsers } from "../api/auth";
+import { fetchBranch, fetchUsers } from "../api/auth";
 
 export default function CalendarAdd() {
   const [cookies] = useCookies(["currentUser"]);
@@ -29,7 +29,8 @@ export default function CalendarAdd() {
   const [startTime, setStartTime] = useState();
   const [endTime, setEndTime] = useState();
   const [selectedUser, setSelectedUser] = useState("");
-  const [selectedMember, setSelectedMember] = useState("");
+  const [selectedClient, setSelectedClient] = useState("");
+
   const isAdminB = useMemo(() => {
     return cookies &&
       cookies.currentUser &&
@@ -53,6 +54,21 @@ export default function CalendarAdd() {
     queryKey: ["users"],
     queryFn: () => fetchUsers(),
   });
+
+  const { data: branchs } = useQuery({
+    queryKey: ["branch"],
+    queryFn: () => fetchBranch(),
+  });
+
+  const currentUserBranch = useMemo(() => {
+    return cookies?.currentUser?.branch;
+  }, [cookies]);
+
+  const filteredUsers = users.filter(
+    (user) => user.branch === currentUserBranch
+  );
+
+  const filteredClients = clients.filter((c) => c.branch === currentUserBranch);
 
   const createMutation = useMutation({
     mutationFn: addCalendar,
@@ -81,11 +97,12 @@ export default function CalendarAdd() {
       createMutation.mutate({
         data: JSON.stringify({
           title: title,
-          clientId: selectedMember,
+          clientId: selectedClient,
           staffId: selectedUser,
           user: currentUser._id,
           appointmentDate: startDate,
           startTime: startTime,
+          branch: currentUserBranch,
           //   endTime: endTime,
         }),
         token: currentUser ? currentUser.token : "",
@@ -155,19 +172,19 @@ export default function CalendarAdd() {
         <Space h="20px" />
         <Divider />
         <Select
-          data={clients.map((client) => ({
+          data={filteredClients.map((client) => ({
             value: client._id,
-            label: `${client.clientName}  (${client.clientPhonenumber})`,
+            label: `Name: ${client.clientName} | IC: ${client.clientIc} | Sessions(${client.sessions})`,
           }))}
-          value={selectedMember}
-          onChange={setSelectedMember} // Corrected function call
-          label="Member"
-          placeholder="Select a Member"
+          value={selectedClient}
+          onChange={(value) => setSelectedClient(value)}
+          placeholder="Select a client"
+          label="Select a client"
         />
         <Space h="20px" />
         <Divider />
         <Select
-          data={users
+          data={filteredUsers
             .filter((user) =>
               [
                 "Junior Trainee",
@@ -184,6 +201,17 @@ export default function CalendarAdd() {
           label="Staff"
           placeholder="Select a Staff"
         />
+
+        {/* <Select
+          label="Select Staff"
+          data={filteredUsers.map((user) => ({
+            value: user._id,
+            label: `${user.name} (${user.ic})`,
+          }))}
+          value={selectedUser}
+          onChange={(value) => setSelectedUser(value)}
+          placeholder="Select a Staff"
+        /> */}
         <Space h="50px" />
         <Group>
           <DatePickerInput

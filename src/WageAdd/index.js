@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 
 import {
   Container,
@@ -16,7 +16,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { notifications } from "@mantine/notifications";
 import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import { useCookies } from "react-cookie";
-import { fetchUsers } from "../api/auth";
+import { fetchBranch, fetchUsers } from "../api/auth";
 import { fetchPMS, fetchUserPMS } from "../api/pms";
 import { fetchOrders } from "../api/order";
 import { addWage } from "../api/wage";
@@ -180,6 +180,20 @@ function WageAdd() {
 
     return reward;
   };
+
+  const { data: branchs } = useQuery({
+    queryKey: ["branch"],
+    queryFn: () => fetchBranch(),
+  });
+
+  const currentUserBranch = useMemo(() => {
+    return cookies?.selectedUser?.branch;
+  }, [cookies]);
+
+  const selectedUserBranch =
+    selectedUser && users
+      ? users.find((c) => c._id === selectedUser)?.branch || ""
+      : "-";
 
   const selectedUserName =
     selectedUser && users
@@ -815,10 +829,12 @@ function WageAdd() {
         epfNo: epfno,
         socsoNo: soscono,
         eisNo: eisno,
+        branch: selectedUserBranch,
       }),
       token: currentUser ? currentUser.token : "",
     });
   };
+  console.log(selectedUserBranch);
 
   return (
     <Container>

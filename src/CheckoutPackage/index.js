@@ -30,7 +30,7 @@ import "./checkout.css";
 import { fetchPackage } from "../api/package";
 import { createOrderPackage } from "../api/orderspackage";
 import HeaderClient from "../HeaderClient";
-import { fetchUsers } from "../api/auth";
+import { fetchBranch, fetchUsers } from "../api/auth";
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -40,7 +40,7 @@ export default function Checkout() {
   const [loading, setLoading] = useState(false);
   const [selectedClient, setSelectedClient] = useState("");
   const [selectedPackage, setSelectedPackage] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState();
+  const [paymentMethod, setPaymentMethod] = useState("Full payment");
   const [payby, setPayby] = useState("");
   const [installmentMonth, setInstallmentMonth] = useState("");
   const [discount, setDiscount] = useState(0);
@@ -62,13 +62,21 @@ export default function Checkout() {
     queryFn: () => fetchPackage(currentUser ? currentUser.token : ""),
   });
 
+  const { data: branches = [] } = useQuery({
+    queryKey: ["branches"],
+    queryFn: () => fetchBranch(),
+  });
+
+  const currentUserBranch = useMemo(() => {
+    return cookies?.currentUser?.branch;
+  }, [cookies]);
+
   const createOrderMutation = useMutation({
     mutationFn: createOrderPackage,
     onSuccess: (data) => {
       navigate("/client-orders-summary");
     },
     onError: (error) => {
-      // when this is an error in API call
       notifications.show({
         title: error.response.data.message,
         color: "red",
@@ -194,7 +202,7 @@ export default function Checkout() {
           payby: payby,
           installmentMonth: installmentMonth,
           installmentAmount: installmentAmount,
-          outstanding: calculateOutstanding(),
+          outstanding: calculatedOutstanding, // Use the calculatedOutstanding value here
           tax: calculateTax(),
           user: currentUser._id,
           staffId: selectedUser,
@@ -211,6 +219,13 @@ export default function Checkout() {
     }
   };
 
+  // Filter users by currentUser's branch
+  const filteredUsers = users.filter(
+    (user) => user.branch === currentUserBranch
+  );
+
+  const filteredClients = clients.filter((c) => c.branch === currentUserBranch);
+
   return (
     <>
       <HeaderClient page="Package" />
@@ -223,15 +238,15 @@ export default function Checkout() {
           </Title>
           <Space h="30px" />
           <Select
-            data={clients.map((client) => ({
+            data={filteredClients.map((client) => ({
               value: client._id,
-              label: `Name:  ${client.clientName} ,  IC:  ${client.clientIc}`,
+              label: `Name: ${client.clientName}, IC: ${client.clientIc}`,
             }))}
             value={selectedClient}
             onChange={(value) => setSelectedClient(value)}
             placeholder="Select a client"
             label="Select a client"
-          />{" "}
+          />
           <Space h="20px" />
           <Select
             data={
@@ -270,7 +285,6 @@ export default function Checkout() {
                 value: "E-Wallet",
                 label: "E-Wallet",
               },
-
               {
                 value: "Merchant Services",
                 label: "Merchant Services",
@@ -284,7 +298,7 @@ export default function Checkout() {
           <Space h="20px" />
           <NativeSelect
             data={["Full payment", "Installment"]}
-            label="Gender"
+            label="Payment Method"
             value={paymentMethod}
             onChange={(event) => setPaymentMethod(event.target.value)}
           />
@@ -299,21 +313,21 @@ export default function Checkout() {
                       { value: 12, label: 12 },
                     ]}
                     value={installmentMonth}
-                    label="Select a Installment Month"
+                    label="Select Installment Month"
                     onChange={(value) => setInstallmentMonth(value)}
-                    placeholder="Select a Package"
+                    placeholder="Select Installment Month"
                   />
                 </Grid.Col>
                 <Grid.Col span={3}>
                   <TextInput
-                    label="Outstanding  "
+                    label="Outstanding"
                     value={outstandingAmount}
                     readOnly
                   />
                 </Grid.Col>{" "}
                 <Grid.Col span={4}>
                   <TextInput
-                    label="Month Installment Amount"
+                    label="Monthly Installment Amount"
                     value={installmentAmount}
                     readOnly
                   />
@@ -345,7 +359,7 @@ export default function Checkout() {
               <Grid.Col span={12}>
                 <Select
                   label="Select Staff"
-                  data={users.map((user) => ({
+                  data={filteredUsers.map((user) => ({
                     value: user._id,
                     label: `${user.name} (${user.ic})`,
                   }))}

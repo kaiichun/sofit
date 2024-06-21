@@ -42,6 +42,10 @@ import CalendarEdit from "./CalendarEdit";
 import Resigter from "./Resigter";
 import EditPwd from "./ChangePassword";
 import WageAll from "./WageAll";
+import DataAnalysisPackages from "./DataAnalysisPackages";
+import DataAnalysisWages from "./DataAnalysisWages";
+import DataAnalysisOrder from "./DataAnalysisOrder";
+import DataAnalysisClient from "./DataAnalysisClient";
 
 function App() {
   const [cookies] = useCookies(["currentUser"]);
@@ -156,6 +160,46 @@ function App() {
             element={
               <AppWrapper>
                 <BranchEdit />
+              </AppWrapper>
+            }
+          />
+        )}
+        {(isAdminB || isAdminHQ) && (
+          <Route
+            path="/sales-package"
+            element={
+              <AppWrapper>
+                <DataAnalysisPackages />
+              </AppWrapper>
+            }
+          />
+        )}
+        {(isAdminB || isAdminHQ) && (
+          <Route
+            path="/data-wages"
+            element={
+              <AppWrapper>
+                <DataAnalysisWages />
+              </AppWrapper>
+            }
+          />
+        )}
+        {(isAdminB || isAdminHQ) && (
+          <Route
+            path="/data-client"
+            element={
+              <AppWrapper>
+                <DataAnalysisClient />
+              </AppWrapper>
+            }
+          />
+        )}
+        {(isAdminB || isAdminHQ) && (
+          <Route
+            path="/sales-product"
+            element={
+              <AppWrapper>
+                <DataAnalysisOrder />
               </AppWrapper>
             }
           />

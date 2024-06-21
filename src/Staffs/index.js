@@ -8,6 +8,7 @@ import {
   Group,
   Container,
   Space,
+  Select,
 } from "@mantine/core";
 import { Link } from "react-router-dom";
 import { useState, useMemo, useEffect } from "react";
@@ -21,6 +22,7 @@ function Staffs() {
   const [perPage, setPerPage] = useState(100);
   const [totalPages, setTotalPages] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedBranch, setSelectedBranch] = useState("");
   const [currentStaff, setCurrentStaff] = useState([]);
   const [cookies] = useCookies(["currentUser"]);
   const { currentUser } = cookies;
@@ -35,6 +37,10 @@ function Staffs() {
     queryFn: () => fetchBranch(),
   });
 
+  const currentUserBranch = useMemo(() => {
+    return cookies?.currentUser?.branch;
+  }, [cookies]);
+
   const isAdminBranch = useMemo(() => {
     return cookies?.currentUser?.role === "Admin Branch";
   }, [cookies]);
@@ -44,8 +50,33 @@ function Staffs() {
   }, [cookies]);
 
   useEffect(() => {
-    let newList = users ? [...users] : [];
-    const total = Math.ceil(newList.length / perPage);
+    let filteredUsers = users ? [...users] : [];
+
+    if (isAdminBranch) {
+      filteredUsers = filteredUsers.filter(
+        (user) => user.branch === currentUserBranch
+      );
+    }
+
+    if (selectedBranch) {
+      filteredUsers = filteredUsers.filter(
+        (user) => user.branch === selectedBranch
+      );
+    }
+
+    if (searchTerm) {
+      filteredUsers = filteredUsers.filter(
+        (user) =>
+          user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          branchs.some(
+            (branch) =>
+              branch._id === user.branch &&
+              branch.branch.toLowerCase().includes(searchTerm.toLowerCase())
+          )
+      );
+    }
+
+    const total = Math.ceil(filteredUsers.length / perPage);
     const pages = [];
     for (let i = 1; i <= total; i++) {
       pages.push(i);
@@ -55,15 +86,64 @@ function Staffs() {
     const start = (currentPage - 1) * perPage;
     const end = start + perPage;
 
-    newList = newList.slice(start, end);
+    setCurrentStaff(filteredUsers.slice(start, end));
+  }, [
+    users,
+    perPage,
+    currentPage,
+    searchTerm,
+    selectedBranch,
+    isAdminBranch,
+    currentUserBranch,
+    branchs,
+  ]);
 
-    if (searchTerm) {
-      newList = newList.filter(
-        (i) => i.name.toLowerCase().indexOf(searchTerm.toLowerCase()) >= 0
+  const renderStaffCards = (staffList) => {
+    return staffList.map((u) => {
+      const branchName = branchs?.find(
+        (branch) => branch._id === u.branch
+      )?.branch;
+      return (
+        <Card shadow="sm" p="lg" radius="md" withBorder key={u.id}>
+          <Card.Section>
+            <Image src={API_URL + "/" + u.image} height={220} alt="Staff" />
+          </Card.Section>
+
+          <Group position="apart" mt="md" mb="xs">
+            <Text fw={700}>{u.name}</Text>
+
+            <Button
+              variant="outline"
+              color="red"
+              radius="md"
+              size="xs"
+              compact
+              component={Link}
+              to={`/edit-info/${u._id}`}
+            >
+              EDIT
+            </Button>
+          </Group>
+          <Text size="sm" color="dimmed">
+            Phone Number: {u.phonenumber}
+          </Text>
+          <Text size="sm" color="dimmed">
+            Department: {u.department}
+          </Text>
+          {isAdminHQ && (
+            <Text size="sm" color="dimmed">
+              Role: {u.role}
+            </Text>
+          )}
+          {isAdminHQ && branchName && (
+            <Text size="sm" color="dimmed">
+              Branch: {branchName}
+            </Text>
+          )}
+        </Card>
       );
-    }
-    setCurrentStaff(newList);
-  }, [users, perPage, currentPage, searchTerm]);
+    });
+  };
 
   return (
     <>
@@ -85,9 +165,21 @@ function Staffs() {
           <TextInput
             w="200px"
             value={searchTerm}
-            placeholder="Search"
+            placeholder="Search by name or branch"
             onChange={(event) => setSearchTerm(event.target.value)}
           />
+          {isAdminHQ && (
+            <Select
+              placeholder="Select branch"
+              value={selectedBranch}
+              onChange={(value) => setSelectedBranch(value)}
+              data={branchs.map((branch) => ({
+                value: branch._id,
+                label: branch.branch,
+              }))}
+              clearable
+            />
+          )}
         </Group>
 
         <SimpleGrid
@@ -100,58 +192,12 @@ function Staffs() {
           ]}
         >
           {currentStaff.length > 0 ? (
-            currentStaff.map((u) => {
-              const branchName = branchs?.find(
-                (branch) => branch._id === u.branch
-              )?.branch;
-              return (
-                <Card shadow="sm" p="lg" radius="md" withBorder key={u.id}>
-                  <Card.Section>
-                    <Image
-                      src={API_URL + "/" + u.image}
-                      height={220}
-                      alt="Norway"
-                    />
-                  </Card.Section>
-
-                  <Group position="apart" mt="md" mb="xs">
-                    <Text fw={700}>{u.name}</Text>
-
-                    <Button
-                      variant="outline"
-                      color="red"
-                      radius="md"
-                      size="xs"
-                      compact
-                      component={Link}
-                      to={`/edit-info/${u._id}`}
-                    >
-                      EDIT
-                    </Button>
-                  </Group>
-                  <Text size="sm" color="dimmed">
-                    Phone Number: {u.phonenumber}
-                  </Text>
-                  <Text size="sm" color="dimmed">
-                    Department: {u.department}
-                  </Text>
-                  {isAdminHQ && (
-                    <Text size="sm" color="dimmed">
-                      Role: {u.role}
-                    </Text>
-                  )}
-                  {isAdminHQ && branchName && (
-                    <Text size="sm" color="dimmed">
-                      Branch: {branchName}
-                    </Text>
-                  )}
-                </Card>
-              );
-            })
+            renderStaffCards(currentStaff)
           ) : (
             <Text>User Not Found</Text>
           )}
         </SimpleGrid>
+
         <Space h={20} />
         <div>
           <span
