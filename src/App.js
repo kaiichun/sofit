@@ -348,14 +348,16 @@ function App() {
             </AppWrapper>
           }
         />
-        <Route
-          path="/data-analysis"
-          element={
-            <AppWrapper>
-              <DataAnalysis />
-            </AppWrapper>
-          }
-        />
+        {(isAdminB || isAdminHQ) && (
+          <Route
+            path="/data-analysis"
+            element={
+              <AppWrapper>
+                <DataAnalysis />
+              </AppWrapper>
+            }
+          />
+        )}
         <Route
           path="/performance-management-system-add"
           element={

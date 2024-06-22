@@ -550,7 +550,7 @@ export default function DataAnalysisPackages() {
             data={chartTypeOptions}
           />
         </Grid.Col>
-        {isAdmin && (
+        {isAdminHQ && (
           <Grid.Col span={3}>
             <Select
               label="Branch"
@@ -561,6 +561,7 @@ export default function DataAnalysisPackages() {
                 value: branch._id,
                 label: branch.branch,
               }))}
+              disabled={!isAdminHQ}
             />
           </Grid.Col>
         )}

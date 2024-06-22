@@ -496,6 +496,7 @@ export default function DataAnalysisOrder() {
                 value: branch._id,
                 label: branch.branch,
               }))}
+              disabled={!isAdminHQ}
             />
           )}
           <Select
