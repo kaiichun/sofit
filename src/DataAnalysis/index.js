@@ -105,7 +105,7 @@ export default function DataAnalysis() {
   };
 
   const filteredOrders = useMemo(() => {
-    let filtered = orders || ordersProduct;
+    let filtered = orders;
 
     if (selectedMonth) {
       filtered = filtered.filter(
@@ -123,6 +123,26 @@ export default function DataAnalysis() {
 
     return filtered;
   }, [orders, selectedMonth, selectedYear]);
+
+  const filteredPOrders = useMemo(() => {
+    let filtered = ordersProduct;
+
+    if (selectedMonth) {
+      filtered = filtered.filter(
+        (order) =>
+          new Date(order.paid_at).getMonth() + 1 === parseInt(selectedMonth)
+      );
+    }
+
+    if (selectedYear) {
+      filtered = filtered.filter(
+        (order) =>
+          new Date(order.paid_at).getFullYear() === parseInt(selectedYear)
+      );
+    }
+
+    return filtered;
+  }, [ordersProduct, selectedMonth, selectedYear]);
 
   const aggregatedBranchData = useMemo(() => {
     const branchData = {};
@@ -173,7 +193,7 @@ export default function DataAnalysis() {
   const aggregatedBranchProductData = useMemo(() => {
     const branchData = {};
 
-    filteredOrders.forEach((order) => {
+    filteredPOrders.forEach((order) => {
       const user = users.find((user) => user._id === order.user);
       const branch = user ? branches.find((b) => b._id === user.branch) : null;
       const branchName = branch ? branch.branch : "Unknown";
@@ -188,27 +208,14 @@ export default function DataAnalysis() {
             { length: new Date(selectedYear, selectedMonth, 0).getDate() },
             () => 0
           ),
-          dailyPackageSales: Array.from(
-            { length: new Date(selectedYear, selectedMonth, 0).getDate() },
-            () => ({})
-          ),
         };
       }
 
       branchData[branchName].totalSales[day - 1] += order.totalPrice || 0;
-
-      (order.products || []).forEach((pack) => {
-        const packageName = pack.name || "Unknown Package";
-        if (branchData[branchName].dailyPackageSales[day - 1][packageName]) {
-          branchData[branchName].dailyPackageSales[day - 1][packageName] += 1;
-        } else {
-          branchData[branchName].dailyPackageSales[day - 1][packageName] = 1;
-        }
-      });
     });
 
     return branchData;
-  }, [filteredOrders, users, branches, selectedMonth, selectedYear]);
+  }, [filteredPOrders, users, branches, selectedMonth, selectedYear]);
 
   const chartOptions = {
     responsive: true,
@@ -416,7 +423,7 @@ export default function DataAnalysis() {
           <Grid.Col span={8}>
             <Space h="15px" />
             {renderSalesChart()}
-            {renderProductSalesChart()}
+            {/* {renderProductSalesChart()} */}
             <Space h="15px" />
             {renderPackageChart()}
           </Grid.Col>
