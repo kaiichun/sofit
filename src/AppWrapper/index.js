@@ -112,18 +112,20 @@ const AppWrapper = ({ children }) => {
               </div>
             </UnstyledButton>
             {/* <Divider mt="4px" mb="4px" /> */}
-            <UnstyledButton
-              component={Link}
-              to={"/data-analysis"}
-              variant="transparent"
-            >
-              <div className="item">
-                <Group>
-                  <SiAlwaysdata width="80px" height="80px" />
-                  Data Analysis
-                </Group>
-              </div>
-            </UnstyledButton>
+            {isAdmin && (
+              <UnstyledButton
+                component={Link}
+                to={"/data-analysis"}
+                variant="transparent"
+              >
+                <div className="item">
+                  <Group>
+                    <SiAlwaysdata width="80px" height="80px" />
+                    Data Analysis
+                  </Group>
+                </div>
+              </UnstyledButton>
+            )}
             <UnstyledButton
               component={Link}
               to={"/performance-management-system"}
