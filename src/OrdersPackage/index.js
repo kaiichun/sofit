@@ -348,11 +348,15 @@ export default function OrdersPackage() {
     doc.line(12, 203, 198, 203);
     doc.setFontSize(10);
     doc.text(`Discount:`, 140, 208);
-    doc.text(`${order.discount ? order.discount.toFixed(2) : 0.0}`, 182.3, 208);
-    doc.text(`Total Price:`, 140, 213);
-    doc.text(`${order.totalPrice.toFixed(2)}`, 182.3, 213);
-    // doc.text(`Service Tax (8%) :`, 140, 208);
-    // doc.text(`${order.tax.toFixed(2)}`, 184.2, 208);
+    doc.text(
+      `${order.discount ? order.discount.toFixed(2) : "    0.00"}`,
+      182.3,
+      208
+    );
+    doc.text(`Total Price:`, 140, 218);
+    doc.text(`${order.totalPrice.toFixed(2)}`, 181.0, 218);
+    doc.text(`Service Tax (8%) :`, 140, 213);
+    doc.text(`${order.tax ? order.tax.toFixed(2) : "    0.00"}`, 182.3, 213);
     // doc.text(`Total Price:`, 140, 213);
     // doc.text(`${order.totalPrice.toFixed(2)}`, 182.3, 213);
 

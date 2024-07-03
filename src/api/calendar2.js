@@ -73,6 +73,15 @@ export const updateCalendar = async ({ id, data, token = "" }) => {
   return response.data;
 };
 
+export const updateAppointment = async ({ id, data, token }) => {
+  const response = await axios.put(`/api/calendar2/update/${id}`, data, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return response.data;
+};
+
 export const deleteAppointment = async ({ id = "", token = "" }) => {
   const response = await axios({
     method: "DELETE",

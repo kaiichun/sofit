@@ -46,6 +46,7 @@ import DataAnalysisPackages from "./DataAnalysisPackages";
 import DataAnalysisWages from "./DataAnalysisWages";
 import DataAnalysisOrder from "./DataAnalysisOrder";
 import DataAnalysisClient from "./DataAnalysisClient";
+import CalendarTable from "./CalendarTable";
 
 function App() {
   const [cookies] = useCookies(["currentUser"]);
@@ -329,6 +330,14 @@ function App() {
           element={
             <AppWrapper>
               <CalendarAll />
+            </AppWrapper>
+          }
+        />
+        <Route
+          path="/calendar-table"
+          element={
+            <AppWrapper>
+              <CalendarTable />
             </AppWrapper>
           }
         />

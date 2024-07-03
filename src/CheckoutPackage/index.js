@@ -90,23 +90,6 @@ export default function Checkout() {
       ? users.find((c) => c._id === selectedUser)?.name || ""
       : "-";
 
-  const calculateTotal = () => {
-    if (packages && selectedPackage) {
-      const selectedPackageObject = packages.find(
-        (p) => p._id === selectedPackage
-      );
-      if (selectedPackageObject) {
-        const totalPrice =
-          parseFloat(selectedPackageObject.price) + parseFloat(calculateTax());
-        return totalPrice.toFixed(2); // Ensure totalPrice has two decimal places
-      } else {
-        return "0.00";
-      }
-    } else {
-      return "0.00";
-    }
-  };
-
   const calculateTotalWithOutTax = () => {
     if (packages && selectedPackage) {
       const selectedPackageObject = packages.find(
@@ -122,15 +105,12 @@ export default function Checkout() {
     }
   };
 
-  const calculateTotalWithDiscount = () => {
+  const calculateDiscountedTotal = () => {
     let total = parseFloat(calculateTotalWithOutTax());
 
     // Apply discount rate if provided
-    if (discountRate > 0) {
-      total -= (total * discountRate) / 100;
-    }
 
-    // Apply direct discount value if provided
+    // Apply direct discount value if provided and greater than 0
     if (discount > 0) {
       total -= discount;
     }
@@ -139,13 +119,13 @@ export default function Checkout() {
   };
 
   const calculateTax = () => {
-    const totalWithDiscount = parseFloat(calculateTotalWithDiscount());
+    const totalWithDiscount = parseFloat(calculateDiscountedTotal());
     const taxAmount = totalWithDiscount * 0.08; // Calculate 8% of the discounted total
     return taxAmount.toFixed(2); // Ensure taxAmount has two decimal places
   };
 
   const calculateFinalTotal = () => {
-    const totalWithDiscount = parseFloat(calculateTotalWithDiscount());
+    const totalWithDiscount = parseFloat(calculateDiscountedTotal());
     const taxAmount = parseFloat(calculateTax());
     const finalTotal = totalWithDiscount + taxAmount;
     return finalTotal.toFixed(2);
@@ -416,12 +396,7 @@ export default function Checkout() {
                 Price:
               </Text>
               <Text weight="bolder" align="right" px="1px" precision={2}>
-                {selectedPackage && packages
-                  ? (
-                      packages.find((p) => p._id === selectedPackage)?.price ||
-                      0
-                    ).toFixed(2)
-                  : "0.00"}
+                {calculateTotalWithOutTax()}
               </Text>{" "}
             </Group>
             <Group position="apart">

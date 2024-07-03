@@ -13,6 +13,7 @@ import {
   Button,
   Group,
   Select,
+  Input,
 } from "@mantine/core";
 import { TimeInput, DatePickerInput } from "@mantine/dates";
 import {
@@ -196,7 +197,7 @@ export default function CalendarEdit() {
             label: `Name: ${client.clientName} | IC: ${client.clientIc} | Sessions(${client.sessions})`,
           }))}
           value={selectedClient}
-          onChange={(value) => setSelectedClient(value)}
+          onChange={setSelectedClient}
           placeholder="Select a client"
           label="Select a client"
           disabled
