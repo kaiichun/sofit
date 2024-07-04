@@ -108,9 +108,7 @@ export default function Checkout() {
   const calculateDiscountedTotal = () => {
     let total = parseFloat(calculateTotalWithOutTax());
 
-    // Apply discount rate if provided
-
-    // Apply direct discount value if provided and greater than 0
+    // Subtract direct discount value if provided and greater than 0
     if (discount > 0) {
       total -= discount;
     }

@@ -79,7 +79,7 @@ export default function Header({ title, page = "", text = "" }) {
             w={100}
             variant={page === "orders" ? "light" : "subtle"}
           >
-            My Orders
+            Orders
           </Button>
         </Group>
       </Group>

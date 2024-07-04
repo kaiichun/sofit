@@ -82,7 +82,7 @@ export default function HeaderClient({ title, page = "", text = "" }) {
             to="/client-orders-summary"
             variant={page === "Summary" ? "light" : "subtle"}
           >
-            Summary
+            Orders
           </Button>
         </Group>
       </Group>
