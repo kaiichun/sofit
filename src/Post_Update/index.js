@@ -1,9 +1,8 @@
 import React, { useMemo, useState } from "react";
-import { Dropzone, IMAGE_MIME_TYPE, MIME_TYPES } from "@mantine/dropzone";
-import { useDisclosure } from "@mantine/hooks";
+import { Dropzone, IMAGE_MIME_TYPE } from "@mantine/dropzone";
 import { useCookies } from "react-cookie";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { notifications } from "@mantine/notifications";
 import { API_URL } from "../api/data";
 import {
@@ -12,7 +11,6 @@ import {
   Image,
   Group,
   Space,
-  UnstyledButton,
   Text,
   Textarea,
   NativeSelect,
@@ -34,9 +32,10 @@ export default function PostUpdate() {
   const [content, setContent] = useState("");
   const [postImage, setPostimage] = useState("");
   const [status, setStatus] = useState("Draft");
-  const [cookies, setCookies, removeCookies] = useCookies(["currentUser"]);
+  const [cookies] = useCookies(["currentUser"]);
   const { currentUser } = cookies;
   const queryClient = useQueryClient();
+
   const { isLoading } = useQuery({
     queryKey: ["postcontent", id],
     queryFn: () => getPosts(id),
@@ -49,80 +48,26 @@ export default function PostUpdate() {
 
   const { data: users = [] } = useQuery({
     queryKey: ["users"],
-    queryFn: () => fetchUsers(),
+    queryFn: fetchUsers,
   });
 
   const { data: posts = [] } = useQuery({
     queryKey: ["postcontent"],
-    queryFn: () => fetchPosts(),
+    queryFn: fetchPosts,
   });
-
-  const createPostMutation = useMutation({
-    mutationFn: addPostDetails,
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["postcontent"],
-      });
-      notifications.show({
-        title: currentUser.name + "post created",
-        color: "green",
-      });
-      navigate("/home");
-    },
-    onError: (error) => {
-      notifications.show({
-        title: error.response.data.message,
-        color: "red",
-      });
-    },
-  });
-
-  const name =
-    currentUser && users
-      ? users.find((u) => u._id === currentUser._id)?.name
-      : undefined;
-
-  const handleAddNewPost = async (event) => {
-    event.preventDefault();
-    createPostMutation.mutate({
-      data: JSON.stringify({
-        content: content,
-        status: status,
-        postImage: postImage,
-        editedBy: currentUser._id,
-      }),
-      token: currentUser ? currentUser.token : "",
-    });
-    setContent("");
-    setPostimage("");
-  };
-
-  const handleUpdateProduct = async (event) => {
-    // 阻止表单默认提交行为
-    event.preventDefault();
-    // 使用updateMutation mutation来更新商品信息
-    updateMutation.mutate({
-      id: id,
-      data: JSON.stringify({
-        content: content,
-        status: status,
-        postImage: postImage,
-        editedBy: currentUser._id,
-      }),
-      token: currentUser ? currentUser.token : "",
-    });
-    setContent("");
-    setPostimage("");
-  };
 
   const updateMutation = useMutation({
     mutationFn: updatePost,
     onSuccess: () => {
+      // show add success message
+      // 显示添加成功消息
       notifications.show({
-        title: currentUser.name + " post is Edited",
+        title: "Product is updated successfully",
         color: "green",
       });
-      navigate("/");
+      // redirect back to home page
+      // 重定向回主页
+      navigate("/product");
     },
     onError: (error) => {
       notifications.show({
@@ -131,9 +76,21 @@ export default function PostUpdate() {
       });
     },
   });
+  const handleUpdateProduct = async (event) => {
+    event.preventDefault();
+    updateMutation.mutate({
+      id,
+      data: JSON.stringify({
+        content,
+        status,
+        postImage,
+        editedBy: currentUser._id,
+      }),
+      token: currentUser ? currentUser.token : "",
+    });
+  };
 
-  const uploadPostImageMutation = useMutation({
-    mutationFn: uploadPostImage,
+  const uploadPostImageMutation = useMutation(uploadPostImage, {
     onSuccess: (data) => {
       setPostimage(data.postImage_url);
     },
@@ -149,12 +106,9 @@ export default function PostUpdate() {
     uploadPostImageMutation.mutate(files[0]);
   };
 
-  const deletePostMutation = useMutation({
-    mutationFn: deletePost,
+  const deletePostMutation = useMutation(deletePost, {
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["postcontent"],
-      });
+      queryClient.invalidateQueries("postcontent");
       notifications.show({
         title: currentUser.name + " post is Deleted Successfully",
         color: "yellow",
@@ -162,12 +116,9 @@ export default function PostUpdate() {
     },
   });
 
-  const deleteAdminPostMutation = useMutation({
-    mutationFn: deletePostAdmin,
+  const deleteAdminPostMutation = useMutation(deletePostAdmin, {
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["postcontent"],
-      });
+      queryClient.invalidateQueries("postcontent");
       notifications.show({
         title: currentUser.name + " post is Deleted Successfully",
         color: "green",
@@ -176,28 +127,19 @@ export default function PostUpdate() {
   });
 
   const isAdminB = useMemo(() => {
-    return cookies &&
-      cookies.currentUser &&
-      cookies.currentUser.role === "Admin Branch"
-      ? true
-      : false;
+    return cookies.currentUser && cookies.currentUser.role === "Admin Branch";
   }, [cookies]);
 
   const isAdminHQ = useMemo(() => {
-    return cookies &&
-      cookies.currentUser &&
-      cookies.currentUser.role === "Admin HQ"
-      ? true
-      : false;
+    return cookies.currentUser && cookies.currentUser.role === "Admin HQ";
   }, [cookies]);
 
   const isAdmin = useMemo(() => {
-    return cookies &&
+    return (
       cookies.currentUser &&
       (cookies.currentUser.role === "Admin HQ" ||
         cookies.currentUser.role === "Admin Branch")
-      ? true
-      : false;
+    );
   }, [cookies]);
 
   return (
@@ -263,9 +205,7 @@ export default function PostUpdate() {
                   w={80}
                   h={60}
                   styles={{ margin: "0px" }}
-                  onDrop={(files) => {
-                    handlePostImageUpload(files);
-                  }}
+                  onDrop={handlePostImageUpload}
                 >
                   <Group position="center">
                     <Text align="center" style={{ padding: "0px" }}>

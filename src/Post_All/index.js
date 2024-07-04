@@ -225,7 +225,7 @@ export default function PostAll() {
                     </Group>
                   </Card>
                 </UnstyledButton>
-                {isAdminHQ && (
+                {/* {isAdminHQ && (
                   <>
                     <Space h={10} />
                     <Group position="apart">
@@ -243,7 +243,7 @@ export default function PostAll() {
                       </Button>
                     </Group>
                   </>
-                )}
+                )} */}
               </Grid.Col>
             ))
           )}
