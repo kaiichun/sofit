@@ -97,6 +97,24 @@ export default function PostUpdate() {
     setPostimage("");
   };
 
+  const handleUpdateProduct = async (event) => {
+    // 阻止表单默认提交行为
+    event.preventDefault();
+    // 使用updateMutation mutation来更新商品信息
+    updateMutation.mutate({
+      id: id,
+      data: JSON.stringify({
+        content: content,
+        status: status,
+        postImage: postImage,
+        editedBy: currentUser._id,
+      }),
+      token: currentUser ? currentUser.token : "",
+    });
+    setContent("");
+    setPostimage("");
+  };
+
   const updateMutation = useMutation({
     mutationFn: updatePost,
     onSuccess: () => {
@@ -265,7 +283,7 @@ export default function PostUpdate() {
                 placeholder=""
                 onChange={(event) => setStatus(event.target.value)}
               />
-              <Button style={{ margin: "0px" }} onClick={handleAddNewPost}>
+              <Button style={{ margin: "0px" }} onClick={handleUpdateProduct}>
                 Publish
               </Button>
             </Group>
