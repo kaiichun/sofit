@@ -115,22 +115,16 @@ export default function CalendarView() {
         );
       }
 
-      // Inside your useEffect hook
       const newEvents = filteredCalendar.map((event) => {
         const client = clients.find((client) => client._id === event.clientId);
         const user = users.find((user) => user._id === event.user);
         const staff = users.find((user) => user._id === event.staffId);
         const branch = branches.find((branch) => branch._id === event.branch);
 
-        // Assume event.appointmentDate and event.startTime are in UTC
-        const startDateTime = moment
-          .tz(
-            `${event.appointmentDate} ${event.startTime}`,
-            "YYYY-MM-DD HH:mm",
-            "UTC"
-          )
-          .local()
-          .toDate();
+        const startDateTime = moment(
+          `${event.appointmentDate} ${event.startTime}`,
+          "YYYY-MM-DD HH:mm"
+        ).toDate();
         const endDateTime = moment(startDateTime).add(1, "hours").toDate();
 
         return {
