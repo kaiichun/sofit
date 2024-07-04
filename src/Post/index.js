@@ -197,9 +197,9 @@ export default function Post() {
                               </Text>
                             </div>
                             <Space h="15px" />
-                            {v.postimage && (
+                            {v.postImage && (
                               <img
-                                src={API_URL + "/" + v.postimage}
+                                src={API_URL + "/" + v.postImage}
                                 alt="Post Image"
                                 style={{
                                   width: "100%",
@@ -298,8 +298,28 @@ export default function Post() {
                 : null}
             </Group>
             <Space h="10px" />
-            <Title size={24}> {posts.content}</Title>
-            <Space h="15px" />
+            <Title size={24} mb="20px">
+              {" "}
+              {posts.content}
+            </Title>
+
+            {posts.postImage && (
+              <Group position="center">
+                <img
+                  src={API_URL + "/" + posts.postImage}
+                  alt="Post Image"
+                  style={{
+                    width: "50%",
+                    height: "100%",
+                    borderRadius: "1%",
+                  }}
+                />{" "}
+              </Group>
+            )}
+
+            <Space h="25px" />
+            <Divider />
+            <Space h="25px" />
             <Group position="apart">
               <Group>
                 {posts.user ? (
@@ -408,6 +428,9 @@ export default function Post() {
                       addSuffix: true,
                     })
                   : null}
+              </Text>
+              <Text fz="sm" fw={500} c="dimmed">
+                {posts.editedBy ? `Edited` : null}
               </Text>
             </Group>
           </div>

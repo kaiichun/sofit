@@ -235,14 +235,6 @@ export default function CalendarAdd() {
             placeholder="Select a time"
           />
           <Space w="xl" />
-          {/* <Select
-            data={appTime}
-            value={endTime} // <-- Problematic line
-            onChange={(value) => setEndTime(value)}
-            label="End time"
-            placeholder="Select a time"
-          />
-          <Space w="xl" /> */}
         </Group>
         <Space h="50px" />
         <Button color="green" fullWidth onClick={handleSubmit}>

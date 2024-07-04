@@ -47,6 +47,7 @@ import DataAnalysisWages from "./DataAnalysisWages";
 import DataAnalysisOrder from "./DataAnalysisOrder";
 import DataAnalysisClient from "./DataAnalysisClient";
 import CalendarTable from "./CalendarTable";
+import PostUpdate from "./Post_Update";
 
 function App() {
   const [cookies] = useCookies(["currentUser"]);
@@ -123,6 +124,14 @@ function App() {
           element={
             <AppWrapper>
               <PackageEdit />
+            </AppWrapper>
+          }
+        />
+        <Route
+          path="/edit-post/:id"
+          element={
+            <AppWrapper>
+              <PostUpdate />
             </AppWrapper>
           }
         />
