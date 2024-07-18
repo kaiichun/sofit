@@ -8,13 +8,11 @@ import {
   Group,
   Container,
   Space,
-  Divider,
-  Modal,
   Select,
 } from "@mantine/core";
 import { Link } from "react-router-dom";
 import { useState, useMemo, useEffect } from "react";
-import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import { useCookies } from "react-cookie";
 import { deleteUser, fetchBranch, fetchUsers } from "../api/auth";
 import { API_URL } from "../api/data";
@@ -33,22 +31,27 @@ function Staffs() {
   const { currentUser } = cookies;
   const queryClient = useQueryClient();
 
-  const {
-    data: users = [],
-    isLoading: usersLoading,
-    isError: usersError,
-  } = useQuery({
+  const { data: users = [] } = useQuery({
     queryKey: ["users"],
     queryFn: () => fetchUsers(currentUser ? currentUser.token : ""),
   });
 
-  const {
-    data: branches = [],
-    isLoading: branchesLoading,
-    isError: branchesError,
-  } = useQuery({
-    queryKey: ["branches"],
+  const { data: branchs = [] } = useQuery({
+    queryKey: ["fetchB"],
     queryFn: () => fetchBranch(),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteUser,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["users"],
+      });
+      notifications.show({
+        title: "Staff is Deleted",
+        color: "red",
+      });
+    },
   });
 
   const currentUserBranch = useMemo(() => {
@@ -63,21 +66,8 @@ function Staffs() {
     return cookies?.currentUser?.role === "Admin HQ";
   }, [cookies]);
 
-  const deleteMutation = useMutation({
-    mutationFn: deleteUser,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["users"] });
-      notifications.show({
-        title: "Staff Deleted",
-        color: "red",
-      });
-    },
-  });
-
   useEffect(() => {
-    if (usersLoading || branchesLoading) return;
-
-    let filteredUsers = [...users];
+    let filteredUsers = users ? [...users] : [];
 
     if (isAdminBranch) {
       filteredUsers = filteredUsers.filter(
@@ -95,7 +85,7 @@ function Staffs() {
       filteredUsers = filteredUsers.filter(
         (user) =>
           user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          branches.some(
+          branchs.some(
             (branch) =>
               branch._id === user.branch &&
               branch.branch.toLowerCase().includes(searchTerm.toLowerCase())
@@ -104,11 +94,15 @@ function Staffs() {
     }
 
     const total = Math.ceil(filteredUsers.length / perPage);
-    const pages = Array.from({ length: total }, (_, i) => i + 1);
+    const pages = [];
+    for (let i = 1; i <= total; i++) {
+      pages.push(i);
+    }
     setTotalPages(pages);
 
     const start = (currentPage - 1) * perPage;
     const end = start + perPage;
+
     setCurrentStaff(filteredUsers.slice(start, end));
   }, [
     users,
@@ -118,30 +112,12 @@ function Staffs() {
     selectedBranch,
     isAdminBranch,
     currentUserBranch,
-    branches,
-    usersLoading,
-    branchesLoading,
+    branchs,
   ]);
-
-  const handleDelete = () => {
-    deleteMutation.mutate({
-      id: productIdToDelete,
-      token: currentUser ? currentUser.token : "",
-    });
-    setShowModal(false);
-  };
-
-  if (usersLoading || branchesLoading) {
-    return <Text>Loading...</Text>;
-  }
-
-  if (usersError || branchesError) {
-    return <Text>Error loading data</Text>;
-  }
 
   const renderStaffCards = (staffList) => {
     return staffList.map((u) => {
-      const branchName = branches.find(
+      const branchName = branchs?.find(
         (branch) => branch._id === u.branch
       )?.branch;
       return (
@@ -187,111 +163,97 @@ function Staffs() {
               size="xs"
               radius="50px"
               onClick={() => {
-                setProductIdToDelete(u._id);
-                setShowModal(true);
+                deleteMutation.mutate({
+                  id: u._id,
+                  token: currentUser ? currentUser.token : "",
+                });
               }}
             >
               Delete
             </Button>
           )}
-          <Modal
-            centered
-            title="Confirm Deletion"
-            opened={showModal}
-            onClose={() => setShowModal(false)}
-            size="lg"
-          >
-            <Divider />
-            <Space h="10px" />
-            <Group>
-              <Text>Are you sure you want to delete</Text>
-              <Text c="red" fw={500}>
-                {u.name}
-              </Text>
-              <Text>?</Text>
-            </Group>
-
-            <Space h="20px" />
-            <Group position="right">
-              <Button color="red" size="sm" onClick={handleDelete}>
-                Delete
-              </Button>
-              <Button onClick={() => setShowModal(false)}>Cancel</Button>
-            </Group>
-          </Modal>
         </Card>
       );
     });
   };
 
   return (
-    <Container>
-      <Group position="apart" mb="lg">
-        <Select
-          value={perPage}
-          onChange={(value) => {
-            setPerPage(parseInt(value));
-            setCurrentPage(1);
-          }}
-          data={[
-            { value: 100, label: "100 Per Page" },
-            { value: 50, label: "50 Per Page" },
-            { value: 20, label: "20 Per Page" },
-            { value: 9, label: "9 Per Page" },
-            { value: 6, label: "6 Per Page" },
-          ]}
-        />
-        <TextInput
-          w="200px"
-          value={searchTerm}
-          placeholder="Search by name or branch"
-          onChange={(event) => setSearchTerm(event.target.value)}
-        />
-        {isAdminHQ && (
-          <Select
-            placeholder="Select branch"
-            value={selectedBranch}
-            onChange={(value) => setSelectedBranch(value)}
-            data={branches.map((branch) => ({
-              value: branch._id,
-              label: branch.branch,
-            }))}
-            clearable
-          />
-        )}
-      </Group>
-
-      <SimpleGrid
-        cols={3}
-        spacing="lg"
-        breakpoints={[
-          { maxWidth: 980, cols: 4, spacing: "md" },
-          { maxWidth: 755, cols: 3, spacing: "sm" },
-          { maxWidth: 600, cols: 2, spacing: "sm" },
-        ]}
-      >
-        {currentStaff.length > 0 ? (
-          renderStaffCards(currentStaff)
-        ) : (
-          <Text>User Not Found</Text>
-        )}
-      </SimpleGrid>
-
-      <Space h={20} />
-      <div>
-        <span style={{ marginRight: "10px" }}>
-          Page {currentPage} of {totalPages.length}
-        </span>
-        {totalPages.map((page) => (
-          <Button
-            key={page}
-            variant="default"
-            onClick={() => setCurrentPage(page)}
+    <>
+      <Container>
+        <Group position="apart" mb="lg">
+          <select
+            value={perPage}
+            onChange={(event) => {
+              setPerPage(parseInt(event.target.value));
+              setCurrentPage(1);
+            }}
           >
-            {page}
-          </Button>
-        ))}
-      </div>
+            <option value="100">100 Per Page</option>
+            <option value="50">50 Per Page</option>
+            <option value="20">20 Per Page</option>
+            <option value="9">9 Per Page</option>
+            <option value="6">6 Per Page</option>
+          </select>
+          <TextInput
+            w="200px"
+            value={searchTerm}
+            placeholder="Search by name or branch"
+            onChange={(event) => setSearchTerm(event.target.value)}
+          />
+          {isAdminHQ && (
+            <Select
+              placeholder="Select branch"
+              value={selectedBranch}
+              onChange={(value) => setSelectedBranch(value)}
+              data={branchs.map((branch) => ({
+                value: branch._id,
+                label: branch.branch,
+              }))}
+              clearable
+            />
+          )}
+        </Group>
+
+        <SimpleGrid
+          cols={3}
+          spacing="lg"
+          breakpoints={[
+            { maxWidth: 980, cols: 4, spacing: "md" },
+            { maxWidth: 755, cols: 3, spacing: "sm" },
+            { maxWidth: 600, cols: 2, spacing: "sm" },
+          ]}
+        >
+          {currentStaff.length > 0 ? (
+            renderStaffCards(currentStaff)
+          ) : (
+            <Text>User Not Found</Text>
+          )}
+        </SimpleGrid>
+
+        <Space h={20} />
+        <div>
+          <span
+            style={{
+              marginRight: "10px",
+            }}
+          >
+            Page {currentPage} of {totalPages.length}
+          </span>
+          {totalPages.map((page) => {
+            return (
+              <Button
+                key={page}
+                variant="default"
+                onClick={() => {
+                  setCurrentPage(page);
+                }}
+              >
+                {page}
+              </Button>
+            );
+          })}
+        </div>
+      </Container>
 
       <Group position="apart" mt={300}>
         <div></div>
@@ -300,7 +262,11 @@ function Staffs() {
             color="red"
             radius="xl"
             size="xl"
-            style={{ position: "fixed", bottom: "15px", right: "15px" }}
+            style={{
+              position: "fixed",
+              bottom: "15px",
+              right: "15px",
+            }}
             compact
             component={Link}
             to={"/add-staff"}
@@ -309,7 +275,7 @@ function Staffs() {
           </Button>
         </div>
       </Group>
-    </Container>
+    </>
   );
 }
 
