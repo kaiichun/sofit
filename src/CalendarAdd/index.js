@@ -218,6 +218,7 @@ export default function CalendarAdd() {
             value={startDate}
             onChange={(newStart) => {
               setStartDate(newStart);
+              console.log(newStart);
             }}
             label="Start Date"
             placeholder="Start Date"
