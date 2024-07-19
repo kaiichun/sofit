@@ -25,6 +25,7 @@ import { Dropzone, IMAGE_MIME_TYPE } from "@mantine/dropzone";
 import { fetchBranch, registerUser, uploadProfileImage } from "../api/auth";
 import sofitLogo from "../Logo/sofit-black.png";
 import { MdUpload } from "react-icons/md";
+import { API_URL } from "../api/data";
 
 const Resigter = () => {
   const [cookies, setCookie] = useCookies(["currentUser"]);
@@ -69,7 +70,7 @@ const Resigter = () => {
       queryClient.invalidateQueries({
         queryKey: ["signup"],
       });
-      navigate("/");
+      navigate("/home");
     },
     onError: (error) => {
       notifications.show({
@@ -109,7 +110,6 @@ const Resigter = () => {
       !socso ||
       !bankacc ||
       !bankname ||
-      !image ||
       !staffemergencycontact ||
       !staffemergencycontactname ||
       !phonenumber ||
@@ -224,11 +224,7 @@ const Resigter = () => {
               {image && image !== "" ? (
                 <Group position="center">
                   <Card radius="md">
-                    <Image
-                      src={"http://localhost:2019/" + image}
-                      w={300}
-                      h={300}
-                    />
+                    <Image src={API_URL + "/" + image} w={300} h={300} />
                     <Group position="center">
                       <Button
                         color="red"
