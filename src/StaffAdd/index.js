@@ -335,20 +335,67 @@ const StaffAdd = () => {
                 />
               </Grid.Col>
               <Grid.Col span={3}>
-                <NativeSelect
+                {/* <NativeSelect
                   data={["Male", "Female"]}
                   label="Gender"
                   value={gender}
                   onChange={(event) => setGender(event.target.value)}
+                /> */}
+
+                <Select
+                  label="Gender"
+                  data={[
+                    {
+                      value: "Male",
+                      label: "Male",
+                    },
+
+                    {
+                      value: "Female",
+                      label: "Female",
+                    },
+                  ]}
+                  value={gender}
+                  placeholder="Select a gender here"
+                  onChange={(value) => setGender(value)}
                 />
               </Grid.Col>
               <Grid.Col span={2}>
-                <NativeSelect
+                {/* <NativeSelect
                   data={["Single", "In love", "Married", "Widowed", "Others"]}
                   label="Relationship"
                   value={relationship}
                   placeholder=""
                   onChange={(event) => setRelationship(event.target.value)}
+                /> */}
+
+                <Select
+                  label="Relationship"
+                  data={[
+                    {
+                      value: "Single",
+                      label: "Single",
+                    },
+                    {
+                      value: "In love",
+                      label: "In love",
+                    },
+                    {
+                      value: "Married",
+                      label: "Married",
+                    },
+                    {
+                      value: "Widowed",
+                      label: "Widowed",
+                    },
+                    {
+                      value: "Others",
+                      label: "Others",
+                    },
+                  ]}
+                  value={relationship}
+                  placeholder="Select a relationship here"
+                  onChange={(value) => setRelationship(value)}
                 />
               </Grid.Col>
               <Grid.Col span={4}>
@@ -404,7 +451,7 @@ const StaffAdd = () => {
                 />
               </Grid.Col>
               <Grid.Col span={3}>
-                <NativeSelect
+                {/* <NativeSelect
                   data={[
                     "Selangor",
                     "Perak",
@@ -426,6 +473,74 @@ const StaffAdd = () => {
                   value={state}
                   placeholder=""
                   onChange={(event) => setState(event.target.value)}
+                /> */}
+                <Select
+                  label="State"
+                  data={[
+                    {
+                      value: "Selangor",
+                      label: "Selangor",
+                    },
+                    {
+                      value: "Perak",
+                      label: "Perak",
+                    },
+                    {
+                      value: "Pahang",
+                      label: "Pahang",
+                    },
+                    {
+                      value: "Pulau Pinang",
+                      label: "Pulau Pinang",
+                    },
+                    {
+                      value: "Perlis",
+                      label: "Perlis",
+                    },
+                    {
+                      value: "Kelantan",
+                      label: "Kelantan",
+                    },
+                    {
+                      value: "Kedah",
+                      label: "Kedah",
+                    },
+                    {
+                      value: "Johor",
+                      label: "Johor",
+                    },
+                    {
+                      value: "Melaka",
+                      label: "Melaka",
+                    },
+                    {
+                      value: "Negeri Sembilan",
+                      label: "Negeri Sembilan",
+                    },
+                    {
+                      value: "Terengganu",
+                      label: "Terengganu",
+                    },
+                    {
+                      value: "W.P.Labuan",
+                      label: "W.P.Labuan",
+                    },
+                    {
+                      value: "W.P.Kualu Lumpur",
+                      label: "W.P.Kualu Lumpur",
+                    },
+                    {
+                      value: "Sabah",
+                      label: "Sabah",
+                    },
+                    {
+                      value: "Sarawak",
+                      label: "Sarawak",
+                    },
+                  ]}
+                  value={state}
+                  placeholder="Select a state here"
+                  onChange={(value) => setState(value)}
                 />
               </Grid.Col>
 
@@ -494,7 +609,7 @@ const StaffAdd = () => {
                 />
               </Grid.Col>
               <Grid.Col span={3}>
-                <NativeSelect
+                {/* <NativeSelect
                   data={[
                     "Junior Coach",
                     "Senior Coach",
@@ -510,6 +625,51 @@ const StaffAdd = () => {
                   value={department}
                   placeholder="Select department"
                   onChange={(event) => setDepartment(event.target.value)}
+                /> */}
+                <Select
+                  label="Department"
+                  data={[
+                    {
+                      value: "Junior Coach",
+                      label: "Junior Coach",
+                    },
+
+                    {
+                      value: "Senior Coach",
+                      label: "Senior Coach",
+                    },
+                    {
+                      value: "Advanced Senior Coach",
+                      label: "Advanced Senior Coach",
+                    },
+                    {
+                      value: "Master Coach",
+                      label: "Master Coach",
+                    },
+                    {
+                      value: "Sales",
+                      label: "Sales",
+                    },
+                    {
+                      value: "Marketing",
+                      label: "Marketing",
+                    },
+                    {
+                      value: "Management",
+                      label: "Management",
+                    },
+                    {
+                      value: "Accounting",
+                      label: "Accounting",
+                    },
+                    {
+                      value: "Other",
+                      label: "Other",
+                    },
+                  ]}
+                  value={department}
+                  placeholder="Select a department here"
+                  onChange={(value) => setDepartment(value)}
                 />
               </Grid.Col>
               <Grid.Col span={3}>
@@ -529,7 +689,7 @@ const StaffAdd = () => {
                 />
               </Grid.Col>
               <Grid.Col span={3}>
-                <NativeSelect
+                {/* <NativeSelect
                   data={[
                     "Staff",
                     "Supervisor",
@@ -541,6 +701,35 @@ const StaffAdd = () => {
                   value={role}
                   placeholder=""
                   onChange={(event) => setRole(event.target.value)}
+                /> */}
+                <Select
+                  label="Role"
+                  data={[
+                    {
+                      value: "Staff",
+                      label: "Staff",
+                    },
+
+                    {
+                      value: "Supervisor",
+                      label: "Supervisor",
+                    },
+                    {
+                      value: "Manager",
+                      label: "Manager",
+                    },
+                    {
+                      value: "Admin Branch",
+                      label: "Admin Branch",
+                    },
+                    {
+                      value: "Admin HQ",
+                      label: "Admin HQ",
+                    },
+                  ]}
+                  value={role}
+                  placeholder="Select a role here"
+                  onChange={(value) => setRole(value)}
                 />
               </Grid.Col>
             </Grid>
