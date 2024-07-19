@@ -120,7 +120,7 @@ function Login() {
           </Group>
           <Space h="30px" />
         </Card>
-        <Group
+        {/* <Group
           position="right"
           mx="auto"
           sx={{
@@ -140,7 +140,7 @@ function Login() {
           >
             <Space w={3} /> <Text>Resigter</Text> <Space w={3} />
           </Button>
-        </Group>
+        </Group> */}
       </Container>
       <Space h={200} />
       {/* <Text ta="center" c="dimmed" fz="sm">
