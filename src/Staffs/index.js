@@ -12,24 +12,20 @@ import {
 } from "@mantine/core";
 import { Link } from "react-router-dom";
 import { useState, useMemo, useEffect } from "react";
-import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useCookies } from "react-cookie";
-import { deleteUser, fetchBranch, fetchUsers } from "../api/auth";
+import { fetchBranch, fetchUsers } from "../api/auth";
 import { API_URL } from "../api/data";
-import { notifications } from "@mantine/notifications";
 
 function Staffs() {
   const [currentPage, setCurrentPage] = useState(1);
   const [perPage, setPerPage] = useState(100);
   const [totalPages, setTotalPages] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [showModal, setShowModal] = useState(false);
-  const [productIdToDelete, setProductIdToDelete] = useState(null);
   const [selectedBranch, setSelectedBranch] = useState("");
   const [currentStaff, setCurrentStaff] = useState([]);
   const [cookies] = useCookies(["currentUser"]);
   const { currentUser } = cookies;
-  const queryClient = useQueryClient();
 
   const { data: users = [] } = useQuery({
     queryKey: ["users"],
@@ -39,19 +35,6 @@ function Staffs() {
   const { data: branchs = [] } = useQuery({
     queryKey: ["fetchB"],
     queryFn: () => fetchBranch(),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: deleteUser,
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["users"],
-      });
-      notifications.show({
-        title: "Staff is Deleted",
-        color: "red",
-      });
-    },
   });
 
   const currentUserBranch = useMemo(() => {
@@ -156,21 +139,6 @@ function Staffs() {
             <Text size="sm" color="dimmed">
               Branch: {branchName}
             </Text>
-          )}
-          {isAdminHQ && (
-            <Button
-              color="red"
-              size="xs"
-              radius="50px"
-              onClick={() => {
-                deleteMutation.mutate({
-                  id: u._id,
-                  token: currentUser ? currentUser.token : "",
-                });
-              }}
-            >
-              Delete
-            </Button>
           )}
         </Card>
       );

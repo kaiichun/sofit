@@ -187,14 +187,3 @@ export const unlike = async ({ id, data, token = "" }) => {
   });
   return response.data;
 };
-
-export const deleteUser = async ({ id = "", token = "" }) => {
-  const response = await axios({
-    method: "DELETE",
-    url: API_URL + "/users/" + id,
-    headers: {
-      Authorization: "Bearer " + token,
-    },
-  });
-  return response.data;
-};
