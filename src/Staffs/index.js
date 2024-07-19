@@ -12,10 +12,11 @@ import {
 } from "@mantine/core";
 import { Link } from "react-router-dom";
 import { useState, useMemo, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import { useCookies } from "react-cookie";
-import { fetchBranch, fetchUsers } from "../api/auth";
+import { deleteUser, fetchBranch, fetchUsers } from "../api/auth";
 import { API_URL } from "../api/data";
+import { notifications } from "@mantine/notifications";
 
 function Staffs() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -26,6 +27,7 @@ function Staffs() {
   const [currentStaff, setCurrentStaff] = useState([]);
   const [cookies] = useCookies(["currentUser"]);
   const { currentUser } = cookies;
+  const queryClient = useQueryClient();
 
   const { data: users = [] } = useQuery({
     queryKey: ["users"],
@@ -36,6 +38,28 @@ function Staffs() {
     queryKey: ["fetchB"],
     queryFn: () => fetchBranch(),
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteUser,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["users"],
+      });
+      notifications.show({
+        title: "Staff is Deleted",
+        color: "red",
+      });
+    },
+  });
+
+  const isAdmin = useMemo(() => {
+    return cookies &&
+      cookies.currentUser &&
+      (cookies.currentUser.role === "Admin HQ" ||
+        cookies.currentUser.role === "Admin Branch")
+      ? true
+      : false;
+  }, [cookies]);
 
   const currentUserBranch = useMemo(() => {
     return cookies?.currentUser?.branch;
@@ -139,6 +163,26 @@ function Staffs() {
             <Text size="sm" color="dimmed">
               Branch: {branchName}
             </Text>
+          )}
+          {isAdmin && (
+            <Group position="apart" mt={10}>
+              <div></div>
+              <div>
+                <Button
+                  color="red"
+                  size="xs"
+                  radius="50px"
+                  onClick={() => {
+                    deleteMutation.mutate({
+                      id: u._id,
+                      token: currentUser ? currentUser.token : "",
+                    });
+                  }}
+                >
+                  Delete
+                </Button>
+              </div>
+            </Group>
           )}
         </Card>
       );
