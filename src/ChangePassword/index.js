@@ -38,7 +38,7 @@ export default function EditPwd() {
     mutationFn: passwordUser,
     onSuccess: () => {
       notifications.show({
-        title: "Password Updated",
+        title: "Password Edited",
         color: "green",
       });
       navigate("/home");
@@ -83,7 +83,7 @@ export default function EditPwd() {
 
   return (
     <Container>
-      <Space h="150px" />
+      <Space h="50px" />
       <>
         <Card
           withBorder
@@ -131,7 +131,18 @@ export default function EditPwd() {
         </Card>
       </>
 
-      <Space h="40px" />
+      <Space h="20px" />
+      <Group position="center">
+        <Button
+          component={Link}
+          to="/home"
+          variant="subtle"
+          size="xs"
+          color="gray"
+        >
+          Go back to Manage Users
+        </Button>
+      </Group>
     </Container>
   );
 }

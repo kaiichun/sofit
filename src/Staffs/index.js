@@ -7,15 +7,23 @@ import {
   Button,
   Group,
   Container,
+  Modal,
+  PasswordInput,
   Space,
   Select,
 } from "@mantine/core";
-import { Link } from "react-router-dom";
 import { useState, useMemo, useEffect } from "react";
 import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import { useCookies } from "react-cookie";
-import { deleteUser, fetchBranch, fetchUsers } from "../api/auth";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  deleteUser,
+  fetchBranch,
+  fetchUsers,
+  passwordUserAdmin,
+} from "../api/auth";
 import { API_URL } from "../api/data";
+import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 
 function Staffs() {
@@ -25,9 +33,13 @@ function Staffs() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedBranch, setSelectedBranch] = useState("");
   const [currentStaff, setCurrentStaff] = useState([]);
+  const [openedOrderId, setOpenedOrderId] = useState(null);
+  const [password, setPassword] = useState();
   const [cookies] = useCookies(["currentUser"]);
   const { currentUser } = cookies;
+  const [visible, { toggle }] = useDisclosure(false);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const { data: users = [] } = useQuery({
     queryKey: ["users"],
@@ -38,6 +50,47 @@ function Staffs() {
     queryKey: ["fetchB"],
     queryFn: () => fetchBranch(),
   });
+
+  const passwordMutation = useMutation({
+    mutationFn: passwordUserAdmin,
+    onSuccess: () => {
+      notifications.show({
+        title: "Password Updated",
+        color: "green",
+      });
+      navigate("/staff");
+    },
+    onError: (error) => {
+      notifications.show({
+        title: error.response.data.message,
+        color: "red",
+      });
+    },
+  });
+
+  const openModal = (orderId) => {
+    setOpenedOrderId(orderId);
+  };
+
+  const closeModal = () => {
+    setOpenedOrderId(null);
+  };
+
+  const handleUpdatePassword = (orderId) => {
+    passwordMutation.mutate(
+      {
+        id: orderId,
+        data: JSON.stringify({ password }),
+        token: currentUser ? currentUser.token : "",
+      },
+      {
+        onSuccess: () => {
+          closeModal();
+          setPassword(""); // Clear password after submission
+        },
+      }
+    );
+  };
 
   const deleteMutation = useMutation({
     mutationFn: deleteUser,
@@ -166,7 +219,44 @@ function Staffs() {
           )}
           {isAdmin && (
             <Group position="apart" mt={10}>
-              <div></div>
+              <div>
+                {/* <Button
+                  color="yellow"
+                  size="xs"
+                  radius="50px"
+                  onClick={() => {
+                    openModal(u._id);
+                  }}
+                >
+                  Password
+                </Button>
+                <Modal
+                  opened={openedOrderId === u._id}
+                  onClose={closeModal}
+                  title="Outstanding Update"
+                >
+                  <PasswordInput
+                    value={password}
+                    placeholder="New Password"
+                    label="New Password"
+                    visible={visible}
+                    onVisibilityChange={toggle}
+                    required
+                    onChange={(event) => setPassword(event.target.value)}
+                  />
+
+                  <Button
+                    onClick={() => {
+                      // Handle submission
+                      // After submission, clear the currentOutstanding value
+                      handleUpdatePassword(u._id);
+                      setPassword("");
+                    }}
+                  >
+                    Submit
+                  </Button>
+                </Modal> */}
+              </div>
               <div>
                 <Button
                   color="red"

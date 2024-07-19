@@ -198,3 +198,16 @@ export const deleteUser = async ({ id = "", token = "" }) => {
   });
   return response.data;
 };
+
+export const passwordUserAdmin = async ({ id, data, token = "" }) => {
+  const response = await axios({
+    method: "PUT",
+    url: API_URL + "/auth/passwordadmin/" + id,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + token,
+    },
+    data: data,
+  });
+  return response.data;
+};
