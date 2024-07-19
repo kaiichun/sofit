@@ -21,11 +21,11 @@ import {
   Title,
   Avatar,
 } from "@mantine/core";
+import { API_URL } from "../api/data";
 import { Dropzone, IMAGE_MIME_TYPE } from "@mantine/dropzone";
 import { fetchBranch, registerUser, uploadProfileImage } from "../api/auth";
 import sofitLogo from "../Logo/sofit-black.png";
 import { MdUpload } from "react-icons/md";
-import { API_URL } from "../api/data";
 
 const Resigter = () => {
   const [cookies, setCookie] = useCookies(["currentUser"]);
@@ -63,6 +63,19 @@ const Resigter = () => {
     queryFn: () => fetchBranch(),
   });
 
+  // const memoryCategories = queryClient.getQueryData(["branch", ""]);
+  // const categoryOptions = useMemo(() => {
+  //   let options = [];
+  //   if (memoryCategories && memoryCategories.length > 0) {
+  //     memoryCategories.forEach((branch) => {
+  //       if (!options.includes(branch)) {
+  //         options.push(branch);
+  //       }
+  //     });
+  //   }
+  //   return options;
+  // }, [memoryCategories]);
+
   // sign up mutation
   const signMutation = useMutation({
     mutationFn: registerUser,
@@ -80,18 +93,6 @@ const Resigter = () => {
     },
   });
 
-  function generateRandomNumbers() {
-    return Math.floor(1000 + Math.random() * 9000); // Generates a random 4-digit number
-  }
-
-  const [isDisabled, setIsDisabled] = useState(false);
-
-  const handleBlur = () => {
-    const randomNumbers = generateRandomNumbers();
-    setUsername((prevUsername) => prevUsername + randomNumbers);
-    setIsDisabled(true);
-  };
-
   const handleSubmit = () => {
     if (
       !name ||
@@ -103,6 +104,7 @@ const Resigter = () => {
       !zip ||
       !state ||
       !role ||
+      !branch ||
       !relationship ||
       !department ||
       !salary ||
@@ -303,8 +305,6 @@ const Resigter = () => {
                 placeholder="Username"
                 label="Username"
                 onChange={(event) => setUsername(event.target.value)}
-                onBlur={handleBlur}
-                disabled={isDisabled}
               />
             </Grid.Col>
             <Grid.Col span={4}>
@@ -495,9 +495,10 @@ const Resigter = () => {
             <Grid.Col span={3}>
               <NativeSelect
                 data={[
-                  "Junior Trainee",
-                  "Senior Trainee",
-                  "Advanced Senior Trainee",
+                  "Junior Coach",
+                  "Senior Coach",
+                  "Advanced Senior Coach",
+                  "Master Coach",
                   "Sales",
                   "Marketing",
                   "Management",
@@ -510,18 +511,22 @@ const Resigter = () => {
                 onChange={(event) => setDepartment(event.target.value)}
               />
             </Grid.Col>
-            {/* <Grid.Col span={3}>
-                <Select
-                  data={branchs.map((user) => ({
-                    value: user._id,
-                    label: `${user.branch}`,
-                  }))}
-                  value={branch}
-                  onChange={(value) => setBranch(value)}
-                  label="Branch"
-                  placeholder="Select a Branch"
-                />
-              </Grid.Col> */}
+            <Grid.Col span={3}>
+              <Select
+                data={
+                  branchs
+                    ? branchs.map((b) => ({
+                        value: b._id,
+                        label: b.branch,
+                      }))
+                    : []
+                }
+                value={branch}
+                onChange={(value) => setBranch(value)}
+                label="Branch"
+                placeholder="Select a Branch"
+              />
+            </Grid.Col>
             <Grid.Col span={3}>
               <NativeSelect
                 data={[
@@ -540,20 +545,11 @@ const Resigter = () => {
           </Grid>
           <Space h="50px" />
           <Group position="center">
-            <Button onClick={handleSubmit}>Resigter</Button>
+            <Button onClick={handleSubmit}>Add Staff</Button>
           </Group>
           <Space h="20px" />
         </Card>
         <Space h="30px" />
-        <Group
-          position="center"
-          mx="auto"
-          sx={{
-            maxWidth: "500px",
-          }}
-        >
-          <Space h="50px" />
-        </Group>
       </>
     </Container>
   );
