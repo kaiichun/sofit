@@ -111,6 +111,7 @@ function ProductAdd() {
         store: store,
         profit: profit,
         cost: cost,
+        commissionPercentage: commissionPercentage,
         commission: commission,
       }),
       token: currentUser ? currentUser.token : "",

@@ -351,31 +351,441 @@ function WageAdd() {
   );
 
   const calculateEPF = (totalIncomeWithoutAllowClaim) => {
-    let employerEPFRate;
-    let employeeEPFRate;
+    let employerEpfRate;
+    let employeeEpfRate;
 
-    // Check if the total income is less than or equal to RM5,000
-    if (totalIncomeWithoutAllowClaim <= 5000) {
-      // For monthly salary of RM5,000 or less
-      employerEPFRate = 0.13; // Employer contributes ~13% of the employee’s salary
-      employeeEPFRate = 0.11; // Employee contributes ~11% of their monthly salary
+    if (totalIncomeWithoutAllowClaim <= 10) {
+      employerEpfRate = 0;
+      employeeEpfRate = 0;
+    } else if (totalIncomeWithoutAllowClaim <= 20) {
+      employerEpfRate = 3;
+      employeeEpfRate = 3;
+    } else if (totalIncomeWithoutAllowClaim <= 40) {
+      employerEpfRate = 6;
+      employeeEpfRate = 5;
+    } else if (totalIncomeWithoutAllowClaim <= 60) {
+      employerEpfRate = 8;
+      employeeEpfRate = 7;
+    } else if (totalIncomeWithoutAllowClaim <= 80) {
+      employerEpfRate = 11;
+      employeeEpfRate = 9;
+    } else if (totalIncomeWithoutAllowClaim <= 100) {
+      employerEpfRate = 13;
+      employeeEpfRate = 11;
+    } else if (totalIncomeWithoutAllowClaim <= 120) {
+      employerEpfRate = 16;
+      employeeEpfRate = 14;
+    } else if (totalIncomeWithoutAllowClaim <= 140) {
+      employerEpfRate = 19;
+      employeeEpfRate = 16;
+    } else if (totalIncomeWithoutAllowClaim <= 160) {
+      employerEpfRate = 21;
+      employeeEpfRate = 18;
+    } else if (totalIncomeWithoutAllowClaim <= 180) {
+      employerEpfRate = 24;
+      employeeEpfRate = 20;
+    } else if (totalIncomeWithoutAllowClaim <= 200) {
+      employerEpfRate = 26;
+      employeeEpfRate = 22;
+    } else if (totalIncomeWithoutAllowClaim <= 220) {
+      employerEpfRate = 29;
+      employeeEpfRate = 25;
+    } else if (totalIncomeWithoutAllowClaim <= 240) {
+      employerEpfRate = 32;
+      employeeEpfRate = 27;
+    } else if (totalIncomeWithoutAllowClaim <= 260) {
+      employerEpfRate = 34;
+      employeeEpfRate = 29;
+    } else if (totalIncomeWithoutAllowClaim <= 280) {
+      employerEpfRate = 37;
+      employeeEpfRate = 31;
+    } else if (totalIncomeWithoutAllowClaim <= 300) {
+      employerEpfRate = 39;
+      employeeEpfRate = 33;
+    } else if (totalIncomeWithoutAllowClaim <= 320) {
+      employerEpfRate = 42;
+      employeeEpfRate = 36;
+    } else if (totalIncomeWithoutAllowClaim <= 340) {
+      employerEpfRate = 45;
+      employeeEpfRate = 38;
+    } else if (totalIncomeWithoutAllowClaim <= 360) {
+      employerEpfRate = 47;
+      employeeEpfRate = 40;
+    } else if (totalIncomeWithoutAllowClaim <= 380) {
+      employerEpfRate = 50;
+      employeeEpfRate = 42;
+    } else if (totalIncomeWithoutAllowClaim <= 400) {
+      employerEpfRate = 52;
+      employeeEpfRate = 44;
+    } else if (totalIncomeWithoutAllowClaim <= 420) {
+      employerEpfRate = 55;
+      employeeEpfRate = 47;
+    } else if (totalIncomeWithoutAllowClaim <= 440) {
+      employerEpfRate = 58;
+      employeeEpfRate = 49;
+    } else if (totalIncomeWithoutAllowClaim <= 460) {
+      employerEpfRate = 60;
+      employeeEpfRate = 51;
+    } else if (totalIncomeWithoutAllowClaim <= 480) {
+      employerEpfRate = 63;
+      employeeEpfRate = 53;
+    } else if (totalIncomeWithoutAllowClaim <= 500) {
+      employerEpfRate = 65;
+      employeeEpfRate = 55;
+    } else if (totalIncomeWithoutAllowClaim <= 520) {
+      employerEpfRate = 68;
+      employeeEpfRate = 58;
+    } else if (totalIncomeWithoutAllowClaim <= 540) {
+      employerEpfRate = 71;
+      employeeEpfRate = 60;
+    } else if (totalIncomeWithoutAllowClaim <= 560) {
+      employerEpfRate = 73;
+      employeeEpfRate = 62;
+    } else if (totalIncomeWithoutAllowClaim <= 580) {
+      employerEpfRate = 76;
+      employeeEpfRate = 64;
+    } else if (totalIncomeWithoutAllowClaim <= 600) {
+      employerEpfRate = 78;
+      employeeEpfRate = 66;
+    } else if (totalIncomeWithoutAllowClaim <= 620) {
+      employerEpfRate = 81;
+      employeeEpfRate = 69;
+    } else if (totalIncomeWithoutAllowClaim <= 640) {
+      employerEpfRate = 84;
+      employeeEpfRate = 71;
+    } else if (totalIncomeWithoutAllowClaim <= 660) {
+      employerEpfRate = 86;
+      employeeEpfRate = 73;
+    } else if (totalIncomeWithoutAllowClaim <= 680) {
+      employerEpfRate = 89;
+      employeeEpfRate = 75;
+    } else if (totalIncomeWithoutAllowClaim <= 700) {
+      employerEpfRate = 91;
+      employeeEpfRate = 77;
+    } else if (totalIncomeWithoutAllowClaim <= 720) {
+      employerEpfRate = 94;
+      employeeEpfRate = 80;
+    } else if (totalIncomeWithoutAllowClaim <= 740) {
+      employerEpfRate = 97;
+      employeeEpfRate = 82;
+    } else if (totalIncomeWithoutAllowClaim <= 760) {
+      employerEpfRate = 99;
+      employeeEpfRate = 84;
+    } else if (totalIncomeWithoutAllowClaim <= 780) {
+      employerEpfRate = 102;
+      employeeEpfRate = 86;
+    } else if (totalIncomeWithoutAllowClaim <= 800) {
+      employerEpfRate = 104;
+      employeeEpfRate = 88;
+    } else if (totalIncomeWithoutAllowClaim <= 820) {
+      employerEpfRate = 107;
+      employeeEpfRate = 91;
+    } else if (totalIncomeWithoutAllowClaim <= 840) {
+      employerEpfRate = 110;
+      employeeEpfRate = 93;
+    } else if (totalIncomeWithoutAllowClaim <= 860) {
+      employerEpfRate = 112;
+      employeeEpfRate = 95;
+    } else if (totalIncomeWithoutAllowClaim <= 880) {
+      employerEpfRate = 115;
+      employeeEpfRate = 97;
+    } else if (totalIncomeWithoutAllowClaim <= 900) {
+      employerEpfRate = 117;
+      employeeEpfRate = 99;
+    } else if (totalIncomeWithoutAllowClaim <= 920) {
+      employerEpfRate = 120;
+      employeeEpfRate = 102;
+    } else if (totalIncomeWithoutAllowClaim <= 940) {
+      employerEpfRate = 123;
+      employeeEpfRate = 104;
+    } else if (totalIncomeWithoutAllowClaim <= 960) {
+      employerEpfRate = 125;
+      employeeEpfRate = 106;
+    } else if (totalIncomeWithoutAllowClaim <= 980) {
+      employerEpfRate = 128;
+      employeeEpfRate = 108;
+    } else if (totalIncomeWithoutAllowClaim <= 1000) {
+      employerEpfRate = 130;
+      employeeEpfRate = 110;
+    } else if (totalIncomeWithoutAllowClaim <= 1020) {
+      employerEpfRate = 133;
+      employeeEpfRate = 113;
+    } else if (totalIncomeWithoutAllowClaim <= 1040) {
+      employerEpfRate = 136;
+      employeeEpfRate = 115;
+    } else if (totalIncomeWithoutAllowClaim <= 1060) {
+      employerEpfRate = 138;
+      employeeEpfRate = 117;
+    } else if (totalIncomeWithoutAllowClaim <= 1080) {
+      employerEpfRate = 141;
+      employeeEpfRate = 119;
+    } else if (totalIncomeWithoutAllowClaim <= 1100) {
+      employerEpfRate = 143;
+      employeeEpfRate = 121;
+    } else if (totalIncomeWithoutAllowClaim <= 1120) {
+      employerEpfRate = 146;
+      employeeEpfRate = 124;
+    } else if (totalIncomeWithoutAllowClaim <= 1140) {
+      employerEpfRate = 149;
+      employeeEpfRate = 126;
+    } else if (totalIncomeWithoutAllowClaim <= 1160) {
+      employerEpfRate = 151;
+      employeeEpfRate = 128;
+    } else if (totalIncomeWithoutAllowClaim <= 1180) {
+      employerEpfRate = 154;
+      employeeEpfRate = 130;
+    } else if (totalIncomeWithoutAllowClaim <= 1200) {
+      employerEpfRate = 156;
+      employeeEpfRate = 132;
+    } else if (totalIncomeWithoutAllowClaim <= 1220) {
+      employerEpfRate = 159;
+      employeeEpfRate = 135;
+    } else if (totalIncomeWithoutAllowClaim <= 1240) {
+      employerEpfRate = 162;
+      employeeEpfRate = 137;
+    } else if (totalIncomeWithoutAllowClaim <= 1260) {
+      employerEpfRate = 164;
+      employeeEpfRate = 139;
+    } else if (totalIncomeWithoutAllowClaim <= 1280) {
+      employerEpfRate = 167;
+      employeeEpfRate = 141;
+    } else if (totalIncomeWithoutAllowClaim <= 1300) {
+      employerEpfRate = 169;
+      employeeEpfRate = 143;
+    } else if (totalIncomeWithoutAllowClaim <= 1320) {
+      employerEpfRate = 172;
+      employeeEpfRate = 146;
+    } else if (totalIncomeWithoutAllowClaim <= 1340) {
+      employerEpfRate = 175;
+      employeeEpfRate = 148;
+    } else if (totalIncomeWithoutAllowClaim <= 1360) {
+      employerEpfRate = 177;
+      employeeEpfRate = 150;
+    } else if (totalIncomeWithoutAllowClaim <= 1380) {
+      employerEpfRate = 180;
+      employeeEpfRate = 152;
+    } else if (totalIncomeWithoutAllowClaim <= 1400) {
+      employerEpfRate = 182;
+      employeeEpfRate = 154;
+    } else if (totalIncomeWithoutAllowClaim <= 1420) {
+      employerEpfRate = 185;
+      employeeEpfRate = 157;
+    } else if (totalIncomeWithoutAllowClaim <= 1440) {
+      employerEpfRate = 188;
+      employeeEpfRate = 159;
+    } else if (totalIncomeWithoutAllowClaim <= 1460) {
+      employerEpfRate = 190;
+      employeeEpfRate = 161;
+    } else if (totalIncomeWithoutAllowClaim <= 1480) {
+      employerEpfRate = 193;
+      employeeEpfRate = 163;
+    } else if (totalIncomeWithoutAllowClaim <= 1500) {
+      employerEpfRate = 195;
+      employeeEpfRate = 165;
+    } else if (totalIncomeWithoutAllowClaim <= 1520) {
+      employerEpfRate = 198;
+      employeeEpfRate = 168;
+    } else if (totalIncomeWithoutAllowClaim <= 1540) {
+      employerEpfRate = 201;
+      employeeEpfRate = 170;
+    } else if (totalIncomeWithoutAllowClaim <= 1560) {
+      employerEpfRate = 203;
+      employeeEpfRate = 172;
+    } else if (totalIncomeWithoutAllowClaim <= 1580) {
+      employerEpfRate = 206;
+      employeeEpfRate = 174;
+    } else if (totalIncomeWithoutAllowClaim <= 1600) {
+      employerEpfRate = 208;
+      employeeEpfRate = 176;
+    } else if (totalIncomeWithoutAllowClaim <= 1620) {
+      employerEpfRate = 211;
+      employeeEpfRate = 179;
+    } else if (totalIncomeWithoutAllowClaim <= 1640) {
+      employerEpfRate = 214;
+      employeeEpfRate = 181;
+    } else if (totalIncomeWithoutAllowClaim <= 1660) {
+      employerEpfRate = 216;
+      employeeEpfRate = 183;
+    } else if (totalIncomeWithoutAllowClaim <= 1680) {
+      employerEpfRate = 219;
+      employeeEpfRate = 185;
+    } else if (totalIncomeWithoutAllowClaim <= 1700) {
+      employerEpfRate = 221;
+      employeeEpfRate = 187;
+    } else if (totalIncomeWithoutAllowClaim <= 1720) {
+      employerEpfRate = 224;
+      employeeEpfRate = 190;
+    } else if (totalIncomeWithoutAllowClaim <= 1740) {
+      employerEpfRate = 227;
+      employeeEpfRate = 192;
+    } else if (totalIncomeWithoutAllowClaim <= 1760) {
+      employerEpfRate = 229;
+      employeeEpfRate = 194;
+    } else if (totalIncomeWithoutAllowClaim <= 1780) {
+      employerEpfRate = 232;
+      employeeEpfRate = 196;
+    } else if (totalIncomeWithoutAllowClaim <= 1800) {
+      employerEpfRate = 234;
+      employeeEpfRate = 198;
+    } else if (totalIncomeWithoutAllowClaim <= 1820) {
+      employerEpfRate = 237;
+      employeeEpfRate = 201;
+    } else if (totalIncomeWithoutAllowClaim <= 1840) {
+      employerEpfRate = 240;
+      employeeEpfRate = 203;
+    } else if (totalIncomeWithoutAllowClaim <= 1860) {
+      employerEpfRate = 242;
+      employeeEpfRate = 205;
+    } else if (totalIncomeWithoutAllowClaim <= 1880) {
+      employerEpfRate = 245;
+      employeeEpfRate = 207;
+    } else if (totalIncomeWithoutAllowClaim <= 1900) {
+      employerEpfRate = 247;
+      employeeEpfRate = 209;
+      // } else if (totalIncomeWithoutAllowClaim <= 1920) {
+      //   employerEpfRate = ;
+      //   employeeEpfRate = ;
+      // } else if (totalIncomeWithoutAllowClaim <= 1940) {
+      //   employerEpfRate = ;
+      //   employeeEpfRate = ;
+      // } else if (totalIncomeWithoutAllowClaim <= 1960) {
+      //   employerEpfRate = ;
+      //   employeeEpfRate = ;
+      // } else if (totalIncomeWithoutAllowClaim <= 1980) {
+      //   employerEpfRate = ;
+      //   employeeEpfRate = ;
+    } else if (totalIncomeWithoutAllowClaim <= 2000) {
+      employerEpfRate = 34.15;
+      employeeEpfRate = 9.75;
+    } else if (totalIncomeWithoutAllowClaim <= 2100) {
+      employerEpfRate = 35.85;
+      employeeEpfRate = 10.25;
+    } else if (totalIncomeWithoutAllowClaim <= 2200) {
+      employerEpfRate = 37.65;
+      employeeEpfRate = 10.75;
+    } else if (totalIncomeWithoutAllowClaim <= 2300) {
+      employerEpfRate = 39.35;
+      employeeEpfRate = 11.25;
+    } else if (totalIncomeWithoutAllowClaim <= 2400) {
+      employerEpfRate = 41.15;
+      employeeEpfRate = 11.75;
+    } else if (totalIncomeWithoutAllowClaim <= 2500) {
+      employerEpfRate = 42.85;
+      employeeEpfRate = 12.25;
+    } else if (totalIncomeWithoutAllowClaim <= 2600) {
+      employerEpfRate = 44.65;
+      employeeEpfRate = 12.75;
+    } else if (totalIncomeWithoutAllowClaim <= 2700) {
+      employerEpfRate = 46.35;
+      employeeEpfRate = 13.25;
+    } else if (totalIncomeWithoutAllowClaim <= 2800) {
+      employerEpfRate = 48.15;
+      employeeEpfRate = 13.75;
+    } else if (totalIncomeWithoutAllowClaim <= 2900) {
+      employerEpfRate = 49.85;
+      employeeEpfRate = 14.25;
+    } else if (totalIncomeWithoutAllowClaim <= 3000) {
+      employerEpfRate = 51.65;
+      employeeEpfRate = 14.75;
+    } else if (totalIncomeWithoutAllowClaim <= 3100) {
+      employerEpfRate = 53.35;
+      employeeEpfRate = 15.25;
+    } else if (totalIncomeWithoutAllowClaim <= 3200) {
+      employerEpfRate = 55.15;
+      employeeEpfRate = 15.75;
+    } else if (totalIncomeWithoutAllowClaim <= 3300) {
+      employerEpfRate = 56.85;
+      employeeEpfRate = 16.25;
+    } else if (totalIncomeWithoutAllowClaim <= 3400) {
+      employerEpfRate = 58.65;
+      employeeEpfRate = 16.75;
+    } else if (totalIncomeWithoutAllowClaim <= 3500) {
+      employerEpfRate = 60.35;
+      employeeEpfRate = 17.25;
+    } else if (totalIncomeWithoutAllowClaim <= 3600) {
+      employerEpfRate = 62.15;
+      employeeEpfRate = 17.75;
+    } else if (totalIncomeWithoutAllowClaim <= 3700) {
+      employerEpfRate = 43.85;
+      employeeEpfRate = 18.25;
+    } else if (totalIncomeWithoutAllowClaim <= 3800) {
+      employerEpfRate = 65.65;
+      employeeEpfRate = 18.75;
+    } else if (totalIncomeWithoutAllowClaim <= 3900) {
+      employerEpfRate = 67.35;
+      employeeEpfRate = 19.25;
+    } else if (totalIncomeWithoutAllowClaim <= 4000) {
+      employerEpfRate = 69.15;
+      employeeEpfRate = 19.75;
+    } else if (totalIncomeWithoutAllowClaim <= 4100) {
+      employerEpfRate = 70.85;
+      employeeEpfRate = 20.25;
+    } else if (totalIncomeWithoutAllowClaim <= 4200) {
+      employerEpfRate = 72.65;
+      employeeEpfRate = 20.75;
+    } else if (totalIncomeWithoutAllowClaim <= 4300) {
+      employerEpfRate = 74.35;
+      employeeEpfRate = 21.25;
+    } else if (totalIncomeWithoutAllowClaim <= 4400) {
+      employerEpfRate = 76.15;
+      employeeEpfRate = 21.75;
+    } else if (totalIncomeWithoutAllowClaim <= 4500) {
+      employerEpfRate = 77.85;
+      employeeEpfRate = 22.25;
+    } else if (totalIncomeWithoutAllowClaim <= 4600) {
+      employerEpfRate = 79.65;
+      employeeEpfRate = 22.75;
+    } else if (totalIncomeWithoutAllowClaim <= 4700) {
+      employerEpfRate = 81.35;
+      employeeEpfRate = 23.25;
+    } else if (totalIncomeWithoutAllowClaim <= 4800) {
+      employerEpfRate = 83.15;
+      employeeEpfRate = 23.75;
+    } else if (totalIncomeWithoutAllowClaim <= 4900) {
+      employerEpfRate = 84.85;
+      employeeEpfRate = 24.25;
+    } else if (totalIncomeWithoutAllowClaim <= 5000) {
+      employerEpfRate = 86.65;
+      employeeEpfRate = 24.75;
     } else {
-      // For monthly salary greater than RM5,000
-      employerEPFRate = 0.12; // Employer contributes ~12% of the employee’s salary
-      employeeEPFRate = 0.11; // Employee contributes ~11% of their monthly salary
+      employerEpfRate = 86.65;
+      employeeEpfRate = 24.75;
     }
 
-    // Calculate employer and employee EPF contributions
-    const employerContribution = totalIncomeWithoutAllowClaim * employerEPFRate;
-    const employeeContribution = totalIncomeWithoutAllowClaim * employeeEPFRate;
-
     return {
-      employerEpf: employerContribution.toFixed(2),
-      epf: employeeContribution.toFixed(2),
+      epf: employeeEpfRate.toFixed(2),
+      employerEpf: employerEpfRate.toFixed(2),
     };
   };
 
   const { epf, employerEpf } = calculateEPF(totalIncomeWithoutAllowClaim);
+
+  // const calculateEPF = (totalIncomeWithoutAllowClaim) => {
+  //   let employerEPFRate;
+  //   let employeeEPFRate;
+
+  //   // Check if the total income is less than or equal to RM5,000
+  //   if (totalIncomeWithoutAllowClaim <= 5000) {
+  //     // For monthly salary of RM5,000 or less
+  //     employerEPFRate = 0.13; // Employer contributes ~13% of the employee’s salary
+  //     employeeEPFRate = 0.11; // Employee contributes ~11% of their monthly salary
+  //   } else {
+  //     // For monthly salary greater than RM5,000
+  //     employerEPFRate = 0.12; // Employer contributes ~12% of the employee’s salary
+  //     employeeEPFRate = 0.11; // Employee contributes ~11% of their monthly salary
+  //   }
+
+  //   // Calculate employer and employee EPF contributions
+  //   const employerContribution = totalIncomeWithoutAllowClaim * employerEPFRate;
+  //   const employeeContribution = totalIncomeWithoutAllowClaim * employeeEPFRate;
+
+  //   return {
+  //     employerEpf: employerContribution.toFixed(2),
+  //     epf: employeeContribution.toFixed(2),
+  //   };
+  // };
+
+  // const { epf, employerEpf } = calculateEPF(totalIncomeWithoutAllowClaim);
 
   const calculateSocso = (totalIncomeWithoutAllowClaim) => {
     let employerSocsoRate;
@@ -1132,18 +1542,6 @@ function WageAdd() {
           Create
         </Button>
       </Card>
-      <Space h="50px" />
-      <Group position="center">
-        <Button
-          component={Link}
-          to="/product"
-          variant="subtle"
-          size="xs"
-          color="gray"
-        >
-          Go back to Home
-        </Button>
-      </Group>
       <Space h="50px" />
     </Container>
   );

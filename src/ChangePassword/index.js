@@ -132,17 +132,6 @@ export default function EditPwd() {
       </>
 
       <Space h="20px" />
-      <Group position="center">
-        <Button
-          component={Link}
-          to="/home"
-          variant="subtle"
-          size="xs"
-          color="gray"
-        >
-          Go back to Manage Users
-        </Button>
-      </Group>
     </Container>
   );
 }

@@ -35,7 +35,7 @@ function ProductEdit() {
   const [cost, setCost] = useState("");
   const [profit, setProfit] = useState("");
   const [commission, setCommission] = useState("");
-  const [commissionPercentage, setCommissionPercentage] = useState(4);
+  const [commissionPercentage, setCommissionPercentage] = useState();
   const [uploading, setUploading] = useState(false);
   const { isLoading } = useQuery({
     queryKey: ["products", id],
@@ -46,6 +46,7 @@ function ProductEdit() {
       setPrice(data.price);
       setCost(data.cost);
       setCommission(data.commission);
+      setCommissionPercentage(data.commissionPercentage);
       setStore(data.store);
       setProfit(data.profit);
       setCategory(data.category);
@@ -74,6 +75,48 @@ function ProductEdit() {
     },
   });
 
+  const calculateProfit = () => {
+    const priceValue = parseFloat(price);
+    const costValue = parseFloat(cost);
+    const commissionValue = parseFloat(commission);
+
+    // Ensure all values are valid numbers
+    if (!isNaN(priceValue) && !isNaN(costValue) && !isNaN(commissionValue)) {
+      const calculatedProfit = priceValue - costValue - commissionValue;
+      setProfit(calculatedProfit);
+    } else {
+      // If any value is not a valid number, set profit to an empty string
+      setProfit("");
+    }
+  };
+
+  useEffect(() => {
+    calculateProfit();
+  }, [price, cost, commission]);
+
+  useEffect(() => {
+    // Convert price and commissionPercentage to numbers
+    const priceValue = parseFloat(price);
+    const commissionPercentageValue = parseFloat(commissionPercentage);
+
+    // Check if both price and commissionPercentage are valid numbers
+    if (!isNaN(priceValue) && !isNaN(commissionPercentageValue)) {
+      // Calculate commission
+      const calculatedCommission =
+        (priceValue * commissionPercentageValue) / 100;
+
+      // Check if the result is a valid number before setting it
+      if (!isNaN(calculatedCommission)) {
+        setCommission(calculatedCommission);
+      } else {
+        setCommission(""); // Set commission to empty string if calculation result is not a number
+      }
+    } else {
+      // Set commission to empty string if either price or commissionPercentage is not a valid number
+      setCommission("");
+    }
+  }, [price, commissionPercentage]);
+
   const handleUpdateProduct = async (event) => {
     // 阻止表单默认提交行为
     event.preventDefault();
@@ -89,6 +132,7 @@ function ProductEdit() {
         profit: profit,
         cost: cost,
         category: category,
+        commissionPercentage: commissionPercentage,
         productImage: productImage,
       }),
       token: currentUser ? currentUser.token : "",
@@ -277,18 +321,6 @@ function ProductEdit() {
           Add New
         </Button>
       </Card>
-      <Space h="50px" />
-      <Group position="center">
-        <Button
-          component={Link}
-          to="/product"
-          variant="subtle"
-          size="xs"
-          color="gray"
-        >
-          Go back to Home
-        </Button>
-      </Group>
       <Space h="50px" />
     </Container>
   );

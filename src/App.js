@@ -143,7 +143,7 @@ function App() {
             </AppWrapper>
           }
         />
-        <Route path="/resigter" element={<Resigter />} />
+        {/* <Route path="/resigter" element={<Resigter />} /> */}
         {(isAdminB || isAdminHQ) && (
           <Route
             path="/add-staff"
