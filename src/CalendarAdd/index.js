@@ -94,13 +94,26 @@ export default function CalendarAdd() {
         color: "red",
       });
     } else {
+      // Create a new Date object based on the selected startDate
+      const startDateWithTime = new Date(startDate);
+
+      // Extract hours and minutes from startTime and set it to the startDateWithTime
+      const [hours, minutes] = startTime.split(":");
+      startDateWithTime.setHours(parseInt(hours), parseInt(minutes));
+
+      // Add 8 hours to the combined date and time
+      startDateWithTime.setHours(startDateWithTime.getHours() + 8);
+
+      // Convert to UTC
+      const appointmentDateUTC = startDateWithTime.toISOString();
+
       createMutation.mutate({
         data: JSON.stringify({
           title: title,
           clientId: selectedClient,
           staffId: selectedUser,
           user: currentUser._id,
-          appointmentDate: startDate,
+          appointmentDate: appointmentDateUTC,
           startTime: startTime,
           branch: currentUserBranch,
           //   endTime: endTime,
