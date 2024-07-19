@@ -94,70 +94,85 @@ const StaffAdd = () => {
   });
 
   const handleSubmit = () => {
-    if (
-      !name ||
-      !email ||
-      !password ||
-      !confirmPassword ||
-      !username ||
-      !address1 ||
-      !zip ||
-      !state ||
-      !role ||
-      !branch ||
-      !relationship ||
-      !department ||
-      !salary ||
-      !epf ||
-      !socso ||
-      !bankacc ||
-      !bankname ||
-      !staffemergencycontact ||
-      !staffemergencycontactname ||
-      !phonenumber ||
-      !gender ||
-      !ic ||
-      !dob
-    ) {
+    // List of required fields and their values
+    const requiredFields = {
+      name,
+      email,
+      password,
+      confirmPassword,
+      username,
+      address1,
+      zip,
+      state,
+      role,
+      branch,
+      relationship,
+      department,
+      salary,
+      epf,
+      socso,
+      bankacc,
+      bankname,
+      staffemergencycontact,
+      staffemergencycontactname,
+      phonenumber,
+      gender,
+      ic,
+      dob,
+    };
+
+    // Check for empty fields
+    const emptyFields = Object.keys(requiredFields).filter(
+      (key) => !requiredFields[key]
+    );
+
+    if (emptyFields.length > 0) {
       notifications.show({
         title: "Please fill in all fields",
+        message: `The following fields are empty: ${emptyFields.join(", ")}`,
         color: "red",
       });
-    } else if (password !== confirmPassword) {
-      notifications.show({
-        title: "Password not match",
-        color: "red",
-      });
-    } else {
-      signMutation.mutate(
-        JSON.stringify({
-          name: name,
-          username: username,
-          email: email,
-          password: password,
-          ic: ic,
-          dob: dob,
-          gender: gender,
-          relationship: relationship,
-          phonenumber: phonenumber,
-          staffemergencycontact: staffemergencycontact,
-          staffemergencycontactname: staffemergencycontactname,
-          address1: address1,
-          address2: address2,
-          zip: zip,
-          state: state,
-          image: image,
-          bankname: bankname,
-          bankacc: bankacc,
-          epf: epf,
-          socso: socso,
-          salary: salary,
-          department: department,
-          branch: branch,
-          role: role,
-        })
-      );
+      return;
     }
+
+    if (password !== confirmPassword) {
+      notifications.show({
+        title: "Password mismatch",
+        message: "The passwords do not match",
+        color: "red",
+      });
+      return;
+    }
+
+    // Proceed with mutation if all validations pass
+    signMutation.mutate(
+      JSON.stringify({
+        name,
+        username,
+        email,
+        password,
+        ic,
+        dob,
+        gender,
+        relationship,
+        phonenumber,
+        staffemergencycontact,
+        staffemergencycontactname,
+        address1,
+        address2,
+        zip,
+        state,
+        image,
+        bankname,
+        bankacc,
+        epf,
+        socso,
+        salary,
+        department,
+        branch,
+        role,
+      })
+    );
   };
 
   const uploadMutation = useMutation({
