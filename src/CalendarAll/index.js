@@ -25,7 +25,7 @@ export default function CalendarAll() {
     <>
       {" "}
       <Title align="center" mt={10} mb={20}>
-        Appoiment
+        All Appointment
       </Title>
       {/* <HeaderCalendar page="Calendar" /> */}
       <CalendarView />
