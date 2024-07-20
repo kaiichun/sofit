@@ -104,7 +104,7 @@ const StaffEdit = () => {
       setState(data.state);
       setImage(data.image);
       setSalary(data.salary);
-      setEPF(data.setEPF);
+      setEPF(data.epf);
       setSocso(data.socso);
       setBankName(data.bankname);
       setBankAcc(data.bankacc);
@@ -156,7 +156,7 @@ const StaffEdit = () => {
     mutationFn: updateUserAdmin,
     onSuccess: () => {
       notifications.show({
-        title: currentUser.name + " info updated successfully",
+        title: "Info updated successfully",
         color: "green",
       });
       navigate("/staffs");

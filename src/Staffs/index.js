@@ -35,6 +35,8 @@ function Staffs() {
   const [currentStaff, setCurrentStaff] = useState([]);
   const [openedOrderId, setOpenedOrderId] = useState(null);
   const [password, setPassword] = useState();
+  const [deleteModalOpened, setDeleteModalOpened] = useState(false); // New state for delete modal
+  const [staffToDelete, setStaffToDelete] = useState(null); // New state to store staff ID to be deleted
   const [cookies] = useCookies(["currentUser"]);
   const { currentUser } = cookies;
   const [visible, { toggle }] = useDisclosure(false);
@@ -263,10 +265,8 @@ function Staffs() {
                   size="xs"
                   radius="50px"
                   onClick={() => {
-                    deleteMutation.mutate({
-                      id: u._id,
-                      token: currentUser ? currentUser.token : "",
-                    });
+                    setStaffToDelete(u._id);
+                    setDeleteModalOpened(true);
                   }}
                 >
                   Delete
@@ -277,6 +277,14 @@ function Staffs() {
         </Card>
       );
     });
+  };
+
+  const handleConfirmDelete = () => {
+    deleteMutation.mutate({
+      id: staffToDelete,
+      token: currentUser ? currentUser.token : "",
+    });
+    setDeleteModalOpened(false);
   };
 
   return (
@@ -377,6 +385,20 @@ function Staffs() {
           </Button>
         </div>
       </Group>
+
+      <Modal
+        opened={deleteModalOpened}
+        onClose={() => setDeleteModalOpened(false)}
+        title="Confirm Deletion"
+      >
+        <Text>Are you sure you want to delete this staff member?</Text>
+        <Group position="apart" mt="md">
+          <Button color="red" onClick={handleConfirmDelete}>
+            Delete
+          </Button>
+          <Button onClick={() => setDeleteModalOpened(false)}>Cancel</Button>
+        </Group>
+      </Modal>
     </>
   );
 }
