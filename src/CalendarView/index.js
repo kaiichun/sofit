@@ -109,9 +109,14 @@ export default function CalendarView() {
             (event) => event.branch === selectedBranch
           );
         }
-      } else {
+      } else if (isAdminB) {
         filteredCalendar = calendar.filter(
           (event) => event.branch === currentUser.branch
+        );
+      } else {
+        // For non-admin users, show events where the staffId matches the current user's id
+        filteredCalendar = calendar.filter(
+          (event) => event.staffId === currentUser._id
         );
       }
 
@@ -150,8 +155,8 @@ export default function CalendarView() {
     selectedBranch,
     currentUser,
     isAdminHQ,
+    isAdminB,
   ]);
-
   const handleEventDrop = ({ event, start, end }) => {
     const newStartDate = moment(start).format("YYYY-MM-DD");
     const newStartTime = moment(start).format("HH:mm");

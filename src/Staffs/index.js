@@ -25,6 +25,7 @@ import {
 import { API_URL } from "../api/data";
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
+import noImageIcon from "../Logo/no_image.png";
 
 function Staffs() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -185,7 +186,15 @@ function Staffs() {
       return (
         <Card shadow="sm" p="lg" radius="md" withBorder key={u.id}>
           <Card.Section>
-            <Image src={API_URL + "/" + u.image} height={220} alt="Staff" />
+            {u.image ? (
+              <Image
+                src={API_URL + "/" + u.image}
+                alt="Staff Image"
+                height={300}
+              />
+            ) : (
+              <Image src={noImageIcon} alt="Staff Image" height={300} />
+            )}
           </Card.Section>
 
           <Group position="apart" mt="md" mb="xs">

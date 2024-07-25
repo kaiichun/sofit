@@ -37,10 +37,11 @@ export default function Clients() {
   const [sort, setSort] = useState("");
   const [currentClients, setCurrentClients] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [perPage, setPerPage] = useState(6);
+  const [perPage, setPerPage] = useState(9999999);
   const [totalPages, setTotalPages] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-
+  const [currentPackagePage, setCurrentPackagePage] = useState(1);
+  const packagesPerPage = 5;
   // const { isLoading, data: clients = [] } = useQuery({
   //   queryKey: ["clients"],
   //   queryFn: () => fetchClients(),
@@ -182,6 +183,13 @@ export default function Clients() {
     }
   }
 
+  const handlePackagePageChange = (newPage) => {
+    setCurrentPackagePage(newPage);
+  };
+
+  // Calculate total package pages
+  const totalPackagePages = Math.ceil(packages.length / packagesPerPage);
+
   return (
     <>
       {" "}
@@ -223,167 +231,109 @@ export default function Clients() {
                 <th>Action</th>
               </tr>
             </thead>
-            {packages
-              ? packages.map((p) => {
+            <tbody>
+              {packages
+                .slice(
+                  (currentPackagePage - 1) * packagesPerPage,
+                  currentPackagePage * packagesPerPage
+                )
+                .map((p) => {
                   return (
-                    <tbody>
-                      <tr key={p._id}>
-                        <td
-                          style={{
-                            borderTop: "none",
-                          }}
+                    <tr key={p._id}>
+                      <td style={{ borderTop: "none" }}>{p.sofitpackage}</td>
+                      <td style={{ borderTop: "none" }}>{p.price}</td>
+                      <td style={{ borderTop: "none" }}>{p.sessions}</td>
+                      <td style={{ borderTop: "none" }}>{p.category}</td>
+                      <td style={{ borderTop: "none" }}>{p.valiMonth}</td>
+                      <td style={{ borderTop: "none" }}>
+                        <Button
+                          variant="outline"
+                          color="indigo"
+                          radius="md"
+                          size="xs"
+                          compact
+                          component={Link}
+                          to={"/package-edit/" + p._id}
+                          style={{ marginRight: 10 }}
                         >
-                          {p.sofitpackage}
-                        </td>
-                        <td
-                          style={{
-                            borderTop: "none",
-                          }}
-                        >
-                          {p.price}
-                        </td>
-                        <td
-                          style={{
-                            borderTop: "none",
-                          }}
-                        >
-                          {p.sessions}
-                        </td>
-                        <td
-                          style={{
-                            borderTop: "none",
-                          }}
-                        >
-                          {p.category}
-                        </td>
-                        <td
-                          style={{
-                            borderTop: "none",
-                          }}
-                        >
-                          {p.valiMonth}
-                        </td>
-                        <td
-                          style={{
-                            borderTop: "none",
-                          }}
-                        >
-                          <Button
-                            variant="outline"
-                            color="indigo"
-                            radius="md"
-                            size="xs"
-                            compact
-                            component={Link}
-                            to={"/package-edit/" + p._id}
-                            style={{ marginRight: 10 }}
-                          >
-                            EDIT
-                          </Button>
+                          EDIT
+                        </Button>
 
-                          <Button
-                            onClick={() => {
-                              setPackageIdToDelete(p._id);
-                              setShowDeleteModal(true);
-                            }}
-                            variant="outline"
-                            color="red"
-                            radius="md"
-                            size="xs"
-                            compact
-                          >
-                            Delete
-                          </Button>
-                        </td>
-                      </tr>
-                    </tbody>
+                        <Button
+                          onClick={() => {
+                            setPackageIdToDelete(p._id);
+                            setShowDeleteModal(true);
+                          }}
+                          variant="outline"
+                          color="red"
+                          radius="md"
+                          size="xs"
+                          compact
+                        >
+                          Delete
+                        </Button>
+                      </td>
+                    </tr>
                   );
-                })
-              : null}
+                })}
+            </tbody>
           </Table>
-          <Modal
-            opened={showDeleteModal}
-            onClose={() => setShowDeleteModal(false)}
-            title="Delete Package"
-            size="lg"
-            hideCloseButton
-            centered
-            overlayOpacity={0.75}
-            overlayBlur={5}
-          >
-            <Divider />
-            <Space h="10px" />
-            <Group>
-              <Text>Are you sure you want to delete this</Text>
-              <Text c="red" fw={500}>
-                {
-                  packages.find((pkg) => pkg._id === packageIdToDelete)
-                    ?.sofitpackage
-                }
-              </Text>
-              <Text>package?</Text>
-            </Group>
-            <Space h="20px" />
-            <Group position="right">
+          {/* Package Pagination */}
+          <Group position="center" mt="md">
+            {Array.from({ length: totalPackagePages }, (_, i) => (
               <Button
-                color="red"
-                onClick={() => {
-                  deleteMutation.mutate({
-                    id: packageIdToDelete,
-                    token: currentUser ? currentUser.token : "",
-                  });
-                  setShowDeleteModal(false);
-                }}
+                key={i + 1}
+                variant={currentPackagePage === i + 1 ? "filled" : "outline"}
+                onClick={() => handlePackagePageChange(i + 1)}
               >
-                Delete
+                {i + 1}
               </Button>
-              <Button onClick={() => setShowDeleteModal(false)}>Cancel</Button>
-            </Group>
-          </Modal>
-          <Space h="30px" /> <Divider my="sm" variant="dashed" />
-          <Space h="10px" />
-          <Group position="left">
-            <Title order={3} align="center">
-              Member
-            </Title>
+            ))}
           </Group>
-          <Space h="20px" />{" "}
-          <Group position="apart" mb="lg">
-            <Group>
-              <select
-                value={sort}
-                onChange={(event) => {
-                  setSort(event.target.value);
-                  setCurrentPage(1);
-                }}
-              >
-                <option value="">No Sorting</option>
-                <option value="name">Sort by Name</option>
-                <option value="male">Sort by Male</option>
-                <option value="female">Sort by Female</option>
-              </select>
-              <select
-                value={perPage}
-                onChange={(event) => {
-                  setPerPage(parseInt(event.target.value));
-                  // reset it back to page 1
-                  setCurrentPage(1);
-                }}
-              >
-                <option value="6">6 Per Page</option>
-                <option value="10">10 Per Page</option>
-                <option value={9999999}>All</option>
-              </select>
-            </Group>
-            <TextInput
-              value={searchTerm}
-              placeholder="Search"
-              onChange={(event) => setSearchTerm(event.target.value)}
-            />
-          </Group>
-          <Space h="20px" />{" "}
+          <Space h="40px" />
         </>
       )}
+      <Group position="left">
+        <Title order={3} align="center">
+          Member
+        </Title>
+      </Group>
+      <Space h="20px" />{" "}
+      <Group position="apart" mb="lg">
+        <Group>
+          <select
+            value={sort}
+            onChange={(event) => {
+              setSort(event.target.value);
+              setCurrentPage(1);
+            }}
+          >
+            <option value="">No Sorting</option>
+            <option value="name">Sort by Name</option>
+            <option value="male">Sort by Male</option>
+            <option value="female">Sort by Female</option>
+          </select>
+          <select
+            value={perPage}
+            onChange={(event) => {
+              setPerPage(parseInt(event.target.value));
+              // reset it back to page 1
+              setCurrentPage(1);
+            }}
+          >
+            {" "}
+            <option value={9999999}>All</option>
+            <option value="6">6 Per Page</option>
+            <option value="10">10 Per Page</option>
+          </select>
+        </Group>
+        <TextInput
+          value={searchTerm}
+          placeholder="Search"
+          onChange={(event) => setSearchTerm(event.target.value)}
+        />
+      </Group>
+      <Space h="20px" />{" "}
       <SimpleGrid
         cols={3}
         spacing="lg"

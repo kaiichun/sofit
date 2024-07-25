@@ -45,6 +45,14 @@ export default function CalendarAdd() {
       ? true
       : false;
   }, [cookies]);
+
+  const isAdmin = useMemo(() => {
+    return (
+      cookies?.currentUser?.role === "Admin Branch" ||
+      cookies?.currentUser?.role === "Admin HQ"
+    );
+  }, [cookies]);
+
   const { data: clients = [] } = useQuery({
     queryKey: ["clients"],
     queryFn: () => fetchClients(),
@@ -64,11 +72,29 @@ export default function CalendarAdd() {
     return cookies?.currentUser?.branch;
   }, [cookies]);
 
-  const filteredUsers = users.filter(
-    (user) => user.branch === currentUserBranch
-  );
+  // const filteredUsers = users.filter(
+  //   (user) => user.branch === currentUserBranch
+  // );
 
-  const filteredClients = clients.filter((c) => c.branch === currentUserBranch);
+  const filteredUsers = useMemo(() => {
+    if (isAdminHQ) {
+      return users;
+    }
+    if (isAdminB) {
+      return users.filter((user) => user.branch === currentUserBranch);
+    }
+    return users.filter((user) => user._id === currentUser._id);
+  }, [users, isAdminHQ, isAdminB, currentUserBranch, currentUser._id]);
+
+  // const filteredClients = clients.filter((c) => c.branch === currentUserBranch);
+
+  const filteredClients = isAdmin
+    ? clients.filter((client) => client.branch === currentUserBranch)
+    : clients.filter(
+        (client) =>
+          client.branch === currentUserBranch &&
+          client.coachId === currentUser._id
+      );
 
   const createMutation = useMutation({
     mutationFn: addCalendar,
@@ -185,14 +211,19 @@ export default function CalendarAdd() {
         <Space h="20px" />
         <Divider />
         <Select
-          data={filteredClients.map((client) => ({
-            value: client._id,
-            label: `Name: ${client.clientName} | IC: ${client.clientIc} | Sessions(${client.sessions})`,
-          }))}
+          data={
+            filteredClients.length > 0
+              ? filteredClients.map((client) => ({
+                  value: client._id,
+                  label: `Name: ${client.clientName} | IC: ${client.clientIc} | Sessions(${client.sessions})`,
+                }))
+              : [{ value: "", label: "No available clients" }]
+          }
           value={selectedClient}
           onChange={(value) => setSelectedClient(value)}
           placeholder="Select a client"
           label="Select a client"
+          disabled={filteredClients.length === 0}
         />
         <Space h="20px" />
         <Divider />

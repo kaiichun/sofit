@@ -149,8 +149,38 @@ const ClientEdit = () => {
     queryFn: () => fetchUsers(),
   });
 
+  const isAdminB = useMemo(() => {
+    return cookies &&
+      cookies.currentUser &&
+      cookies.currentUser.role === "Admin Branch"
+      ? true
+      : false;
+  }, [cookies]);
+
+  const isAdminHQ = useMemo(() => {
+    return cookies &&
+      cookies.currentUser &&
+      cookies.currentUser.role === "Admin HQ"
+      ? true
+      : false;
+  }, [cookies]);
+
   const selectedUserName =
     coachId && users ? users.find((c) => c._id === coachId)?.name || "" : "-";
+
+  const currentUserBranch = useMemo(() => {
+    return cookies?.currentUser?.branch;
+  }, [cookies]);
+
+  const filteredUsers = useMemo(() => {
+    if (isAdminHQ) {
+      return users;
+    }
+    if (isAdminB) {
+      return users.filter((user) => user.branch === currentUserBranch);
+    }
+    return users.filter((user) => user._id === currentUser._id);
+  }, [users, isAdminHQ, isAdminB, currentUserBranch, currentUser._id]);
 
   const updateMutation = useMutation({
     mutationFn: updateClient,
@@ -190,22 +220,6 @@ const ClientEdit = () => {
     queryKey: ["fetchB"],
     queryFn: () => fetchBranch(),
   });
-
-  const isAdminB = useMemo(() => {
-    return cookies &&
-      cookies.currentUser &&
-      cookies.currentUser.role === "Admin Branch"
-      ? true
-      : false;
-  }, [cookies]);
-
-  const isAdminHQ = useMemo(() => {
-    return cookies &&
-      cookies.currentUser &&
-      cookies.currentUser.role === "Admin HQ"
-      ? true
-      : false;
-  }, [cookies]);
 
   const handleImageUpload = (files) => {
     setUploading(true);
@@ -879,7 +893,7 @@ const ClientEdit = () => {
           </Grid.Col>
           <Grid.Col span={2}>
             <Select
-              data={users
+              data={filteredUsers
                 .filter((user) =>
                   [
                     "Junior Trainee",
@@ -896,6 +910,24 @@ const ClientEdit = () => {
               label="Staff"
               placeholder="Select a Staff"
             />
+            {/* <Select
+              data={users
+                .filter((user) =>
+                  [
+                    "Junior Trainee",
+                    "Senior Trainee",
+                    "Advanced Senior Trainee",
+                  ].includes(user.department)
+                )
+                .map((user) => ({
+                  value: user._id,
+                  label: `${user.name} (${user.department})`,
+                }))}
+              value={coachId}
+              onChange={(value) => setcoachId(value)}
+              label="Staff"
+              placeholder="Select a Staff"
+            /> */}
           </Grid.Col>
           <Grid.Col span={3}>
             <NativeSelect
@@ -933,37 +965,17 @@ const ClientEdit = () => {
               maw={400}
               mx="end"
               w={115}
-              minDate={new Date()} // Ensuring that only today or future dates can be picked
+              // minDate={new Date()} // Ensuring that only today or future dates can be picked
             />
           </Grid.Col>
         </Grid>
         <Space h="50px" />
         <Group position="center">
-          <Button onClick={handleUpdateClient}>
-            Update Client Information
-          </Button>
+          <Button onClick={handleUpdateClient}>Update</Button>
         </Group>
         <Space h="20px" />
       </Card>
       <Space h="10px" />
-      <Group
-        position="apart"
-        mx="auto"
-        sx={{
-          maxWidth: "500px",
-        }}
-      >
-        <div></div>
-        <Button
-          component={Link}
-          to="/clients"
-          variant="subtle"
-          size="xs"
-          color="gray"
-        >
-          Go back
-        </Button>
-      </Group>
     </Container>
   );
 };

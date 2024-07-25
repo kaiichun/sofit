@@ -60,6 +60,13 @@ export default function CalendarEdit() {
     return cookies?.currentUser?.role === "Admin HQ";
   }, [cookies]);
 
+  const isAdmin = useMemo(() => {
+    return (
+      cookies?.currentUser?.role === "Admin Branch" ||
+      cookies?.currentUser?.role === "Admin HQ"
+    );
+  }, [cookies]);
+
   const { data: clients = [] } = useQuery({
     queryKey: ["clients"],
     queryFn: () => fetchClients(),
@@ -74,11 +81,29 @@ export default function CalendarEdit() {
     return cookies?.currentUser?.branch;
   }, [cookies]);
 
-  const filteredUsers = users.filter(
-    (user) => user.branch === currentUserBranch
-  );
+  // const filteredUsers = users.filter(
+  //   (user) => user.branch === currentUserBranch
+  // );
 
-  const filteredClients = clients.filter((c) => c.branch === currentUserBranch);
+  const filteredUsers = useMemo(() => {
+    if (isAdminHQ) {
+      return users;
+    }
+    if (isAdminB) {
+      return users.filter((user) => user.branch === currentUserBranch);
+    }
+    return users.filter((user) => user._id === currentUser._id);
+  }, [users, isAdminHQ, isAdminB, currentUserBranch, currentUser._id]);
+
+  // const filteredClients = clients.filter((c) => c.branch === currentUserBranch);
+
+  const filteredClients = isAdmin
+    ? clients.filter((client) => client.branch === currentUserBranch)
+    : clients.filter(
+        (client) =>
+          client.branch === currentUserBranch &&
+          client.coachId === currentUser._id
+      );
 
   const updateMutation = useMutation({
     mutationFn: updateCalendar,
