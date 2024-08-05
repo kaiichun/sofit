@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo } from "react";
-
 import {
   Container,
   Space,
@@ -7,71 +6,108 @@ import {
   Grid,
   TextInput,
   NumberInput,
-  Text,
   Button,
   Group,
   Select,
 } from "@mantine/core";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { notifications } from "@mantine/notifications";
 import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import { useCookies } from "react-cookie";
 import { fetchBranch, fetchUsers } from "../api/auth";
-import { fetchPMS, fetchUserPMS } from "../api/pms";
+import { fetchPMS } from "../api/pms";
 import { fetchOrders } from "../api/order";
-import { addWage } from "../api/wage";
+import { getWage, updateWage } from "../api/wage";
 import { fetchCoaching } from "../api/calendar2";
+import { set } from "date-fns";
 
-function WageAdd() {
+function WageEdit() {
   const [cookies] = useCookies(["currentUser"]);
   const { currentUser } = cookies;
+  const { id } = useParams();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [selectedUser, setSelectedUser] = useState("");
-  const [selectedPMS1, setSelectedPMS1] = useState(null);
-  const [selectedPMS2, setSelectedPMS2] = useState(null);
-  const [selectedPMS3, setSelectedPMS3] = useState(null);
-
-  const [selectedOrder, setSelectedOrder] = useState("");
-  const [pmsTotal, setPMSTotal] = useState("");
-  const [selectedMonth, setSelectedMonth] = useState(); // Initialize with January as default
-  const [month, setMonth] = useState(new Date().getMonth() + 1);
-  const [year, setYear] = useState(new Date().getFullYear());
+  const [staffId, setStaffId] = useState("");
+  const [selectedMonth, setSelectedMonth] = useState("");
+  const [year, setYear] = useState("");
   const [basic, setBasic] = useState("");
   const [pcd, setPcd] = useState(0);
   const [allowance, setAllowance] = useState(0);
   const [claims, setClaims] = useState(0);
-  const [totalIncome, setTotalIncome] = useState("");
   const [overtime, setOvertime] = useState(0);
   const [nettPay, setNettPay] = useState(0);
+  const [totalIncome, setTotalIncome] = useState("");
+  const [totalDeduction, setTotalDeduction] = useState(0);
   const [commission, setCommission] = useState("");
-  const [name, setName] = useState();
+  const [name, setName] = useState("");
+  const [ic, setIc] = useState("");
+  const [order, setOrder] = useState("");
   const [bankAccount, setBankAccount] = useState("");
   const [bankName, setBankName] = useState("");
   const [department, setDepartment] = useState("");
   const [epfNo, setEpfNo] = useState("");
   const [socsoNo, setSocsoNo] = useState("");
+  const [eisNo, setEisNo] = useState("");
   const [bonus, setBonus] = useState(0);
-  const [sessions, setSessions] = useState("");
-  const [sessionsS, setSessionsS] = useState("");
-  const [sessionsAvd, setSessionsAvd] = useState("");
+  // const [employerEpf, setEmployerEpf] = useState("");
+  // const [employerSocso, setEmployerSocso] = useState("");
+  // const [employerEis, setEmployerEis] = useState("");
+  // const [epf, setEpf] = useState("");
+  // const [socso, setSocso] = useState("");
+  // const [eis, setEis] = useState("");
+  // const [coachingFee, setCoachingFee] = useState("");
+  const [sessions, setSessions] = useState(0);
+  const [sessionsS, setSessionsS] = useState(0);
+  const [sessionsAvd, setSessionsAvd] = useState(0);
   const [juniorRate, setJuniorRate] = useState(0);
   const [seniorRate, setSeniorRate] = useState(0);
   const [advancedSeniorRate, setAdvancedSeniorRate] = useState(0);
+  const [selectedPMS1, setSelectedPMS1] = useState(null);
+  const [selectedPMS2, setSelectedPMS2] = useState(null);
+  const [selectedPMS3, setSelectedPMS3] = useState(null);
+  const { isLoading } = useQuery({
+    queryKey: ["wage", id],
+    queryFn: () => getWage(id),
+    onSuccess: (data) => {
+      setStaffId(data.staffId || "");
+      setName(data.name || "");
+      setIc(data.ic || "");
+      setCoachingFee(data.coachingFee || "");
+      setYear(data.year || "");
+      setSelectedMonth(data.month || "");
+      setBasic(data.basic || "");
+      setEpfNo(data.epfNo || "");
+      setSocsoNo(data.socsoNo || "");
+      setBonus(data.pms || 0);
+      setEisNo(data.eisNo || "");
+      setBankAccount(data.bankacc || "");
+      setBankName(data.bankname || "");
+      setNettPay(data.nettPay || "");
+      setOvertime(data.overtime || 0);
+      setTotalDeduction(data.totalDeduction || 0);
+      setTotalIncome(data.totalIncome || 0);
+      setOrder(data.order || 0);
+      setCommission(data.commission || "");
+      setClaims(data.claims || 0);
+      setAllowance(data.allowance || 0);
+      setPcd(data.pcd || 0);
+    },
+  });
 
   const { data: users = [] } = useQuery({
     queryKey: ["users"],
     queryFn: () => fetchUsers(),
   });
 
-  const { isLoading, data: coaching = [] } = useQuery({
+  const { data: coaching = [] } = useQuery({
     queryKey: ["calendar"],
     queryFn: () => fetchCoaching(),
   });
 
   const { data: pms3 = [] } = useQuery({
-    queryKey: ["pms3"], // Pass selectedUser as part of the query key
-    queryFn: () => fetchPMS(), // Pass selectedUser to the fetchUserPMS function
+    queryKey: ["pms3"],
+    queryFn: () => fetchPMS(),
   });
 
   const { data: orders = [] } = useQuery({
@@ -79,13 +115,13 @@ function WageAdd() {
     queryFn: () => fetchOrders(currentUser ? currentUser.token : ""),
   });
 
-  useEffect(() => {
-    if (selectedUser && users) {
-      const selectedUserSalary =
-        users.find((u) => u._id === selectedUser)?.salary || 0;
-      setBasic(selectedUserSalary);
-    }
-  }, [selectedUser, users]);
+  // useEffect(() => {
+  //   if (selectedUser && users) {
+  //     const selectedUserSalary =
+  //       users.find((u) => u._id === selectedUser)?.salary || 0;
+  //     setBasic(selectedUserSalary);
+  //   }
+  // }, [selectedUser, users]);
 
   const findStaffCoaching =
     selectedUser && coaching
@@ -248,7 +284,7 @@ function WageAdd() {
 
   const calculateCoachingFee = () => {
     // Check if a user is selected
-    if (!selectedUser) {
+    if (!staffId) {
       return 0; // Return 0 if no user is selected
     }
     const currentUser = users.find((u) => u._id === selectedUser);
@@ -259,7 +295,7 @@ function WageAdd() {
 
   const calculateSCoachingFee = () => {
     // Check if a user is selected
-    if (!selectedUser) {
+    if (!staffId) {
       return 0; // Return 0 if no user is selected
     }
 
@@ -272,7 +308,7 @@ function WageAdd() {
 
   const calculateAvdCoachingFee = () => {
     // Check if a user is selected
-    if (!selectedUser) {
+    if (!staffId) {
       return 0; // Return 0 if no user is selected
     }
 
@@ -282,45 +318,6 @@ function WageAdd() {
     // Return the calculated fee
     return advancedSeniorRate * sessionsAvd;
   };
-
-  // const calculateCoachingFee = () => {
-  //   if (!selectedUser) {
-  //     return 0;
-  //   }
-  //   let rate;
-
-  //   const currentUser = users.find((u) => u._id === selectedUser);
-  //   if (currentUser.department === "Junior Trainee") {
-  //     if (sessions <= 50) {
-  //       rate = 30;
-  //     } else if (sessions <= 80) {
-  //       rate = 35;
-  //     } else {
-  //       rate = 40;
-  //     }
-  //   } else if (currentUser.department === "Senior Trainee") {
-  //     if (sessions <= 50) {
-  //       rate = 40;
-  //     } else if (sessions <= 80) {
-  //       rate = 45;
-  //     } else {
-  //       rate = 50;
-  //     }
-  //   } else if (currentUser.department === "Advanced Senior Trainee") {
-  //     if (sessions <= 50) {
-  //       rate = 50;
-  //     } else if (sessions <= 80) {
-  //       rate = 55;
-  //     } else {
-  //       rate = 60;
-  //     }
-  //   } else {
-  //     // Default to a rate of 0 for unknown departments
-  //     rate = 0;
-  //   }
-
-  //   return rate * sessions;
-  // };
 
   const [coachingFee, setCoachingFee] = useState();
 
@@ -332,6 +329,7 @@ function WageAdd() {
   const calculateTotalIncomeWithoutAllowClaim = () => {
     const totalcom = parseFloat(calculateTotalCom()) || 0;
     const totalPMS = parseFloat(calculateTotalPMS()) || 0;
+    const bonusValue = parseFloat(bonus) || 0;
     const coachingFee = parseFloat(calculateTotalCoachingFee) || 0;
     const basicValue = parseFloat(basic) || 0;
     const overtimeValue = parseFloat(overtime) || 0;
@@ -340,6 +338,7 @@ function WageAdd() {
     const totalIncome =
       totalcom +
       totalPMS +
+      bonusValue +
       calculateTotalCoachingFee +
       basicValue +
       overtimeValue;
@@ -1509,8 +1508,6 @@ function WageAdd() {
     };
   };
 
-  const { epf, employerEpf } = calculateEPF(totalIncomeWithoutAllowClaim);
-
   // const calculateEPF = (totalIncomeWithoutAllowClaim) => {
   //   let employerEPFRate;
   //   let employeeEPFRate;
@@ -1536,7 +1533,7 @@ function WageAdd() {
   //   };
   // };
 
-  // const { epf, employerEpf } = calculateEPF(totalIncomeWithoutAllowClaim);
+  const { epf, employerEpf } = calculateEPF(totalIncomeWithoutAllowClaim);
 
   const calculateSocso = (totalIncomeWithoutAllowClaim) => {
     let employerSocsoRate;
@@ -1714,7 +1711,6 @@ function WageAdd() {
       employerSocso: employerSocsoRate.toFixed(2),
     };
   };
-
   const { socso, employerSocso } = calculateSocso(totalIncomeWithoutAllowClaim);
 
   const calculateESI = (totalIncomeWithoutAllowClaim) => {
@@ -1893,6 +1889,13 @@ function WageAdd() {
       employerEis: employeeESIRate.toFixed(2),
     };
   };
+  // useEffect(() => {
+  //   const { employerEis: newEmployerEis, employeeEis: newEis } = calculateESI(
+  //     totalIncomeWithoutAllowClaim
+  //   );
+  //   setEmployerEis(newEmployerEis);
+  //   setEis(newEis);
+  // }, [totalIncomeWithoutAllowClaim]);
   const { eis, employerEis } = calculateESI(totalIncomeWithoutAllowClaim);
 
   const calculateTotalIncome = () => {
@@ -1900,6 +1903,8 @@ function WageAdd() {
     const totalPMS = parseFloat(calculateTotalPMS()) || 0;
     const totalCoachingFee = parseFloat(calculateTotalCoachingFee) || 0;
     const basicValue = parseFloat(basic) || 0;
+    const bonusValue = parseFloat(bonus) || 0;
+
     const allowanceValue = parseFloat(allowance) || 0;
     const pmsValue = parseFloat(calculateReward()) || 0;
     const claimsValue = parseFloat(claims) || 0;
@@ -1909,6 +1914,7 @@ function WageAdd() {
     const totalIncome =
       totalcom +
       totalPMS +
+      bonusValue +
       totalCoachingFee +
       basicValue +
       allowanceValue +
@@ -1942,10 +1948,10 @@ function WageAdd() {
   };
 
   const createMutation = useMutation({
-    mutationFn: addWage,
+    mutationFn: updateWage,
     onSuccess: (data) => {
       notifications.show({
-        title: "New Wage Added",
+        title: "Wage Updated",
         color: "green",
       });
       navigate("/wage");
@@ -1958,15 +1964,14 @@ function WageAdd() {
     },
   });
 
-  const handleAddNewStaffWage = async () => {
+  const handleUpdateStaffWage = async (event) => {
+    event.preventDefault();
     createMutation.mutate({
+      id: id,
       data: JSON.stringify({
         user: currentUser._id,
-        staffId: selectedUser,
-        name: selectedUserName,
-        ic: selectedUserIC,
-        totalpms: calculateReward(),
-        coachingFee: calculateTotalCoachingFee,
+        staffId: staffId,
+        coachingFee: coachingFee,
         year: year,
         month: selectedMonth,
         basic: basic,
@@ -1990,12 +1995,10 @@ function WageAdd() {
         epfNo: epfno,
         socsoNo: soscono,
         eisNo: eisno,
-        branch: selectedUserBranch,
       }),
       token: currentUser ? currentUser.token : "",
     });
   };
-  console.log(selectedUserBranch);
 
   return (
     <Container>
@@ -2012,70 +2015,69 @@ function WageAdd() {
               onChange={(value) => setSelectedMonth(value)}
               label="Month"
               placeholder="Select a month"
+              readOnly
             />
           </Grid.Col>
           <Grid.Col span={6}></Grid.Col>
           <Space h={100} />
           <Grid.Col span={3}>
             <Select
-              data={users.map((user) => ({
-                value: user._id,
-                label: `${user.name} (${user.ic})`,
-              }))}
-              value={selectedUser}
-              onChange={(value) => setSelectedUser(value)}
+              value={staffId}
+              onChange={setStaffId}
               label="Staff"
               placeholder="Select a Staff"
-            />
-          </Grid.Col>
-          <Grid.Col span={3}>
-            <TextInput
-              label="Department"
-              value={
-                selectedUser && users
-                  ? users.find((u) => u._id === selectedUser)?.department ||
-                    "pls contact your supervisor to add to system"
-                  : ""
-              }
-              onChange={(e) => setDepartment(e.target.value)}
+              data={users.map((user) => ({
+                value: user._id,
+                label: user.name,
+              }))}
               readOnly
             />
           </Grid.Col>
           <Grid.Col span={3}>
-            <TextInput
+            <Select
+              value={staffId}
+              onChange={setDepartment}
               label="Identity Card No"
-              value={selectedUserIC}
+              data={users.map((user) => ({
+                value: user._id,
+                label: user.department,
+              }))}
+              readOnly
+            />
+          </Grid.Col>
+          <Grid.Col span={3}>
+            <Select
+              value={staffId}
+              onChange={setIc}
+              label="Identity Card No"
+              data={users.map((user) => ({
+                value: user._id,
+                label: user.ic,
+              }))}
               readOnly
             />
           </Grid.Col>
           <Grid.Col span={3}></Grid.Col>
           <Grid.Col span={3}>
-            <TextInput label="Bank Name" value={bankname} readOnly />
+            <TextInput label="Bank Name" value={bankName} readOnly />
           </Grid.Col>
           <Grid.Col span={3}>
-            <TextInput label="Bank Account" value={bankacc} readOnly />
+            <TextInput label="Bank Account" value={bankAccount} readOnly />
           </Grid.Col>
           <Grid.Col span={6}></Grid.Col>
           <Grid.Col span={3}>
-            <TextInput label="EPF Account" value={epfno} readOnly />
+            <TextInput label="EPF Account" value={epfNo} readOnly />
           </Grid.Col>
           <Grid.Col span={3}>
-            <TextInput label="SOSCO Account" value={soscono} readOnly />
+            <TextInput label="SOSCO Account" value={socsoNo} readOnly />
           </Grid.Col>
           {/* <Grid.Col span={3}>
-            <TextInput label="EIS Account" value={eisno} readOnly />
-          </Grid.Col> */}
+          <TextInput label="EIS Account" value={eisno} readOnly />
+        </Grid.Col> */}
           <Grid.Col span={3}>
             <TextInput
               label="Bacis Salary"
-              value={
-                selectedUser && users
-                  ? users
-                      .find((u) => u._id === selectedUser)
-                      ?.salary.toFixed(2) || ""
-                  : 0
-              }
-              onChange={(event) => setBasic(event.target.value)}
+              value={basic ? basic.toFixed(2) : 0}
               readOnly
             />
           </Grid.Col>
@@ -2095,7 +2097,7 @@ function WageAdd() {
               label="Sessions"
               precision={0}
               onChange={(value) => setSessions(value)}
-              readOnly={!selectedMonth || !selectedUser}
+              readOnly={!selectedMonth || !staffId}
             />
           </Grid.Col>
           <Grid.Col span={1}>
@@ -2119,7 +2121,7 @@ function WageAdd() {
               label="Sessions"
               precision={0}
               onChange={(value) => setSessionsS(value)}
-              readOnly={!selectedMonth || !selectedUser}
+              readOnly={!selectedMonth || !staffId}
             />
           </Grid.Col>
           <Grid.Col span={1}>
@@ -2143,7 +2145,7 @@ function WageAdd() {
               label="Sessions"
               precision={0}
               onChange={(value) => setSessionsAvd(value)}
-              readOnly={!selectedMonth || !selectedUser}
+              readOnly={!selectedMonth || !staffId}
             />
           </Grid.Col>
           <Grid.Col span={1}>
@@ -2181,7 +2183,7 @@ function WageAdd() {
             <TextInput
               value={allowance}
               label="Allowance"
-              readOnly={!selectedMonth || !selectedUser}
+              readOnly={!selectedMonth || !staffId}
               onChange={(event) => setAllowance(event.target.value)}
             />
           </Grid.Col>
@@ -2189,7 +2191,7 @@ function WageAdd() {
             <TextInput
               value={claims}
               label="Claims"
-              readOnly={!selectedMonth || !selectedUser}
+              readOnly={!selectedMonth || !staffId}
               onChange={(event) => setClaims(event.target.value)}
             />
           </Grid.Col>
@@ -2229,7 +2231,7 @@ function WageAdd() {
               disabled={false}
               onChange={setSelectedPMS1}
               placeholder="Select a PMS"
-              readOnly={!selectedMonth || !selectedUser}
+              readOnly={!selectedMonth || !staffId}
             />
           </Grid.Col>
           <Grid.Col span={4}>
@@ -2261,7 +2263,7 @@ function WageAdd() {
             />
           </Grid.Col>
           <Grid.Col span={4}>
-            <TextInput value={calculateReward()} label="Bonus" readOnly />
+            <TextInput value={calculateReward()} label="PMS Bonus" readOnly />
           </Grid.Col>{" "}
           <Grid.Col span={4}>
             <TextInput
@@ -2295,8 +2297,8 @@ function WageAdd() {
         </Grid>
 
         <Space h="60px" />
-        <Button loading={isLoading} fullWidth onClick={handleAddNewStaffWage}>
-          Create
+        <Button loading={isLoading} fullWidth onClick={handleUpdateStaffWage}>
+          Update
         </Button>
       </Card>
       <Space h="50px" />
@@ -2304,4 +2306,4 @@ function WageAdd() {
   );
 }
 
-export default WageAdd;
+export default WageEdit;

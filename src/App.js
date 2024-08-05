@@ -48,6 +48,7 @@ import DataAnalysisOrder from "./DataAnalysisOrder";
 import DataAnalysisClient from "./DataAnalysisClient";
 import CalendarTable from "./CalendarTable";
 import PostUpdate from "./Post_Update";
+import WageEdit from "./WageEdit";
 
 function App() {
   const [cookies] = useCookies(["currentUser"]);
@@ -318,6 +319,16 @@ function App() {
             </AppWrapper>
           }
         />
+        {(isAdminB || isAdminHQ) && (
+          <Route
+            path="/wage-update/:id"
+            element={
+              <AppWrapper>
+                <WageEdit />
+              </AppWrapper>
+            }
+          />
+        )}
         <Route
           path="/wage-all"
           element={

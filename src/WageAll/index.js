@@ -20,7 +20,7 @@ import {
 import { useNavigate, Link } from "react-router-dom";
 import Header from "../Header";
 import { useParams } from "react-router-dom";
-import { MdDownloadForOffline } from "react-icons/md";
+import { MdDownloadForOffline, MdEditDocument } from "react-icons/md";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { useCookies } from "react-cookie";
@@ -373,6 +373,29 @@ export default function WagesAll() {
                       <HoverCard.Target>
                         <Button
                           variant="subtle"
+                          color="red"
+                          radius="md"
+                          size="xs"
+                          compact
+                          component={Link}
+                          to={`/wage-update/${wage._id}`}
+                        >
+                          <MdEditDocument
+                            style={{
+                              height: 24,
+                              width: 24,
+                            }}
+                          />
+                        </Button>
+                      </HoverCard.Target>
+                      <HoverCard.Dropdown>
+                        <Text size="sm">Update {wage.name} wage</Text>
+                      </HoverCard.Dropdown>
+                    </HoverCard>
+                    <HoverCard>
+                      <HoverCard.Target>
+                        <Button
+                          variant="subtle"
                           color="gray"
                           radius="xl"
                           size="sm"
@@ -387,7 +410,7 @@ export default function WagesAll() {
                         </Button>
                       </HoverCard.Target>
                       <HoverCard.Dropdown>
-                        <Text size="sm">Payslip</Text>
+                        <Text size="sm"> Download {wage.name} Payslip</Text>
                       </HoverCard.Dropdown>
                     </HoverCard>
                   </td>

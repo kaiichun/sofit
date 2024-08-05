@@ -11,6 +11,7 @@ import {
   Space,
   Table,
   Modal,
+  Select,
   Divider,
 } from "@mantine/core";
 import React from "react";
@@ -22,7 +23,7 @@ import HeaderClient from "../HeaderClient";
 import { useState, useEffect, useMemo } from "react";
 import { deletePackage, fetchPackage } from "../api/package";
 import { notifications } from "@mantine/notifications";
-import { fetchUsers } from "../api/auth";
+import { fetchBranch, fetchUsers } from "../api/auth";
 import { API_URL } from "../api/data";
 import noImageIcon from "../Logo/no_image.png";
 
@@ -30,6 +31,7 @@ export default function Clients() {
   const [cookies] = useCookies(["currentUser"]);
   const { currentUser } = cookies;
   const queryClient = useQueryClient();
+  const [category, setCategory] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showClientDeleteModal, setShowClientDeleteModal] = useState(false);
   const [packageIdToDelete, setPackageIdToDelete] = useState(null);
@@ -46,6 +48,16 @@ export default function Clients() {
   //   queryKey: ["clients"],
   //   queryFn: () => fetchClients(),
   // });
+  const [selectedBranch, setSelectedBranch] = useState(null);
+
+  const { data: branchs = [] } = useQuery({
+    queryKey: ["fetchB"],
+    queryFn: () => fetchBranch(),
+  });
+
+  const currentUserBranch = useMemo(() => {
+    return cookies?.currentUser?.branch;
+  }, [cookies]);
 
   const { isLoading, data: clients = [] } = useQuery({
     queryKey: ["clients"],
@@ -94,6 +106,14 @@ export default function Clients() {
     },
   });
 
+  const isAdminBranch = useMemo(() => {
+    return cookies?.currentUser?.role === "Admin Branch";
+  }, [cookies]);
+
+  const isAdminHQ = useMemo(() => {
+    return cookies?.currentUser?.role === "Admin HQ";
+  }, [cookies]);
+
   const isAdmin = useMemo(() => {
     return cookies &&
       cookies.currentUser &&
@@ -106,6 +126,15 @@ export default function Clients() {
   useEffect(() => {
     let newList = clients ? [...clients] : [];
 
+    if (isAdminHQ && selectedBranch !== null) {
+      newList = newList.filter((wage) => wage.branch === selectedBranch);
+    } else if (isAdminBranch) {
+      newList = newList.filter((wage) => wage.branch === currentUserBranch);
+    }
+
+    if (category !== "") {
+      newList = newList.filter((p) => p.coachName === category);
+    }
     switch (sort) {
       case "name":
         newList = newList.sort((a, b) => {
@@ -146,7 +175,31 @@ export default function Clients() {
     }
 
     setCurrentClients(newList);
-  }, [clients, sort, perPage, searchTerm, currentPage]);
+  }, [
+    clients,
+    category,
+    sort,
+    perPage,
+    selectedBranch,
+    isAdminBranch,
+    currentUserBranch,
+    branchs,
+    ,
+    searchTerm,
+    currentPage,
+  ]);
+
+  const categoryOptions = useMemo(() => {
+    let options = [];
+    if (clients && clients.length > 0) {
+      clients.forEach((client) => {
+        if (!options.includes(client.coachName)) {
+          options.push(client.coachName);
+        }
+      });
+    }
+    return options;
+  }, [clients]);
 
   function formatDate(date) {
     const year = date.getFullYear();
@@ -190,9 +243,16 @@ export default function Clients() {
   // Calculate total package pages
   const totalPackagePages = Math.ceil(packages.length / packagesPerPage);
 
+  const categoryOptionsData = [
+    { value: "", label: "All Coach" },
+    ...categoryOptions.map((coachName) => ({
+      value: coachName,
+      label: coachName,
+    })),
+  ];
+
   return (
     <>
-      {" "}
       <HeaderClient page="clients" />
       <LoadingOverlay visible={isLoading} />
       <Group position="apart">
@@ -215,82 +275,92 @@ export default function Clients() {
       <Space h="20px" />
       {isAdmin && (
         <>
-          <Table
-            horizontalSpacing="xl"
-            verticalSpacing="sm"
-            highlightOnHover
-            withBorder
-          >
-            <thead>
-              <tr>
-                <th>Customer</th>
-                <th>PRICE</th>
-                <th>Sessions</th>
-                <th>category</th>
-                <th>Package Validity Period</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {packages
-                .slice(
-                  (currentPackagePage - 1) * packagesPerPage,
-                  currentPackagePage * packagesPerPage
-                )
-                .map((p) => {
-                  return (
-                    <tr key={p._id}>
-                      <td style={{ borderTop: "none" }}>{p.sofitpackage}</td>
-                      <td style={{ borderTop: "none" }}>{p.price}</td>
-                      <td style={{ borderTop: "none" }}>{p.sessions}</td>
-                      <td style={{ borderTop: "none" }}>{p.category}</td>
-                      <td style={{ borderTop: "none" }}>{p.valiMonth}</td>
-                      <td style={{ borderTop: "none" }}>
-                        <Button
-                          variant="outline"
-                          color="indigo"
-                          radius="md"
-                          size="xs"
-                          compact
-                          component={Link}
-                          to={"/package-edit/" + p._id}
-                          style={{ marginRight: 10 }}
-                        >
-                          EDIT
-                        </Button>
-
-                        <Button
-                          onClick={() => {
-                            setPackageIdToDelete(p._id);
-                            setShowDeleteModal(true);
-                          }}
-                          variant="outline"
-                          color="red"
-                          radius="md"
-                          size="xs"
-                          compact
-                        >
-                          Delete
-                        </Button>
-                      </td>
-                    </tr>
-                  );
-                })}
-            </tbody>
-          </Table>
-          {/* Package Pagination */}
-          <Group position="center" mt="md">
-            {Array.from({ length: totalPackagePages }, (_, i) => (
-              <Button
-                key={i + 1}
-                variant={currentPackagePage === i + 1 ? "filled" : "outline"}
-                onClick={() => handlePackagePageChange(i + 1)}
+          {packages.length === 0 ? (
+            <Text color="red">Please contact your supervisor</Text>
+          ) : (
+            <>
+              <Table
+                horizontalSpacing="xl"
+                verticalSpacing="sm"
+                highlightOnHover
+                withBorder
               >
-                {i + 1}
-              </Button>
-            ))}
-          </Group>
-          <Space h="40px" />
+                <thead>
+                  <tr>
+                    <th>Customer</th>
+                    <th>PRICE</th>
+                    <th>Sessions</th>
+                    <th>Category</th>
+                    <th>Package Validity Period</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {packages
+                    .slice(
+                      (currentPackagePage - 1) * packagesPerPage,
+                      currentPackagePage * packagesPerPage
+                    )
+                    .map((p) => {
+                      return (
+                        <tr key={p._id}>
+                          <td style={{ borderTop: "none" }}>
+                            {p.sofitpackage}
+                          </td>
+                          <td style={{ borderTop: "none" }}>{p.price}</td>
+                          <td style={{ borderTop: "none" }}>{p.sessions}</td>
+                          <td style={{ borderTop: "none" }}>{p.category}</td>
+                          <td style={{ borderTop: "none" }}>{p.valiMonth}</td>
+                          <td style={{ borderTop: "none" }}>
+                            <Button
+                              variant="outline"
+                              color="indigo"
+                              radius="md"
+                              size="xs"
+                              compact
+                              component={Link}
+                              to={"/package-edit/" + p._id}
+                              style={{ marginRight: 10 }}
+                            >
+                              EDIT
+                            </Button>
+
+                            <Button
+                              onClick={() => {
+                                setPackageIdToDelete(p._id);
+                                setShowDeleteModal(true);
+                              }}
+                              variant="outline"
+                              color="red"
+                              radius="md"
+                              size="xs"
+                              compact
+                            >
+                              Delete
+                            </Button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </Table>
+              {/* Package Pagination */}
+              <Group position="center" mt="md">
+                {Array.from({ length: totalPackagePages }, (_, i) => (
+                  <Button
+                    key={i + 1}
+                    variant={
+                      currentPackagePage === i + 1 ? "filled" : "outline"
+                    }
+                    onClick={() => handlePackagePageChange(i + 1)}
+                  >
+                    {i + 1}
+                  </Button>
+                ))}
+              </Group>
+              <Space h="40px" />
+            </>
+          )}
         </>
       )}
       <Group position="left">
@@ -301,31 +371,54 @@ export default function Clients() {
       <Space h="20px" />{" "}
       <Group position="apart" mb="lg">
         <Group>
-          <select
+          <Select
             value={sort}
-            onChange={(event) => {
-              setSort(event.target.value);
+            onChange={(value) => {
+              setSort(value);
               setCurrentPage(1);
             }}
-          >
-            <option value="">No Sorting</option>
-            <option value="name">Sort by Name</option>
-            <option value="male">Sort by Male</option>
-            <option value="female">Sort by Female</option>
-          </select>
-          <select
-            value={perPage}
-            onChange={(event) => {
-              setPerPage(parseInt(event.target.value));
-              // reset it back to page 1
+            data={[
+              { value: "", label: "-" },
+              { value: "name", label: "Sort by Name" },
+              { value: "male", label: "Sort by Male" },
+              { value: "female", label: "Sort by Female" },
+            ]}
+          />
+          {isAdmin && (
+            <Select
+              value={category}
+              onChange={(value) => {
+                setCategory(value);
+                setCurrentPage(1);
+              }}
+              data={categoryOptionsData}
+            />
+          )}
+          {isAdminHQ && (
+            <Select
+              placeholder="Select branch"
+              value={selectedBranch}
+              onChange={(value) => setSelectedBranch(value)}
+              data={branchs.map((branch) => ({
+                value: branch._id,
+                label: branch.branch,
+              }))}
+              clearable
+            />
+          )}
+          <Select
+            value={perPage.toString()} // Convert perPage to string for compatibility
+            onChange={(value) => {
+              setPerPage(parseInt(value));
               setCurrentPage(1);
             }}
-          >
-            {" "}
-            <option value={9999999}>All</option>
-            <option value="6">6 Per Page</option>
-            <option value="10">10 Per Page</option>
-          </select>
+            data={[
+              { value: "9999999", label: "All" },
+              { value: "6", label: "6 Per Page" },
+              { value: "10", label: "10 Per Page" },
+              { value: "20", label: "20 Per Page" },
+            ]}
+          />
         </Group>
         <TextInput
           value={searchTerm}
@@ -343,306 +436,239 @@ export default function Clients() {
           { maxWidth: 600, cols: 2, spacing: "sm" },
         ]}
       >
-        {currentClients ? (
-          isAdmin ? (
-            currentClients.map((c) => {
-              return (
-                <>
-                  {" "}
-                  <Card
-                    shadow="md"
-                    p="lg"
-                    radius="md"
-                    withBorder
-                    style={{
-                      backgroundColor:
-                        getColorForValidityPeriod(c.packageValidityPeriod) ===
-                        "red"
-                          ? "#ffd9d9"
-                          : getColorForValidityPeriod(
-                              c.packageValidityPeriod
-                            ) === "yellow"
-                          ? "#fff7d9"
-                          : "initial",
-                    }}
+        {currentClients.length === 0 ? (
+          <>
+            <Space h={100} />
+            <Group position="center">
+              <Text color="red">No Member Available!</Text>
+            </Group>
+
+            <Space h={150} />
+          </>
+        ) : isAdmin ? (
+          currentClients.map((c) => {
+            return (
+              <Card
+                shadow="md"
+                p="lg"
+                radius="md"
+                withBorder
+                style={{
+                  backgroundColor:
+                    getColorForValidityPeriod(c.packageValidityPeriod) === "red"
+                      ? "#ffd9d9"
+                      : getColorForValidityPeriod(c.packageValidityPeriod) ===
+                        "yellow"
+                      ? "#fff7d9"
+                      : "initial",
+                }}
+              >
+                <Card.Section>
+                  {c.clientImage ? (
+                    <Image
+                      src={API_URL + "/" + c.clientImage}
+                      alt="Client Image"
+                      height={300}
+                    />
+                  ) : (
+                    <Image src={noImageIcon} alt="Client Image" height={300} />
+                  )}
+                </Card.Section>
+
+                <Group position="apart" mb="xs">
+                  <Text fw={700}>{c.clientName}</Text>
+                </Group>
+
+                <Text size="sm">Gender: {c.clientGender}</Text>
+                <Text size="sm">Height: {c.clientHeight} (CM)</Text>
+                <Text size="sm">Weight: {c.clientWeight} (KG)</Text>
+                <Group>
+                  <Text size="sm"> Sessions: </Text>
+                  <Text
+                    size="sm"
+                    color={getColorForSessionDuration(c.sessions)}
+                    style={{ marginLeft: "-10px" }}
+                    fw={700}
                   >
-                    <Card.Section>
-                      {c.clientImage ? (
-                        <Image
-                          src={API_URL + "/" + c.clientImage}
-                          alt="Client Image"
-                          height={300}
-                        />
-                      ) : (
-                        <Image
-                          src={noImageIcon}
-                          alt="Client = Image"
-                          height={300}
-                        />
+                    {c.sessions}
+                  </Text>
+                </Group>
+                <Group>
+                  <Text size="sm">Package validity period:</Text>
+
+                  <Text
+                    size="sm"
+                    fw={700}
+                    style={{ marginLeft: "-10px" }}
+                    color={getColorForValidityPeriod(c.packageValidityPeriod)}
+                  >
+                    {c.packageValidityPeriod
+                      ? formatDate(new Date(c.packageValidityPeriod))
+                      : "  - "}
+                  </Text>
+                </Group>
+
+                <Text size="sm">Choch: {c.coachName}</Text>
+                <Group position="center" mt="md" mb="xs">
+                  <Group>
+                    <Button
+                      variant="outline"
+                      color="indigo"
+                      radius="md"
+                      size="xs"
+                      compact
+                      component={Link}
+                      to={"/composition-client/" + c._id}
+                    >
+                      INFO
+                    </Button>
+                    <Button
+                      variant="outline"
+                      color="indigo"
+                      radius="md"
+                      size="xs"
+                      compact
+                      component={Link}
+                      to={"/edit-client-info/" + c._id}
+                    >
+                      EDIT
+                    </Button>
+                    {isAdmin && (
+                      <Button
+                        onClick={() => {
+                          setClientIdToDelete(c._id);
+                          setShowClientDeleteModal(true);
+                        }}
+                        variant="outline"
+                        color="red"
+                        radius="md"
+                        size="xs"
+                        compact
+                      >
+                        DELETE
+                      </Button>
+                    )}
+                  </Group>
+                </Group>
+              </Card>
+            );
+          })
+        ) : (
+          currentClients
+            .filter((c) => c.coachId === currentUser._id)
+            .map((c) => {
+              return (
+                <Card
+                  shadow="md"
+                  p="lg"
+                  radius="md"
+                  withBorder
+                  style={{
+                    backgroundColor:
+                      getColorForValidityPeriod(c.packageValidityPeriod) ===
+                      "red"
+                        ? "#ffd9d9"
+                        : getColorForValidityPeriod(c.packageValidityPeriod) ===
+                          "yellow"
+                        ? "#fff7d9"
+                        : "initial",
+                  }}
+                >
+                  <Card.Section>
+                    {c.clientImage ? (
+                      <Image
+                        src={API_URL + "/" + c.clientImage}
+                        alt="Client Image"
+                        height={300}
+                      />
+                    ) : (
+                      <Image
+                        src={noImageIcon}
+                        alt="Client Image"
+                        height={300}
+                      />
+                    )}
+                  </Card.Section>
+
+                  <Group position="apart" mb="xs">
+                    <Text fw={700}>{c.clientName}</Text>
+                  </Group>
+
+                  <Text size="sm">Gender: {c.clientGender}</Text>
+                  <Text size="sm">Height: {c.clientHeight} (CM)</Text>
+                  <Text size="sm">Weight: {c.clientWeight} (KG)</Text>
+                  <Group>
+                    <Text size="sm"> Sessions: </Text>
+                    <Text
+                      size="sm"
+                      color={getColorForSessionDuration(c.sessions)}
+                      style={{ marginLeft: "-10px" }}
+                      fw={700}
+                    >
+                      {c.sessions}
+                    </Text>
+                  </Group>
+                  <Group>
+                    <Text size="sm">Package validity period:</Text>
+
+                    <Text
+                      size="sm"
+                      fw={700}
+                      style={{ marginLeft: "-10px" }}
+                      color={getColorForValidityPeriod(c.packageValidityPeriod)}
+                    >
+                      {c.packageValidityPeriod
+                        ? formatDate(new Date(c.packageValidityPeriod))
+                        : "  - "}
+                    </Text>
+                  </Group>
+
+                  <Text size="sm">Choch: {c.coachName}</Text>
+                  <Group position="center" mt="md" mb="xs">
+                    <Group>
+                      <Button
+                        variant="outline"
+                        color="indigo"
+                        radius="md"
+                        size="xs"
+                        compact
+                        component={Link}
+                        to={"/composition-client/" + c._id}
+                      >
+                        INFO
+                      </Button>
+                      <Button
+                        variant="outline"
+                        color="indigo"
+                        radius="md"
+                        size="xs"
+                        compact
+                        component={Link}
+                        to={"/edit-client-info/" + c._id}
+                      >
+                        EDIT
+                      </Button>
+                      {isAdmin && (
+                        <Button
+                          onClick={() => {
+                            setClientIdToDelete(c._id);
+                            setShowClientDeleteModal(true);
+                          }}
+                          variant="outline"
+                          color="red"
+                          radius="md"
+                          size="xs"
+                          compact
+                        >
+                          DELETE
+                        </Button>
                       )}
-                    </Card.Section>
-
-                    <Group position="apart" mb="xs">
-                      <Text fw={700}>{c.clientName}</Text>
                     </Group>
-
-                    <Text size="sm">Gender: {c.clientGender}</Text>
-                    <Text size="sm">Height: {c.clientHeight} (CM)</Text>
-                    <Text size="sm">Weight: {c.clientWeight} (KG)</Text>
-                    <Group>
-                      <Text size="sm"> Sessions: </Text>
-                      <Text
-                        size="sm"
-                        color={getColorForSessionDuration(c.sessions)}
-                        style={{ marginLeft: "-10px" }}
-                        fw={700}
-                      >
-                        {c.sessions}
-                      </Text>
-                    </Group>
-                    <Group>
-                      <Text size="sm">Package validity period:</Text>
-
-                      <Text
-                        size="sm"
-                        fw={700}
-                        style={{ marginLeft: "-10px" }}
-                        color={getColorForValidityPeriod(
-                          c.packageValidityPeriod
-                        )}
-                      >
-                        {c.packageValidityPeriod
-                          ? formatDate(new Date(c.packageValidityPeriod))
-                          : "  - "}
-                      </Text>
-                    </Group>
-
-                    <Text size="sm">Choch: {c.coachName}</Text>
-                    <Group position="center" mt="md" mb="xs">
-                      <Group>
-                        <Button
-                          variant="outline"
-                          color="indigo"
-                          radius="md"
-                          size="xs"
-                          compact
-                          component={Link}
-                          to={"/composition-client/" + c._id}
-                        >
-                          INFO
-                        </Button>
-                        <Button
-                          variant="outline"
-                          color="indigo"
-                          radius="md"
-                          size="xs"
-                          compact
-                          component={Link}
-                          to={"/edit-client-info/" + c._id}
-                        >
-                          EDIT
-                        </Button>
-                        {isAdmin && (
-                          <Button
-                            onClick={() => {
-                              setClientIdToDelete(c._id);
-                              setShowClientDeleteModal(true);
-                            }}
-                            variant="outline"
-                            color="red"
-                            radius="md"
-                            size="xs"
-                            compact
-                          >
-                            DELETE
-                          </Button>
-                        )}
-                      </Group>
-                    </Group>
-                  </Card>
-                </>
+                  </Group>
+                </Card>
               );
             })
-          ) : (
-            currentClients
-              .filter((c) => c.coachId === currentUser._id)
-              .map((c) => {
-                return (
-                  <>
-                    {" "}
-                    <Card
-                      shadow="md"
-                      p="lg"
-                      radius="md"
-                      withBorder
-                      style={{
-                        backgroundColor:
-                          getColorForValidityPeriod(c.packageValidityPeriod) ===
-                          "red"
-                            ? "#ffd9d9"
-                            : getColorForValidityPeriod(
-                                c.packageValidityPeriod
-                              ) === "yellow"
-                            ? "#fff7d9"
-                            : "initial",
-                      }}
-                    >
-                      <Card.Section>
-                        {c.clientImage ? (
-                          <Image
-                            src={API_URL + "/" + c.clientImage}
-                            alt="Client Image"
-                            height={300}
-                          />
-                        ) : (
-                          <Image
-                            src={noImageIcon}
-                            alt="Client Image"
-                            height={300}
-                          />
-                        )}
-                      </Card.Section>
-                      <Group position="apart" mb="xs">
-                        <Text fw={700}>{c.clientName}</Text>
-                      </Group>
-
-                      <Text size="sm">Gender: {c.clientGender}</Text>
-                      <Text size="sm">Height: {c.clientHeight} (CM)</Text>
-                      <Text size="sm">Weight: {c.clientWeight} (KG)</Text>
-                      <Group>
-                        <Text size="sm"> Sessions: </Text>
-                        <Text
-                          size="sm"
-                          color={getColorForSessionDuration(c.sessions)}
-                          style={{ marginLeft: "-10px" }}
-                          fw={700}
-                        >
-                          {c.sessions}
-                        </Text>
-                      </Group>
-                      <Group>
-                        <Text size="sm">Package validity period:</Text>
-                        <Text
-                          size="sm"
-                          style={{ marginLeft: "-10px" }}
-                          fw={700}
-                          color={getColorForValidityPeriod(
-                            c.packageValidityPeriod
-                          )}
-                        >
-                          <Text
-                            size="sm"
-                            style={{ marginLeft: "-10px" }}
-                            fw={700}
-                            color={getColorForValidityPeriod(
-                              c.packageValidityPeriod
-                            )}
-                          >
-                            {c.packageValidityPeriod
-                              ? formatDate(new Date(c.packageValidityPeriod))
-                              : "-"}
-                          </Text>
-                        </Text>
-                      </Group>
-
-                      <Text size="sm">Choch: {c.coachName}</Text>
-                      <Group position="center" mt="md" mb="xs">
-                        <Group>
-                          <Button
-                            variant="outline"
-                            color="indigo"
-                            radius="md"
-                            size="xs"
-                            compact
-                            component={Link}
-                            to={"/composition-client/" + c._id}
-                          >
-                            INFO
-                          </Button>
-                          <Button
-                            variant="outline"
-                            color="indigo"
-                            radius="md"
-                            size="xs"
-                            compact
-                            component={Link}
-                            to={"/edit-client-info/" + c._id}
-                          >
-                            EDIT
-                          </Button>
-                          {isAdmin && (
-                            <Button
-                              onClick={() => {
-                                setClientIdToDelete(c._id);
-                                setShowClientDeleteModal(true);
-                              }}
-                              variant="outline"
-                              color="red"
-                              radius="md"
-                              size="xs"
-                              compact
-                            >
-                              DELETE
-                            </Button>
-                          )}
-                        </Group>
-                      </Group>
-                    </Card>
-                  </>
-                );
-              })
-          )
-        ) : (
-          <>
-            <Text>No Member Found</Text>
-          </>
         )}
-        <Modal
-          opened={showClientDeleteModal}
-          onClose={() => setShowClientDeleteModal(false)}
-          title="Delete Member"
-          size="lg"
-          hideCloseButton
-          centered
-          overlayOpacity={0.75}
-          overlayBlur={5}
-        >
-          <Divider />
-          <Space h="10px" />
-          <Group>
-            {clients.length > 0 ? (
-              <>
-                <Text>Are you sure you want to delete this member </Text>
-                <Text c="red" fw={500}>
-                  {clients.find((c) => c._id === clientIdToDelete)
-                    ?.clientName || "Unknown Client"}
-                </Text>
-                <Text>?</Text>
-              </>
-            ) : (
-              <Text>Loading...</Text>
-            )}
-          </Group>
-
-          <Space h="20px" />
-          <Group position="right">
-            <Button
-              color="red"
-              onClick={() => {
-                deleteClientMutation.mutate({
-                  id: clientIdToDelete,
-                  token: currentUser ? currentUser.token : "",
-                });
-                setShowClientDeleteModal(false);
-              }}
-            >
-              Delete
-            </Button>
-            <Button onClick={() => setShowClientDeleteModal(false)}>
-              Cancel
-            </Button>
-          </Group>
-        </Modal>
       </SimpleGrid>
     </>
   );
